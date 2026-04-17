@@ -1,0 +1,107 @@
+[
+  {
+    "theme": "No-Shows Worst Pain",
+    "category": "pain_point",
+    "summary": "Candidate no-shows are P1's single biggest frustration because they waste compounded time already invested across multiple hiring steps.",
+    "quote": "No-shows. No-shows by a mile. Because I've already invested time. I've read their resume, I've messaged them, I've picked a day, I've prepped my sous chef to cover the station while I do the trail. And then they don't come. And I've lost four hours of my week to someone who wasn't even serious. It makes me not want to hire.",
+    "quote_context": "Asked to rank the worst part of the hiring process among screening, scheduling, no-shows, and pay negotiation."
+  },
+  {
+    "theme": "Low-Quality Application Volume",
+    "category": "pain_point",
+    "summary": "The majority of Indeed applicants are obviously unqualified, creating a signal-to-noise problem that forces P1 to manually sift through noise at the end of an exhausting day.",
+    "quote": "I get applicants, I got maybe forty applicants in the first two days, but like thirty-five of them aren't real, you know? They're just people spraying applications at anything that moves. I can tell immediately.",
+    "quote_context": "Describing what happens after posting a job on Indeed and receiving a flood of applicants."
+  },
+  {
+    "theme": "Hiring at Midnight on Phone",
+    "category": "workflow_description",
+    "summary": "P1 manages the entire hiring funnel alone, reviewing applicants late at night on a mobile phone after close \u2014 a workflow that existing tools are not designed for.",
+    "quote": "I try to read them at night after close which is like 11 PM and I'm dead. I star the ones that look real. Then I message them through Indeed to set up a phone screen.",
+    "quote_context": "Walking through the step-by-step hiring workflow after posting on Indeed."
+  },
+  {
+    "theme": "Tools Built for Enterprises",
+    "category": "pain_point",
+    "summary": "P1 feels that AI and hiring automation tools are designed for large franchise operators and are completely irrelevant to a solo operator-chef with no HR department.",
+    "quote": "I don't \u2014 look, I'm one person, I don't have HR, I'm not Chipotle. I've seen ads for that stuff and it's all built for like, franchises with 500 locations. It's not for me. I need something that understands that I am the hiring manager and the chef and I'm reading these resumes at midnight on my phone.",
+    "quote_context": "Responding to a question about whether he's tried AI screening tools used by larger restaurants."
+  },
+  {
+    "theme": "Reliability Over Skills as Core Signal",
+    "category": "jobs_to_be_done",
+    "summary": "P1's primary hiring criterion is whether a candidate will reliably show up \u2014 not credentials or skills \u2014 suggesting the core job-to-be-done is predicting dependability, not competence.",
+    "quote": "Honestly? They show up. That's like 80% of it. They show up to the interview, they show up to the trail shift, they show up on their first day. That's \u2014 I know it sounds dumb but that's the bar. So many people don't clear it.",
+    "quote_context": "Asked what makes a good applicant good."
+  },
+  {
+    "theme": "Desire for Show-Up Prediction",
+    "category": "feature_request",
+    "summary": "P1 explicitly articulates a desire for a tool that predicts which applicants will actually show up, framing it as the single feature that would 'change his life.'",
+    "quote": "Honestly? If someone could just tell me which of these forty applicants is actually going to show up. That's all I want. I don't need AI to write a job description, I can do that in five minutes. I don't need it to rank them on skills. I need it to tell me \u2014 this person, statistically, shows up. This person doesn't. That would change my life.",
+    "quote_context": "Asked what would actually help him at midnight on his phone when reviewing applicants."
+  },
+  {
+    "theme": "Embedded Interview Scheduling",
+    "category": "feature_request",
+    "summary": "P1 wants automated scheduling built natively into the hiring tool \u2014 not a separate Calendly setup \u2014 to eliminate back-and-forth messaging with candidates.",
+    "quote": "And like, schedule the phone screens for me. Don't make me go back and forth on Indeed messenger. Just \u2014 here's a link, pick a time, it's on my calendar. Calendly but for this. I know Calendly exists, I don't want to set up Calendly for this, I want it built in.",
+    "quote_context": "Continuing to describe what features would genuinely help him during the hiring process."
+  },
+  {
+    "theme": "Volume vs. Quality Platform Tradeoff",
+    "category": "pain_point",
+    "summary": "P1 has identified a gap in the market: Indeed has volume but low quality, Poached has quality but low volume \u2014 and no single platform offers both.",
+    "quote": "It's better quality applicants, honestly, like the people on Poached are real restaurant people. But there's way fewer of them. Indeed has volume, Poached has quality. I'd love if there was one that had both.",
+    "quote_context": "Comparing his experiences using Indeed and Poached as hiring platforms."
+  },
+  {
+    "theme": "Real Cost of Open Positions",
+    "category": "jobs_to_be_done",
+    "summary": "P1 understands that unfilled roles translate directly to lost revenue (fewer covers served), making speed-to-hire a financially urgent problem even if he avoids quantifying it.",
+    "quote": "A line cook shift is maybe, I don't know, a thousand dollars of revenue that goes through their station? If we're short and we can only do sixty covers instead of ninety, that's a real number. Over a month that's \u2014 yeah. It's a lot. I try not to think about it.",
+    "quote_context": "Asked whether he had a sense of how much an unfilled position was costing him."
+  },
+  {
+    "theme": "Onboarding Is Personal, Not Automatable",
+    "category": "contradiction",
+    "summary": "P1 says he wants automation for the pre-hire funnel, but explicitly rejects automating onboarding \u2014 viewing it as his own job and the moment he assesses fit, which contradicts a broad 'automate hiring' framing.",
+    "quote": "Onboarding \u2014 I mean, I hand them a packet, I take them through the kitchen, we go over the menu, we do a tasting. That's my job. I don't want to automate that. That's where I actually get to know if this person is going to work out.",
+    "quote_context": "Asked about what happens after hiring \u2014 onboarding and scheduling."
+  },
+  {
+    "theme": "Best Hire from Instagram DM",
+    "category": "surprising_statement",
+    "summary": "P1's best hire came through an unsolicited Instagram DM \u2014 not a job platform \u2014 suggesting that inbound passion-driven candidates outperform platform applicants in quality.",
+    "quote": "Yeah one of them's my pastry person now. She DM'd me like two years ago and said she loved our menu and wanted to stage. She staged, she was great, I hired her. Best hire I ever made honestly.",
+    "quote_context": "Discussing having hired two people through Instagram, unprompted by a job posting."
+  },
+  {
+    "theme": "Mobile-First, No Dashboard",
+    "category": "feature_request",
+    "summary": "P1 explicitly wants to be notified via text when a strong candidate appears \u2014 he has zero interest in logging into a web dashboard.",
+    "quote": "Don't make me log into a dashboard. I live on my phone. Text me when there's a candidate worth looking at. That's it.",
+    "quote_context": "Wrapping up the call and describing his ideal product experience in plain terms."
+  },
+  {
+    "theme": "Hiring Aversion from Burnout",
+    "category": "emotional_moment",
+    "summary": "The cumulative frustration of no-shows and wasted time has made P1 emotionally averse to hiring itself \u2014 a psychological cost beyond the financial one.",
+    "quote": "It makes me not want to hire.",
+    "quote_context": "Describing the emotional aftermath of repeated candidate no-shows after investing significant time."
+  },
+  {
+    "theme": "Hiring Is Not What He Signed Up For",
+    "category": "emotional_moment",
+    "summary": "P1 expresses genuine resignation that hiring \u2014 not the hard parts of running a restaurant \u2014 is what drains him most, which he didn't anticipate when becoming a restaurant owner.",
+    "quote": "Like cooking, service, dealing with a bad review on Yelp, whatever, fine, I signed up for that. But the hiring thing, I did not sign up for that. I hate it.",
+    "quote_context": "Reacting to the interviewer's observation that the hiring process sounded exhausting."
+  },
+  {
+    "theme": "Willingness to Pay for No-Show Reduction",
+    "category": "surprising_statement",
+    "summary": "P1 makes an unprompted, direct offer to pay for a tool that specifically reduces no-show rates \u2014 a strong signal of validated willingness-to-pay for a targeted outcome.",
+    "quote": "If you build a thing that cuts the no-show rate, I will pay you. I don't know what I'll pay but I'll pay something. Just \u2014 make it simple.",
+    "quote_context": "At the close of the interview, offering final thoughts on what a useful product would look like."
+  }
+]
