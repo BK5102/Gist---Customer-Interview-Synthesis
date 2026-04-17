@@ -1,0 +1,99 @@
+Participant: P1 (owner/operator, independent restaurant, ~15 employees)
+Interviewer: I (founder, building a hiring tool for small restaurants)
+Date: [redacted]
+Duration: ~22 min
+Context: Customer discovery call. Participant was introduced via mutual contact. Interviewer is exploring whether hiring/scheduling pain is acute enough to build around.
+
+---
+
+I: Hey, thanks again for jumping on. I know it's a busy time of day.
+
+P1: Yeah no it's fine, it's fine. I'm between prep and service so this is actually the only calm hour I get. What do you want to know?
+
+I: I guess — just tell me about hiring. Like, when was the last time you had to hire someone and what did that actually look like?
+
+P1: [laughs] Oh god. Okay. So two weeks ago I lost my — my line cook, the one who's been with me for three years, she got a job at a hotel that pays like fifty percent more than I can pay, which, fine, good for her, honestly. But then I'm suddenly down a person on a Friday and I've got a wedding rehearsal booking that night for thirty people. So.
+
+I: So what do you do?
+
+P1: What do I do. I put a post on Indeed. That's the first thing. And then I text like three people I know in the industry to ask if anyone's looking. And then I wait. And Indeed is — I mean I get applicants, I got maybe forty applicants in the first two days, but like thirty-five of them aren't real, you know? They're just people spraying applications at anything that moves. I can tell immediately.
+
+I: How can you tell?
+
+P1: Uh, they apply to a line cook position and their resume is like, "three years experience as a cashier at Target." Or they don't answer any of the screener questions. Or they apply and then when I try to schedule an interview they just ghost. Probably half of them ghost. I had one guy last month, we scheduled three times, three different times, he never showed, never texted.
+
+I: That sounds exhausting.
+
+P1: It's the worst part of the job. Genuinely. Like cooking, service, dealing with a bad review on Yelp, whatever, fine, I signed up for that. But the hiring thing, I did not sign up for that. I hate it.
+
+I: Walk me through the actual steps. Like you post on Indeed, then what?
+
+P1: Okay so Indeed. I pay I think it's like $250 a month to be a sponsored post or whatever, otherwise no one sees it. Then I get applicants in my inbox, Indeed's inbox. I try to read them at night after close which is like 11 PM and I'm dead. I star the ones that look real. Then I message them through Indeed to set up a phone screen, which is usually like a ten minute thing — can you work weekends, how far do you live, do you have your food handler's card, that stuff. Then if they pass that I have them come in for a working interview. They work a shift, I pay them for the shift, and I see how they are in the kitchen.
+
+I: How long does the whole thing take usually?
+
+P1: From posting to having someone actually on the line? Three weeks if I'm lucky. More like a month. And that's assuming I find someone. Sometimes I just. Don't.
+
+I: What do you do when you don't find someone?
+
+P1: I work the line myself and my sous chef picks up extra. And we just — we're tired. We close earlier. We take fewer reservations. It costs money, real money, every week that position is open.
+
+I: Do you have a sense of how much?
+
+P1: I mean, roughly? A line cook shift is maybe, I don't know, a thousand dollars of revenue that goes through their station? If we're short and we can only do sixty covers instead of ninety, that's a real number. Over a month that's — yeah. It's a lot. I try not to think about it.
+
+I: You mentioned Indeed. Have you tried other platforms? Like Poached or Culinary Agents or —
+
+P1: Poached, yeah, I've used Poached. It's better quality applicants, honestly, like the people on Poached are real restaurant people. But there's way fewer of them. Indeed has volume, Poached has quality. I'd love if there was one that had both. I've also tried Facebook groups, local ones, sometimes that works. Instagram DMs — I've hired two people off Instagram actually, people who followed us.
+
+I: Really?
+
+P1: Yeah one of them's my pastry person now. She DM'd me like two years ago and said she loved our menu and wanted to stage. She staged, she was great, I hired her. Best hire I ever made honestly. But that's not — I can't count on that. That's lightning in a bottle.
+
+I: When you do get good applicants, what makes them good?
+
+P1: Honestly? They show up. That's like 80% of it. They show up to the interview, they show up to the trail shift, they show up on their first day. That's — I know it sounds dumb but that's the bar. So many people don't clear it.
+
+I: So reliability first.
+
+P1: Reliability first, and then like, do they actually know how to move in a kitchen. You can teach recipes, you cannot teach — some people have never been in a professional kitchen and they don't know how to, I don't know, not stand in front of the walk-in when someone needs to get in. Spatial awareness. Urgency. Those are hard to screen for until they're actually in the kitchen, which is why I do the trail shift.
+
+I: Have you ever tried, like, AI screening tools? I know some bigger restaurants use them —
+
+P1: For what, resumes?
+
+I: Yeah, or like automated scheduling with applicants, or —
+
+P1: I don't — look, I'm one person, I don't have HR, I'm not Chipotle. I've seen ads for that stuff and it's all built for like, franchises with 500 locations. It's not for me. I need something that understands that I am the hiring manager and the chef and I'm reading these resumes at midnight on my phone.
+
+I: What would actually help you at midnight on your phone?
+
+P1: [pause] Okay, um. Honestly? If someone could just tell me which of these forty applicants is actually going to show up. That's all I want. I don't need AI to write a job description, I can do that in five minutes. I don't need it to rank them on skills. I need it to tell me — this person, statistically, shows up. This person doesn't. That would change my life.
+
+I: Interesting.
+
+P1: And like, schedule the phone screens for me. Don't make me go back and forth on Indeed messenger. Just — here's a link, pick a time, it's on my calendar. Calendly but for this. I know Calendly exists, I don't want to set up Calendly for this, I want it built in.
+
+I: What about after you hire them? Like onboarding, scheduling shifts?
+
+P1: Scheduling shifts I have 7shifts, which is fine. It's fine. I'm not thinking about replacing that. Onboarding — I mean, I hand them a packet, I take them through the kitchen, we go over the menu, we do a tasting. That's my job. I don't want to automate that. That's where I actually get to know if this person is going to work out.
+
+I: Got it. So the pain is really the pre-hire stuff.
+
+P1: Yeah. From posting to standing in my kitchen. Everything in that funnel is broken for me. Once they're in the door I can handle it.
+
+I: One more question and I'll let you go. If you had to rank the worst part — screening, scheduling interviews, no-shows, pay negotiation — what's the worst?
+
+P1: No-shows. No-shows by a mile. Because I've already invested time. I've read their resume, I've messaged them, I've picked a day, I've prepped my sous chef to cover the station while I do the trail. And then they don't come. And I've lost four hours of my week to someone who wasn't even serious. It makes me not want to hire.
+
+I: Yeah.
+
+P1: Like I said, I hate it. But — look. If you build a thing that cuts the no-show rate, I will pay you. I don't know what I'll pay but I'll pay something. Just — make it simple. Don't make me log into a dashboard. I live on my phone. Text me when there's a candidate worth looking at. That's it.
+
+I: That's really helpful. Thank you.
+
+P1: Yeah. Good luck. Let me know when it exists. I'm serious.
+
+I: I will. Thanks again.
+
+[end]
