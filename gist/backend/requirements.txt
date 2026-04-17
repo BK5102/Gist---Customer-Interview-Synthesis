@@ -1,0 +1,13 @@
+anthropic
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+pydantic
+# Phase 1
+openai
+pydub
+# Phase 2
+supabase
+pyjwt[crypto]
+httpx
