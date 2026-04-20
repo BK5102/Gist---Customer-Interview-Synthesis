@@ -62,6 +62,9 @@ logs/
 # Eval outputs (results are committed selectively)
 eval/results/*.md
 
+# Extraction caches — derivative LLM output, re-runnable from transcripts
+eval/results/extractions/
+
 # Audio test files (can be large)
 test-transcripts/*.mp3
 test-transcripts/*.wav
