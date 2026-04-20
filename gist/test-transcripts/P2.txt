@@ -1,0 +1,95 @@
+Participant: P2 (owner/chef, two-location neighborhood bistro, ~25 employees total)
+Interviewer: I (founder, building a hiring tool for small restaurants)
+Date: [redacted]
+Duration: ~24 min
+Context: Customer discovery call. Second interview in a series. Interviewer wants to validate whether P1's pain points generalize. Participant runs two locations, which changes scale and some dynamics.
+
+---
+
+I: So thanks for doing this. I'm trying to understand hiring from the operator side — what's the worst of it for you?
+
+P2: The worst of it. Okay. So I have two spots, right, one is like four years old and the other one we opened last spring. And the second location is — I underestimated how hard it would be to staff up from scratch. Like at the first place I have a whole bench of people I've trained over years. At the second one I'm starting over and the labor market is just, it's brutal.
+
+I: Brutal how?
+
+P2: Okay so, wages have gone up, that's one thing. I'm paying 22 an hour for a line cook now, which, two years ago was 17. So the pool of people willing to work for what I can afford is smaller. And the people in that pool — they have options. They get three offers a week. If I don't move fast on a good candidate, I lose them. Like, same day. I had a guy last month, I did his trail Tuesday, I thought he was great, I was going to call him Wednesday morning to offer — he already had another job by Wednesday morning. And he didn't even tell me, I just found out because I asked a mutual friend.
+
+I: Wow.
+
+P2: So speed matters more than it used to. That's the thing that changed. Hiring used to be, like, you post, people apply, you screen, you decide. Now it's more like dating. You have to be interested, you have to show it fast, you have to close the deal in like 72 hours or they're gone.
+
+I: How do you move that fast? Walk me through it.
+
+P2: Okay so I post on Craigslist, Indeed, Poached, and I have a Google Form on my website that says "work with us" with some questions. So four inbound channels. I check each of them every morning, first thing, like 7 AM before I go in. I respond to anyone interesting within like an hour. If it feels right I skip the phone screen entirely and just invite them to come in for a trail that week.
+
+I: You skip the phone screen?
+
+P2: Sometimes. If their resume is strong and they responded quickly and clearly to my initial message, I'll just invite them in. The phone screen is a filter, right, but it also costs me time and it costs them time. For strong candidates I'd rather just see them in the kitchen.
+
+I: And does that work?
+
+P2: It works better than you'd think. The phone screen catches maybe 5% more of the bad ones, but it costs me like 15 minutes per candidate. I'd rather spend 15 minutes on a trail with a marginal candidate than 15 minutes on a phone screen with them.
+
+I: Interesting. Different from what I've heard elsewhere.
+
+P2: Yeah, I don't know. Different people run it differently. My business partner thinks I'm crazy for skipping the phone screen, she always does one. We just agree to disagree.
+
+I: Okay, different angle — what about applicant quality? How many of your applicants are like, real?
+
+P2: Honestly? Pretty good. On Poached like 80% are real restaurant people. On Indeed maybe 30%. On Craigslist, surprisingly like 50%. The Google Form on my website is actually the highest quality because anyone who found that form and filled it out actually wants to work at my specific restaurant. Those are golden. Maybe three a month though, so low volume.
+
+I: That's a real difference from other operators I've talked to. Another person I spoke with said Indeed is like 15% real.
+
+P2: Huh. I mean, maybe I write better job descriptions? I don't know. I spend time on the job post, I put personality in it, I talk about what we actually do, who we are. I think that filters. Generic job descriptions get generic applicants.
+
+I: That's a good point. Hmm. What about no-shows? Is that a big problem?
+
+P2: No-shows to interviews, yeah, it happens. Maybe one in five candidates I schedule a trail with doesn't show up. I've kind of accepted it. I don't over-prep for any single trail anymore. I just have standing trail slots every Tuesday and Thursday afternoon, whoever shows up, shows up. If they don't, I do prep for service.
+
+I: Oh, interesting — you batch them?
+
+P2: Yeah I learned this from another chef friend. You don't schedule hiring around the candidate, you schedule hiring around your own time. So every Tuesday 2-4 PM and Thursday 2-4 PM are trail windows. Candidates can take one of those slots. If they flake, fine, I use the time for prep. I'm not emotionally invested in any one trail.
+
+I: That's really smart.
+
+P2: It's a mindset shift. For a long time I took no-shows personally. Now I don't. It's just the math. One in five flake, five trails a week, one flakes, whatever.
+
+I: What about retention after you hire them? That wasn't on my list but —
+
+P2: That's the bigger problem honestly. Getting them in is hard, keeping them is harder. I had a cook quit after four weeks last month because the restaurant across the street offered him 50 cents more per hour. That's the real issue. Not the pipeline, the retention.
+
+I: What do you do about retention?
+
+P2: I mean, I'm trying to be a good place to work. I give free meals, I do a monthly dinner for the staff, I try to make the kitchen not toxic. But honestly at this wage level, people leave for quarters. That's just the industry.
+
+I: If someone built a hiring tool, what would you want it to do?
+
+P2: Hmm. Honestly, I don't know that I want more tooling. I have enough inbound already. What I'd want is — let me think. I'd want a way to keep in touch with candidates I liked but didn't hire. Like, I did trails with probably 40 people last year, hired 8, the other 32 were fine but we didn't have a spot. When a spot opens I have to post fresh and start from scratch. That's dumb. Why am I rebuilding a candidate pool every time?
+
+I: So like a CRM for candidates?
+
+P2: Sure, but simple. I don't want Salesforce. I want like — a list of 30 names with a note on each, "trailed on this date, strong on the grill, declined because we had no open position." And then when I have an open position I just text them. That's it.
+
+I: That's a feature a lot of existing tools don't have.
+
+P2: Yeah because everything's built around filling a current open role. Nobody builds around "keep warm leads warm." But in this industry your network is the asset.
+
+I: What would you pay for something like that?
+
+P2: Like a talent pool manager? Honestly, not much. Maybe 20 bucks a month? It's a nice-to-have, not a need-to-have. My main business isn't blocked by it. If you charged me 200 a month I'd just stick with my Notes app.
+
+I: That's honest, thanks.
+
+P2: Yeah. I mean, look, I've solved most of my hiring problems with workflow, not tools. The Tuesday-Thursday batching, writing good job posts, being fast, not taking no-shows personally. These are mindset things. Software doesn't fix mindset. So I'm skeptical of hiring tools in general.
+
+I: Fair. Last question — anything else on your mind about this that I didn't ask?
+
+P2: Um. The thing I don't have a solution for is, like, the first hire for a new location. When I opened the second spot, I didn't have a network in that neighborhood. Nobody knew me. I had to start from zero on awareness and trust. If there was a way to, I don't know, bootstrap a hiring pipeline when you're opening in a new area, that would be huge. But I don't know what that looks like. That's not really a tool, that's a community thing.
+
+I: Yeah.
+
+P2: Yeah. Anyway. Hope that helps. Let me know what you end up building.
+
+I: Will do. Thanks so much.
+
+[end]

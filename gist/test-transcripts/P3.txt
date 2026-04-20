@@ -1,0 +1,75 @@
+Participant: P3 (owner/chef, single-location wine bar + small plates, ~8 employees)
+Interviewer: I (founder, building a hiring tool for small restaurants)
+Date: [redacted]
+Duration: ~18 min
+Context: Customer discovery call. Third interview in series. Mutual acquaintance warned interviewer that P3 "doesn't really have hiring problems" but agreed to the call anyway. Interviewer kept the call to learn from a counterexample.
+
+---
+
+I: Thanks for jumping on. Your friend said you might be an unusual case for hiring — no pain?
+
+P3: [laughs] I mean, yeah, I guess. I hire maybe once a year. And I always hire through my network. So I don't really deal with Indeed or any of that.
+
+I: How does that actually work? Like, you need someone — what happens?
+
+P3: Okay so the last hire I made was, let me think, September. My sous got pregnant and wanted to go part-time after the baby. I needed someone to pick up her hours. So I texted — I have a group chat with like seven other chefs in the neighborhood, we've known each other for years, some of us used to work together. I just texted the group chat. Two of them replied within an hour with names of people they'd worked with who were looking. I interviewed two of them, hired one, done. From post to hire was like nine days.
+
+I: Nine days. That's unreal.
+
+P3: It's not unreal, it's just how it used to work in this industry. This is how everyone hired for like a hundred years. Before Indeed was a thing. You knew people, people knew people, you called around. It still works, you just have to have the network.
+
+I: So your whole hiring process is that group chat?
+
+P3: Basically. I've posted on Poached maybe twice in eight years. Both times it was fine but I found people faster through the network. I don't even bother with Indeed. Waste of time for me.
+
+I: Do you ever struggle to find the right person?
+
+P3: I mean — sure, sometimes the person my friend recommends isn't right for my kitchen. Like, they might be a great cook but the personality doesn't fit. I run a small team, eight people, and we're in close quarters for ten hours a day. So if someone's weird with the group I can't hide them in a back station. They have to mesh. So I've passed on recommendations before. But that's rare. Most of the time my friends know what I want.
+
+I: How long have you been building that network?
+
+P3: I've been cooking professionally for 19 years. I did four kitchens before I opened mine. So by the time I opened, I already had, I don't know, 40 or 50 people in my immediate network who knew my work and I knew theirs. That's the edge. That's the real thing.
+
+I: That makes sense. Okay so if you don't have hiring pain, what's your actual operational pain?
+
+P3: Oh, I have plenty of pain, just not hiring. [laughs] Uh, right now my biggest problem is my wine program. I have 180 SKUs, my wine director left in June, and I've been trying to manage it myself while also running the kitchen. The inventory, the ordering, the pairings — it's killing me. But that's not a hiring problem per se, that's a I-haven't-replaced-my-wine-director problem, and I haven't replaced her because I don't want to. I want someone perfect and I'm being picky.
+
+I: Why don't you want to rush?
+
+P3: Because a bad wine director is worse than no wine director. If you hire the wrong person, you pay them for three months and then you have to let them go and you're worse off than when you started. Better to be slow and right. Especially at a small place.
+
+I: Even if the wait costs you?
+
+P3: Yeah. The cost of a wrong hire in a small team is way higher than the cost of waiting. At a 25-person restaurant you can absorb a bad hire. At 8, a bad hire poisons the whole environment.
+
+I: Huh. That's a different calculation than I've heard from bigger places.
+
+P3: Yeah because bigger places need bodies. I don't need bodies. I need exactly right people. If you can't find exactly right, you wait.
+
+I: What do you think of all these AI hiring tools?
+
+P3: Honestly? I think they're solving a problem that the industry created for itself. Like, the reason people need AI to filter resumes is because they posted on Indeed and got 200 applications. Don't post on Indeed. Problem solved. The tools are downstream of a bad upstream decision.
+
+I: That's a pretty hot take.
+
+P3: I mean, for restaurants my size. For a 50-location franchise they need the tools, sure. For a single location neighborhood place? The tool you need is a phone and a reputation.
+
+I: What would you even say if I described my product idea to you?
+
+P3: I'd probably say it's not for me. Which is fine. Not every product is for every person. But I'd also say — and this is the uncomfortable thing — I'd say a lot of the restaurants that feel like they desperately need your tool feel that way because they've built their business around a broken model. Relying on Indeed is a broken model. Trying to hire strangers fast is a broken model. If you're relying on a hiring funnel to staff your restaurant, you've already lost the game. The winning move is a network you build over years, before you ever need it.
+
+I: That's kind of brutal.
+
+P3: I'm not trying to be brutal. It's just — I watched a lot of restaurants fail in my neighborhood in the last five years and the common thread is always, nobody knew who they were. They were transactions. Good restaurants are relationships. With suppliers, with regulars, with staff, with each other. Your hiring problem is really a relationship problem. Which I know you can't sell a SaaS for.
+
+I: That's genuinely useful to hear.
+
+P3: Yeah. Look, build whatever you're going to build. People will use it. I'm just saying, if I were you I'd think about the cohort of people who are going to use your tool to avoid building relationships, versus the cohort that's going to use it to supplement relationships they're already building. Those are different products. The first one is a bigger market and will make more money. The second one is a better product.
+
+I: That's a real insight. Thank you.
+
+P3: I ramble. Anyway. Good luck. If you ever want to talk about wine, come by.
+
+I: Will do. Thanks again.
+
+[end]
