@@ -11,7 +11,7 @@ from synth.prompts import EXTRACT_THEMES_TOOL, EXTRACTION_PROMPT
 from synth.verify import verify_quote
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BACKEND_DIR / ".env")
+load_dotenv(BACKEND_DIR / ".env", override=True)
 
 MODEL = "claude-sonnet-4-6"
 
