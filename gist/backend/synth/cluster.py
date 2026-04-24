@@ -1,4 +1,5 @@
 # Cross-transcript theme clustering
+import hashlib
 import json
 import os
 import sys
@@ -13,8 +14,9 @@ from synth.prompts import CLUSTER_THEMES_PROMPT, CLUSTER_THEMES_TOOL
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 REPO_DIR = BACKEND_DIR.parent
 CACHE_DIR = REPO_DIR / "eval" / "results" / "extractions"
+CLUSTER_CACHE_DIR = REPO_DIR / "eval" / "results" / "clusters"
 
-load_dotenv(BACKEND_DIR / ".env")
+load_dotenv(BACKEND_DIR / ".env", override=True)
 
 MODEL = "claude-sonnet-4-6"
 
@@ -72,11 +74,35 @@ def run_extraction_on_folder(folder_path: str) -> list[dict]:
     return all_themes
 
 
+def cluster_themes_cached(all_themes: list[dict]) -> list[dict]:
+    """Call cluster_themes, caching by SHA1 of the themes input."""
+    themes_json = json.dumps(all_themes, indent=2, sort_keys=True)
+    digest = hashlib.sha1(themes_json.encode("utf-8")).hexdigest()[:12]
+    CLUSTER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_path = CLUSTER_CACHE_DIR / f"{digest}.json"
+
+    if cache_path.exists():
+        cached = json.loads(cache_path.read_text(encoding="utf-8"))
+        print(
+            f"clusters: loaded {len(cached)} from cache ({digest})",
+            file=sys.stderr,
+        )
+        return cached
+
+    clusters = cluster_themes(all_themes)
+    cache_path.write_text(json.dumps(clusters, indent=2), encoding="utf-8")
+    print(
+        f"clusters: computed {len(clusters)}, cached to {cache_path.name}",
+        file=sys.stderr,
+    )
+    return clusters
+
+
 def cluster_themes(all_themes: list[dict]) -> list[dict]:
     """Cluster themes across participants via a single Claude tool-use call."""
     themes_json = json.dumps(all_themes, indent=2)
 
-    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"], max_retries=6)
     response = client.messages.create(
         model=MODEL,
         max_tokens=8192,
@@ -92,7 +118,17 @@ def cluster_themes(all_themes: list[dict]) -> list[dict]:
 
     for block in response.content:
         if block.type == "tool_use" and block.name == "cluster_themes":
-            return block.input["clusters"]
+            if "clusters" not in block.input:
+                print(
+                    f"[cluster] stop_reason={response.stop_reason} "
+                    f"keys={list(block.input.keys())}",
+                    file=sys.stderr,
+                )
+                print(
+                    json.dumps(block.input, indent=2)[:1500],
+                    file=sys.stderr,
+                )
+            return block.input.get("clusters", [])
 
     return []
 
