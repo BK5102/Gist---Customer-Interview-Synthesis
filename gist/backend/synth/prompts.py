@@ -163,3 +163,94 @@ THEMES (JSON array, each object includes participant_id):
 {themes_json}
 ---
 """
+
+INSIGHTS_TOOL = {
+    "name": "generate_insights",
+    "description": "Produce exactly three founder-focused insights from clustered interview themes.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "strongest_signal": {
+                "type": "object",
+                "properties": {
+                    "headline": {
+                        "type": "string",
+                        "description": "One-sentence setup of the clearest pattern across interviews.",
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "One paragraph. Reference specific participant_ids. Say what the founder should build or validate next.",
+                    },
+                },
+                "required": ["headline", "explanation"],
+            },
+            "contradicted_assumption": {
+                "type": "object",
+                "properties": {
+                    "headline": {
+                        "type": "string",
+                        "description": "One-sentence setup of a disagreement between participants or between stated and implied beliefs.",
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "One paragraph. Name the participants on each side of the disagreement. Explain where the founder's prior assumption likely breaks.",
+                    },
+                },
+                "required": ["headline", "explanation"],
+            },
+            "biggest_surprise": {
+                "type": "object",
+                "properties": {
+                    "headline": {
+                        "type": "string",
+                        "description": "One-sentence setup of the most unexpected statement or pattern.",
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "One paragraph. Reference the specific participant_id(s). Explain why this is worth investigating.",
+                    },
+                },
+                "required": ["headline", "explanation"],
+            },
+        },
+        "required": ["strongest_signal", "contradicted_assumption", "biggest_surprise"],
+    },
+}
+
+INSIGHTS_PROMPT = """You are helping a founder make sense of what they learned across N
+customer interviews. You have been given clusters of themes. Each cluster
+groups semantically similar themes across participants and carries
+participant_count, participants, category, cluster_summary, and
+supporting_quotes (each quote tagged with participant_id).
+
+Produce exactly 3 insights. Each insight is one sentence of setup
+(headline) plus one paragraph of explanation.
+
+1. STRONGEST SIGNAL: The clearest pattern. What should the founder
+   build or validate next, based on what was most consistently said?
+   Prefer multi-participant clusters. Name the participants.
+
+2. CONTRADICTED ASSUMPTION: Where did participants disagree with each
+   other, or where did what they said contradict what they did? This
+   is where a founder's prior assumptions are likely to break. If a
+   cluster has category "contradiction", that is a strong candidate.
+   Name the participants on each side.
+
+3. BIGGEST SURPRISE: The most unexpected statement or pattern — the
+   thing the founder probably did NOT go into these interviews
+   looking for. Single-participant clusters are valid candidates.
+   Name the participant(s).
+
+Rules:
+- Be specific. Reference participants by their participant_id (e.g. P1, P2).
+- Do not hedge. Do not say "it seems" or "perhaps".
+- Do not invent insights that aren't supported by the clusters.
+- Do not quote verbatim in the explanations — summarize in your own words.
+
+Call the generate_insights tool with your findings.
+
+CLUSTERS (JSON array):
+---
+{clusters_json}
+---
+"""

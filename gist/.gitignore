@@ -62,8 +62,14 @@ logs/
 # Eval outputs (results are committed selectively)
 eval/results/*.md
 
-# Extraction caches — derivative LLM output, re-runnable from transcripts
+# Extraction / clustering / insights caches — derivative LLM output,
+# re-runnable from transcripts
 eval/results/extractions/
+eval/results/clusters/
+eval/results/insights/
+
+# Rendered synthesis output at repo root — ephemeral
+/output.md
 
 # Audio test files (can be large)
 test-transcripts/*.mp3
