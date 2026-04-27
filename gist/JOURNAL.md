@@ -145,6 +145,76 @@
   (border darkening) makes the affordance obvious. Worth the extra 20 lines of event
   handler code.
 
+## Phase 2 — Auth + DB + Dashboard (Days 7–13, 2026-04-27)
+
+### What I shipped
+- **Supabase auth scaffold**: `@supabase/supabase-js` + `@supabase/ssr` installed.
+  `client.ts` and `server.ts` per official Next.js 14 App Router pattern.
+  `middleware.ts` refreshes sessions on every request.
+- **Login / signup pages** (`/login`, `/signup`): email + password forms with
+  validation, error states, and links between them. Signup sends confirmation email.
+- **Auth callback route** (`/auth/callback`): exchanges OAuth/code for session.
+- **Logout** (`/logout`): server-side POST route calling `signOut()`.
+- **Layout navbar**: shows user email and log-out when authenticated; shows
+  "Log in / Sign up" when not. Uses server-component `Navbar` with
+  `supabase.auth.getUser()`.
+- **Backend JWT verification** (`auth/supabase_client.py`): fetches JWKS from
+  Supabase, caches it for 5 min, verifies RS256 signatures, issuer, and audience.
+  `require_auth` dependency extracts `sub` (user UUID) from the token.
+- **`POST /synthesize` gated behind auth**: returns 401 for missing/invalid tokens.
+  Frontend now sends `Authorization: Bearer <token>` on all API calls.
+- **DB schema** (`schema.sql`): `projects`, `transcripts`, `syntheses`,
+  `notion_connections` tables with RLS policies. Run in Supabase SQL Editor.
+- **DB helpers** (`db.py`): `create_project`, `get_projects`, `save_transcript`,
+  `save_synthesis`, etc. Uses service-role key; defensively checks `db_available()`.
+- **Wired persistence into pipeline**: auto-creates a project if none provided,
+  saves transcripts after extraction, saves synthesis after render. Non-blocking:
+  pipeline continues even if DB write fails.
+- **Projects API**: `GET /projects`, `POST /projects`, `GET /projects/{id}`,
+  `GET /syntheses/{id}` — all protected by `require_auth`.
+- **Frontend dashboard**:
+  - `/projects`: list projects, create new project inline, "New synthesis" CTA.
+  - `/projects/[id]`: project detail with synthesis history, breadcrumbs.
+  - `/syntheses/[id]`: rendered markdown with copy-to-clipboard, transcript count.
+
+### Key decisions (and why)
+- **Service-role key on backend, RLS on tables.** The backend bypasses RLS with
+  the service-role key and enforces ownership in Python (via `get_project(user_id, id)`).
+  This is simpler than parsing the JWT in every SQL query and matches how the
+  Supabase Python client is typically used in API backends.
+- **Lazy DB initialization.** `db.py` does not raise on import if env vars are missing;
+  it raises on first use. This keeps the app bootable locally without Supabase set up
+  yet, which matters during the transition window between coding and console setup.
+- **Conditional DB persistence in pipeline.** Rather than failing the entire synthesis
+  if the DB is unreachable, we log and continue. The user still gets their markdown;
+  losing the persisted copy is a degradation, not a failure.
+- **Client components for dashboard pages.** Server components + `cookies()` + external
+  API calls have too many edge cases in Next.js 14 (cookie concurrency, middleware
+  timing). Client-side `useEffect` fetching with session tokens is predictable and
+  debuggable. We still use a server component for the navbar since it's a simple
+  auth-state read.
+
+### What surprised me
+- The Supabase `@supabase/ssr` package is newer than the old `auth-helpers-nextjs`
+  and the docs are still catching up. The cookie-setting callbacks in `createServerClient`
+  require try/catch in server components because `cookies().set()` throws when called
+  outside a server action or route handler.
+- JWT verification with JWKS in Python is surprisingly straightforward with
+  `PyJWKSet` from `PyJWT`. The trickiest part was realizing Supabase's `kid` rotates
+  occasionally, so caching JWKS for 5 minutes is a sweet spot between performance
+  and correctness.
+- Mixing Pydantic model instantiation with raw dicts in mutable state (again!):
+  `JobStatusResponse(**job)` creates model instances, but `_run_pipeline` writes
+  into the same nested structures as plain dicts. Keeping the response model
+  flexible with `dict | model` accessors prevents crashes.
+
+### Next up
+- **Day 13 bug-bash**: session expiry during long synthesis, CORS preflight on
+  authenticated requests, RLS policy edge cases, redirect-after-login preservation.
+- **Deploy**: push backend to Railway with `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+  env vars; push frontend to Vercel with `NEXT_PUBLIC_SUPABASE_URL` +
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Test end-to-end with a real Supabase project.
+
 ## Day 1 — 2026-04-16
 
 ### What I shipped
