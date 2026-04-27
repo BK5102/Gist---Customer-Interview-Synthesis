@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -25,6 +25,47 @@ type SynthesizeResponse = {
   themes_dropped: number;
 };
 
+type JobStatus = {
+  job_id: string;
+  status:
+    | "queued"
+    | "transcribing"
+    | "extracting"
+    | "clustering"
+    | "insights"
+    | "done"
+    | "error";
+  current: number | null;
+  total: number | null;
+  result: SynthesizeResponse | null;
+  error: string | null;
+};
+
+const POLL_MS = 2000;
+
+const stageLabel = (job: JobStatus): string => {
+  const fraction =
+    job.current != null && job.total != null
+      ? ` ${job.current}/${job.total}`
+      : "";
+  switch (job.status) {
+    case "queued":
+      return "Queued…";
+    case "transcribing":
+      return `Transcribing audio${fraction}…`;
+    case "extracting":
+      return `Extracting themes${fraction}…`;
+    case "clustering":
+      return "Clustering themes across interviews…";
+    case "insights":
+      return "Generating founder takeaways…";
+    case "done":
+      return "Done";
+    case "error":
+      return "Error";
+  }
+};
+
 const stemOf = (name: string) => {
   const ext = extOf(name);
   return ext ? name.slice(0, -ext.length) : name;
@@ -36,6 +77,44 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SynthesizeResponse | null>(null);
+  const [job, setJob] = useState<JobStatus | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cancel any outstanding poll on unmount so we don't leak timers across
+  // hot-reloads in dev.
+  useEffect(() => {
+    return () => {
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+    };
+  }, []);
+
+  const pollJob = async (jobId: string) => {
+    try {
+      const res = await fetch(`${API_URL}/jobs/${jobId}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Backend returned ${res.status}`);
+      }
+      const next = (await res.json()) as JobStatus;
+      setJob(next);
+
+      if (next.status === "done" && next.result) {
+        setResult(next.result);
+        setIsLoading(false);
+        return;
+      }
+      if (next.status === "error") {
+        setError(next.error || "Pipeline failed");
+        setIsLoading(false);
+        return;
+      }
+      pollTimer.current = setTimeout(() => pollJob(jobId), POLL_MS);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Polling failed";
+      setError(message);
+      setIsLoading(false);
+    }
+  };
 
   const pickFiles = (incoming: FileList | null) => {
     setError(null);
@@ -109,6 +188,7 @@ export default function Home() {
 
     setError(null);
     setResult(null);
+    setJob(null);
     setIsLoading(true);
 
     const body = new FormData();
@@ -140,13 +220,24 @@ export default function Home() {
         throw new Error(detail || `Backend returned ${res.status}`);
       }
 
-      const data = (await res.json()) as SynthesizeResponse;
-      setResult(data);
+      // Backend returns 202 + {job_id}. We poll /jobs/{id} for progress.
+      const { job_id } = (await res.json()) as {
+        job_id: string;
+        status: string;
+      };
+      setJob({
+        job_id,
+        status: "queued",
+        current: null,
+        total: null,
+        result: null,
+        error: null,
+      });
+      pollJob(job_id);
     } catch (e) {
       const message =
         e instanceof Error ? e.message : "Unknown error calling backend";
       setError(message);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -236,14 +327,47 @@ export default function Home() {
         )}
       </section>
 
-      {isLoading && (
-        <p className="mt-8 text-sm text-neutral-500">
-          {files.some((f) => isAudio(f.name))
-            ? "Transcribing audio → "
-            : ""}
-          Extracting themes → clustering across interviews → generating
-          founder takeaways. Audio adds ~1 min per 5 min of recording.
-        </p>
+      {isLoading && job && (
+        <div className="mt-8 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-neutral-700">
+            {stageLabel(job)}
+          </p>
+          <ol className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-500 sm:grid-cols-4">
+            {(["transcribing", "extracting", "clustering", "insights"] as const).map(
+              (stage) => {
+                const order = [
+                  "queued",
+                  "transcribing",
+                  "extracting",
+                  "clustering",
+                  "insights",
+                  "done",
+                ];
+                const reached =
+                  order.indexOf(job.status) >= order.indexOf(stage);
+                const active = job.status === stage;
+                return (
+                  <li
+                    key={stage}
+                    className={
+                      active
+                        ? "font-semibold text-neutral-900"
+                        : reached
+                          ? "text-neutral-700"
+                          : "text-neutral-400"
+                    }
+                  >
+                    {reached ? "●" : "○"} {stage}
+                  </li>
+                );
+              },
+            )}
+          </ol>
+          <p className="mt-3 text-xs text-neutral-400">
+            Polling /jobs/{job.job_id.slice(0, 8)} every {POLL_MS / 1000}s.
+            Audio adds ~1 min per 5 min of recording.
+          </p>
+        </div>
       )}
 
       {result && (
