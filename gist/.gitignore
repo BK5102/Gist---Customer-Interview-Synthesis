@@ -77,3 +77,6 @@ test-transcripts/*.mp3
 test-transcripts/*.wav
 test-transcripts/*.m4a
 test-transcripts/*.mp4
+
+# TypeScript incremental build cache
+frontend/tsconfig.tsbuildinfo

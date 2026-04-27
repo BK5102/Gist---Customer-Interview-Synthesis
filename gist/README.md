@@ -2,9 +2,9 @@
 
 Turn customer interview transcripts into themed synthesis with traceable quotes — built for solo founders doing customer discovery.
 
-**Status: v0 — phase-0 pipeline + web UI live locally.**
+**Status: phase-1 day 4 — text + audio ingest live locally.**
 
-Drop `.txt` transcripts, get back markdown with:
+Drop `.txt` transcripts or audio files (`.mp3 .wav .m4a .mp4 .webm`), get back markdown with:
 
 - **Insights** — strongest signal, contradicted assumption, biggest surprise
 - **Themes** — clustered across interviews, each with verbatim quotes and participant IDs
@@ -14,7 +14,14 @@ Every quote is verified against the source transcript before it reaches the outp
 ## Pipeline
 
 ```
-transcripts → extract themes per-file (Haiku) → cluster across files (Sonnet) → insights (Sonnet) → render markdown
+audio → Whisper transcribe ──┐
+                             ├─→ extract themes per-file (Haiku)
+text ────────────────────────┘        ↓
+                              cluster across files (Sonnet)
+                                      ↓
+                              insights (Sonnet)
+                                      ↓
+                              render markdown
 ```
 
 Quote verification runs inside the extraction step: any theme whose `verbatim_quote` is not a substring of the transcript (whitespace-normalized) is dropped and counted.
@@ -43,7 +50,7 @@ cd backend
 python -m venv venv
 source venv/Scripts/activate   # Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env           # fill in ANTHROPIC_API_KEY
+cp .env.example .env           # fill in ANTHROPIC_API_KEY (+ OPENAI_API_KEY for audio)
 uvicorn main:app --reload --port 8000
 ```
 
@@ -66,7 +73,7 @@ Open `http://localhost:3000`, pick `.txt` transcripts from `test-transcripts/` (
 
 - Set **Root Directory** to `backend` in Railway service settings.
 - Nixpacks picks up `requirements.txt` + `runtime.txt` (Python 3.11) and runs the `Procfile`.
-- Env vars: `ANTHROPIC_API_KEY`, `CORS_ORIGINS=https://<your-vercel-domain>`.
+- Env vars: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` (Whisper, ~$0.006/min), `CORS_ORIGINS=https://<your-vercel-domain>`.
 
 **Frontend → Vercel**
 
@@ -84,11 +91,13 @@ See [CLAUDE.md](CLAUDE.md) for the full layout. Key entry points:
 - [backend/synth/insights.py](backend/synth/insights.py) — founder takeaways
 - [backend/synth/verify.py](backend/synth/verify.py) — quote verification
 - [backend/synth/format.py](backend/synth/format.py) — markdown renderer
+- [backend/transcribe/whisper.py](backend/transcribe/whisper.py) — audio → text via Whisper
 - [frontend/app/page.tsx](frontend/app/page.tsx) — upload UI
 
-## Limits (v0)
+## Limits
 
-- `.txt` only (audio via Whisper is phase 1)
-- 2 MB per file, 20 files per request
+- Text: 2 MB per `.txt` file
+- Audio: 24 MB per file (Whisper API cap; chunking lands in phase-1 day 5)
+- 20 files per request, mixed text/audio OK
 - No auth (phase 2: Supabase)
 - No persistence — each `/synthesize` call is stateless
