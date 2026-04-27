@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MAX_TEXT_BYTES = 2 * 1024 * 1024; // keep in sync with backend
-const MAX_AUDIO_BYTES = 24 * 1024 * 1024; // Whisper API cap
+const MAX_AUDIO_BYTES = 200 * 1024 * 1024; // backend chunks anything >25 MB
 const MAX_FILES = 20;
 const TEXT_EXTS = [".txt"];
 const AUDIO_EXTS = [".mp3", ".wav", ".m4a", ".mp4", ".webm", ".mpeg", ".mpga"];
