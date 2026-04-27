@@ -1,9 +1,12 @@
-# FastAPI entry point — POST /synthesize, GET /health
+# FastAPI entry point — POST /synthesize, GET /jobs/{job_id}, GET /health
 import os
+import traceback
+import uuid
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -42,7 +45,20 @@ app.add_middleware(
 )
 
 
-class SynthesizeResponse(BaseModel):
+# ─── job state ──────────────────────────────────────────────────────────────
+# In-memory job store. Phase-2 swaps in Postgres so jobs survive restarts.
+# Single-process uvicorn is fine for v0; multi-worker setups would need a
+# shared store (Redis) anyway.
+JOBS: dict[str, dict[str, Any]] = {}
+
+
+def _set_job(job_id: str, **fields: Any) -> None:
+    """Atomically merge fields into a job's state."""
+    JOBS[job_id].update(fields)
+
+
+# ─── response models ────────────────────────────────────────────────────────
+class SynthesizeResult(BaseModel):
     markdown: str
     cluster_count: int
     participant_count: int
@@ -50,16 +66,37 @@ class SynthesizeResponse(BaseModel):
     themes_dropped: int
 
 
+class JobStartResponse(BaseModel):
+    job_id: str
+    status: str  # "queued"
+
+
+class JobStatusResponse(BaseModel):
+    job_id: str
+    status: str  # queued | transcribing | extracting | clustering | insights | done | error
+    current: int | None = None
+    total: int | None = None
+    result: SynthesizeResult | None = None
+    error: str | None = None
+
+
+# ─── routes ─────────────────────────────────────────────────────────────────
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
 
 
-@app.post("/synthesize", response_model=SynthesizeResponse)
+@app.post("/synthesize", status_code=202, response_model=JobStartResponse)
 async def synthesize(
+    background_tasks: BackgroundTasks,
     files: list[UploadFile],
     labels: list[str] = Form(default=[]),
-) -> SynthesizeResponse:
+) -> JobStartResponse:
+    """Validate inputs, kick off the synthesis pipeline as a background job.
+
+    Returns 202 Accepted with a job_id immediately; the client polls
+    GET /jobs/{job_id} for progress and the final result.
+    """
     if not files:
         raise HTTPException(400, "No files provided")
     if len(files) > MAX_FILES_PER_REQUEST:
@@ -73,14 +110,12 @@ async def synthesize(
             f"({len(files)}). Send one label per file (empty string allowed).",
         )
 
-    # Resolve participant ids and validate uniqueness up front, before any
-    # expensive reads or Whisper/Haiku calls. Filename stem is the fallback
-    # when label is empty. Empty filenames will fail later in the per-file loop.
+    # Resolve participant ids and validate uniqueness up front.
     resolved_ids: list[str] = []
     seen: set[str] = set()
     for idx, f in enumerate(files):
         if not f.filename:
-            continue  # the per-file loop will raise a 400 with full context
+            raise HTTPException(400, "File missing filename")
         label = labels[idx].strip() if idx < len(labels) else ""
         pid = label or Path(f.filename).stem
         if pid in seen:
@@ -92,15 +127,11 @@ async def synthesize(
         seen.add(pid)
         resolved_ids.append(pid)
 
-    all_themes: list[dict] = []
-    participants: set[str] = set()
-    total_dropped = 0
-
+    # Read + validate every file synchronously so 4xx errors return on POST,
+    # not in a background job the client would have to discover via polling.
+    prepared: list[dict[str, Any]] = []
     for idx, f in enumerate(files):
-        if not f.filename:
-            raise HTTPException(400, "File missing filename")
-
-        ext = Path(f.filename).suffix.lower()
+        ext = Path(f.filename or "").suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 400,
@@ -120,6 +151,9 @@ async def synthesize(
                 f"({len(content) / 1_048_576:.1f} MB > {cap / 1_048_576:.0f} MB cap)",
             )
 
+        # Decode text upfront so UTF-8 errors return 400 instead of vanishing
+        # into a job error. Audio bytes pass through to the background task.
+        text: str | None = None
         if ext in TEXT_EXTENSIONS:
             try:
                 text = content.decode("utf-8")
@@ -127,48 +161,122 @@ async def synthesize(
                 raise HTTPException(
                     400, f"File not valid UTF-8: {f.filename}"
                 ) from e
-        else:
-            # Audio path: transcribe to text via Whisper, then feed into
-            # the existing extraction pipeline. Upstream API errors surface
-            # as 502 so the frontend can distinguish them from validation.
-            try:
-                text = transcribe_bytes(content, f.filename)
-            except ValueError as e:
-                raise HTTPException(413, str(e)) from e
-            except Exception as e:  # openai errors, network, etc.
-                raise HTTPException(
-                    502, f"Transcription failed for {f.filename}: {e}"
-                ) from e
-            if not text.strip():
-                raise HTTPException(
-                    422,
-                    f"Whisper returned empty transcript for {f.filename}; "
-                    "check that the file contains speech.",
-                )
 
-        # Participant ids were resolved + dedup'd in the first pass above.
-        participant_id = resolved_ids[idx]
-        participants.add(participant_id)
-
-        verified, dropped = extract_from_text(text, participant_id)
-        total_dropped += dropped
-        for theme in verified:
-            theme["participant_id"] = participant_id
-        all_themes.extend(verified)
-
-    if not all_themes:
-        raise HTTPException(
-            422, "No themes could be extracted from the provided transcripts"
+        prepared.append(
+            {
+                "filename": f.filename,
+                "ext": ext,
+                "content": content,
+                "text": text,  # None for audio until transcribed
+                "participant_id": resolved_ids[idx],
+            }
         )
 
-    clusters = cluster_themes_cached(all_themes)
-    insights = generate_insights_cached(clusters)
-    markdown = render_markdown(clusters, insights)
+    job_id = uuid.uuid4().hex[:12]
+    JOBS[job_id] = {
+        "job_id": job_id,
+        "status": "queued",
+        "current": None,
+        "total": None,
+        "result": None,
+        "error": None,
+    }
+    background_tasks.add_task(_run_pipeline, job_id, prepared)
+    return JobStartResponse(job_id=job_id, status="queued")
 
-    return SynthesizeResponse(
-        markdown=markdown,
-        cluster_count=len(clusters),
-        participant_count=len(participants),
-        themes_extracted=len(all_themes),
-        themes_dropped=total_dropped,
-    )
+
+@app.get("/jobs/{job_id}", response_model=JobStatusResponse)
+def get_job(job_id: str) -> JobStatusResponse:
+    job = JOBS.get(job_id)
+    if not job:
+        raise HTTPException(404, f"Unknown job id: {job_id}")
+    return JobStatusResponse(**job)
+
+
+# ─── pipeline ───────────────────────────────────────────────────────────────
+def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
+    """Run transcribe → extract → cluster → insights → render in the bg.
+
+    All upstream errors land in JOBS[job_id]["error"] so the client can
+    pick them up via GET /jobs/{job_id}.
+    """
+    try:
+        # 1. Transcribe audio files (text files already decoded in route).
+        audio_indices = [
+            i for i, p in enumerate(prepared) if p["ext"] in AUDIO_EXTENSIONS
+        ]
+        for k, idx in enumerate(audio_indices, 1):
+            _set_job(
+                job_id,
+                status="transcribing",
+                current=k,
+                total=len(audio_indices),
+            )
+            p = prepared[idx]
+            try:
+                p["text"] = transcribe_bytes(p["content"], p["filename"])
+            except ValueError as e:
+                _set_job(job_id, status="error", error=str(e))
+                return
+            except Exception as e:  # openai/groq errors, network, etc.
+                _set_job(
+                    job_id,
+                    status="error",
+                    error=f"Transcription failed for {p['filename']}: {e}",
+                )
+                return
+            if not (p["text"] or "").strip():
+                _set_job(
+                    job_id,
+                    status="error",
+                    error=(
+                        f"Whisper returned empty transcript for {p['filename']}; "
+                        "check that the file contains speech."
+                    ),
+                )
+                return
+
+        # 2. Per-file theme extraction (Haiku).
+        all_themes: list[dict] = []
+        total_dropped = 0
+        for k, p in enumerate(prepared, 1):
+            _set_job(job_id, status="extracting", current=k, total=len(prepared))
+            verified, dropped = extract_from_text(p["text"], p["participant_id"])
+            total_dropped += dropped
+            for theme in verified:
+                theme["participant_id"] = p["participant_id"]
+            all_themes.extend(verified)
+
+        if not all_themes:
+            _set_job(
+                job_id,
+                status="error",
+                error="No themes could be extracted from the provided transcripts.",
+            )
+            return
+
+        # 3. Cluster + 4. insights + 5. render.
+        _set_job(job_id, status="clustering", current=None, total=None)
+        clusters = cluster_themes_cached(all_themes)
+
+        _set_job(job_id, status="insights")
+        insights = generate_insights_cached(clusters)
+        markdown = render_markdown(clusters, insights)
+
+        _set_job(
+            job_id,
+            status="done",
+            result={
+                "markdown": markdown,
+                "cluster_count": len(clusters),
+                "participant_count": len({p["participant_id"] for p in prepared}),
+                "themes_extracted": len(all_themes),
+                "themes_dropped": total_dropped,
+            },
+        )
+    except Exception as e:  # last-resort: keep job dict consistent
+        _set_job(
+            job_id,
+            status="error",
+            error=f"Pipeline crashed: {e!r}\n{traceback.format_exc()}",
+        )
