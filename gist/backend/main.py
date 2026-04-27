@@ -449,3 +449,137 @@ def get_synthesis_detail(
     if not synth:
         raise HTTPException(404, "Synthesis not found")
     return synth
+
+
+# ─── Notion integration ─────────────────────────────────────────────────────
+from integrations.notion import (
+    auth_url,
+    exchange_code,
+    markdown_to_notion_blocks,
+    notion_configured,
+    NotionClient,
+)
+from db import (
+    delete_notion_connection,
+    get_notion_connection,
+    save_notion_connection,
+)
+
+
+def _notion_redirect_uri() -> str:
+    return os.environ.get("NOTION_REDIRECT_URI", "http://localhost:8000/notion/callback")
+
+
+def _frontend_settings_url() -> str:
+    return os.environ.get("FRONTEND_SETTINGS_URL", "http://localhost:3000/settings")
+
+
+@app.get("/notion/auth")
+def notion_auth(user_id: str = Depends(require_auth)) -> dict[str, str]:
+    if not notion_configured():
+        raise HTTPException(503, "Notion integration not configured")
+    url = auth_url(_notion_redirect_uri(), user_id)
+    return {"auth_url": url}
+
+
+@app.get("/notion/callback")
+def notion_callback(
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+) -> Any:
+    if error:
+        return {"error": error}
+    if not code or not state:
+        raise HTTPException(400, "Missing code or state")
+
+    try:
+        token_resp = exchange_code(code, _notion_redirect_uri())
+    except Exception as e:
+        raise HTTPException(400, f"Notion token exchange failed: {e}") from e
+
+    access_token = token_resp.get("access_token")
+    workspace_id = token_resp.get("workspace_id")
+    workspace_name = token_resp.get("workspace_name")
+
+    if not access_token:
+        raise HTTPException(400, "No access_token in Notion response")
+
+    user_id = state
+    save_notion_connection(
+        user_id=user_id,
+        access_token=access_token,
+        workspace_id=workspace_id,
+        workspace_name=workspace_name,
+    )
+
+    from fastapi.responses import RedirectResponse
+
+    return RedirectResponse(_frontend_settings_url(), status_code=302)
+
+
+@app.get("/notion/databases")
+def list_notion_databases(user_id: str = Depends(require_auth)) -> list[dict[str, Any]]:
+    conn = get_notion_connection(user_id)
+    if not conn:
+        raise HTTPException(401, "Notion not connected")
+    client = NotionClient(conn["access_token"])
+    try:
+        dbs = client.list_databases()
+        return [
+            {
+                "id": db["id"],
+                "title": db.get("title", [{}])[0].get("plain_text", "Untitled"),
+            }
+            for db in dbs
+        ]
+    except Exception as e:
+        raise HTTPException(502, f"Notion API error: {e}") from e
+
+
+class PushToNotionRequest(BaseModel):
+    synthesis_id: str
+    database_id: str
+
+
+@app.post("/notion/push")
+def push_to_notion(
+    body: PushToNotionRequest,
+    user_id: str = Depends(require_auth),
+) -> dict[str, str]:
+    conn = get_notion_connection(user_id)
+    if not conn:
+        raise HTTPException(401, "Notion not connected")
+
+    synth = get_synthesis(user_id, body.synthesis_id)
+    if not synth:
+        raise HTTPException(404, "Synthesis not found")
+
+    client = NotionClient(conn["access_token"])
+    blocks = markdown_to_notion_blocks(synth["markdown_output"])
+
+    try:
+        page = client.create_page(
+            database_id=body.database_id,
+            title=f"Interview Synthesis — {synth.get('created_at', '')[:10]}",
+            blocks=blocks,
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 401:
+            raise HTTPException(401, "Notion token revoked; please reconnect.")
+        if e.response.status_code == 404:
+            raise HTTPException(404, "Notion database not found or deleted.")
+        raise HTTPException(502, f"Notion API error: {e}") from e
+    except Exception as e:
+        raise HTTPException(502, f"Notion API error: {e}") from e
+
+    return {
+        "notion_page_id": page["id"],
+        "notion_page_url": page.get("url", ""),
+    }
+
+
+@app.delete("/notion/connection")
+def disconnect_notion(user_id: str = Depends(require_auth)) -> dict[str, str]:
+    delete_notion_connection(user_id)
+    return {"status": "disconnected"}
