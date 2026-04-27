@@ -25,6 +25,9 @@ async function Navbar() {
           {user ? (
             <>
               <span className="text-neutral-500">{user.email}</span>
+              <Link href="/settings" className="text-neutral-700 hover:text-neutral-900">
+                Settings
+              </Link>
               <form action="/logout" method="post">
                 <button
                   type="submit"
