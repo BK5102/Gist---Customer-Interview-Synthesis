@@ -58,6 +58,36 @@ def _set_job(job_id: str, **fields: Any) -> None:
     JOBS[job_id].update(fields)
 
 
+def _set_file_status(
+    job_id: str,
+    participant_id: str,
+    status: str,
+    error_filename: str | None = None,
+) -> None:
+    """Update the status of a single file in the job's file_progress list."""
+    fp = JOBS[job_id].get("file_progress")
+    if fp is None:
+        return
+    for item in fp:
+        # file_progress may contain plain dicts or Pydantic model instances
+        # depending on whether the route has validated the job dict.
+        pid = (
+            item["participant_id"]
+            if isinstance(item, dict)
+            else getattr(item, "participant_id", None)
+        )
+        if pid == participant_id:
+            if isinstance(item, dict):
+                item["status"] = status
+                if error_filename:
+                    item["filename"] = error_filename
+            else:
+                setattr(item, "status", status)
+                if error_filename:
+                    setattr(item, "filename", error_filename)
+            break
+
+
 # ─── response models ────────────────────────────────────────────────────────
 class SynthesizeResult(BaseModel):
     markdown: str
@@ -72,11 +102,18 @@ class JobStartResponse(BaseModel):
     status: str  # "queued"
 
 
+class FileProgress(BaseModel):
+    filename: str
+    participant_id: str
+    status: str  # pending | transcribing | extracted | error
+
+
 class JobStatusResponse(BaseModel):
     job_id: str
     status: str  # queued | transcribing | extracting | clustering | insights | done | error
     current: int | None = None
     total: int | None = None
+    file_progress: list[FileProgress] | None = None
     result: SynthesizeResult | None = None
     error: str | None = None
 
@@ -179,6 +216,14 @@ async def synthesize(
         "status": "queued",
         "current": None,
         "total": None,
+        "file_progress": [
+            {
+                "filename": p["filename"],
+                "participant_id": p["participant_id"],
+                "status": "pending",
+            }
+            for p in prepared
+        ],
         "result": None,
         "error": None,
     }
@@ -214,12 +259,15 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
                 total=len(audio_indices),
             )
             p = prepared[idx]
+            _set_file_status(job_id, p["participant_id"], "transcribing")
             try:
                 p["text"] = transcribe_bytes(p["content"], p["filename"])
             except ValueError as e:
+                _set_file_status(job_id, p["participant_id"], "error")
                 _set_job(job_id, status="error", error=str(e))
                 return
             except Exception as e:  # openai/groq errors, network, etc.
+                _set_file_status(job_id, p["participant_id"], "error")
                 _set_job(
                     job_id,
                     status="error",
@@ -227,6 +275,7 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
                 )
                 return
             if not (p["text"] or "").strip():
+                _set_file_status(job_id, p["participant_id"], "error")
                 _set_job(
                     job_id,
                     status="error",
@@ -242,11 +291,13 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
         total_dropped = 0
         for k, p in enumerate(prepared, 1):
             _set_job(job_id, status="extracting", current=k, total=len(prepared))
+            _set_file_status(job_id, p["participant_id"], "extracting")
             verified, dropped = extract_from_text(p["text"], p["participant_id"])
             total_dropped += dropped
             for theme in verified:
                 theme["participant_id"] = p["participant_id"]
             all_themes.extend(verified)
+            _set_file_status(job_id, p["participant_id"], "extracted")
 
         if not all_themes:
             _set_job(
