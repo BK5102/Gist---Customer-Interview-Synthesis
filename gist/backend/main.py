@@ -11,13 +11,21 @@ from synth.cluster import cluster_themes_cached
 from synth.extract import extract_from_text
 from synth.format import render_markdown
 from synth.insights import generate_insights_cached
+from transcribe.whisper import WHISPER_MAX_BYTES, transcribe_bytes
 
 BACKEND_DIR = Path(__file__).resolve().parent
 load_dotenv(BACKEND_DIR / ".env", override=True)
 
-MAX_FILE_BYTES = 2 * 1024 * 1024  # 2 MB per file — transcripts are text
 MAX_FILES_PER_REQUEST = 20
-ALLOWED_EXTENSIONS = {".txt"}
+
+# Per-type size caps. Text transcripts are tiny; audio is bounded by
+# Whisper's 25 MB API limit (chunking lands in phase-1 day 5).
+TEXT_EXTENSIONS = {".txt"}
+AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".mp4", ".webm", ".mpeg", ".mpga"}
+ALLOWED_EXTENSIONS = TEXT_EXTENSIONS | AUDIO_EXTENSIONS
+
+MAX_TEXT_BYTES = 2 * 1024 * 1024  # 2 MB
+MAX_AUDIO_BYTES = WHISPER_MAX_BYTES  # 24 MB
 
 # Comma-separated list of allowed CORS origins. Defaults to local dev.
 # Production: set CORS_ORIGINS=https://your-vercel-domain.vercel.app
@@ -69,23 +77,46 @@ async def synthesize(files: list[UploadFile]) -> SynthesizeResponse:
             raise HTTPException(
                 400,
                 f"Unsupported file type: {f.filename} "
-                f"(only {', '.join(sorted(ALLOWED_EXTENSIONS))} in v0)",
+                f"(allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))})",
             )
 
         content = await f.read()
-        if len(content) > MAX_FILE_BYTES:
-            raise HTTPException(
-                413, f"File too large: {f.filename} (>{MAX_FILE_BYTES} bytes)"
-            )
         if len(content) == 0:
             raise HTTPException(400, f"Empty file: {f.filename}")
 
-        try:
-            text = content.decode("utf-8")
-        except UnicodeDecodeError as e:
+        cap = MAX_TEXT_BYTES if ext in TEXT_EXTENSIONS else MAX_AUDIO_BYTES
+        if len(content) > cap:
             raise HTTPException(
-                400, f"File not valid UTF-8: {f.filename}"
-            ) from e
+                413,
+                f"File too large: {f.filename} "
+                f"({len(content) / 1_048_576:.1f} MB > {cap / 1_048_576:.0f} MB cap)",
+            )
+
+        if ext in TEXT_EXTENSIONS:
+            try:
+                text = content.decode("utf-8")
+            except UnicodeDecodeError as e:
+                raise HTTPException(
+                    400, f"File not valid UTF-8: {f.filename}"
+                ) from e
+        else:
+            # Audio path: transcribe to text via Whisper, then feed into
+            # the existing extraction pipeline. Upstream API errors surface
+            # as 502 so the frontend can distinguish them from validation.
+            try:
+                text = transcribe_bytes(content, f.filename)
+            except ValueError as e:
+                raise HTTPException(413, str(e)) from e
+            except Exception as e:  # openai errors, network, etc.
+                raise HTTPException(
+                    502, f"Transcription failed for {f.filename}: {e}"
+                ) from e
+            if not text.strip():
+                raise HTTPException(
+                    422,
+                    f"Whisper returned empty transcript for {f.filename}; "
+                    "check that the file contains speech.",
+                )
 
         participant_id = Path(f.filename).stem
         if participant_id in participants:
