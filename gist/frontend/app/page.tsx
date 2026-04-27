@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { createClient } from "@/lib/supabase/client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MAX_TEXT_BYTES = 2 * 1024 * 1024; // keep in sync with backend
@@ -146,7 +147,15 @@ export default function Home() {
 
   const pollJob = async (jobId: string) => {
     try {
-      const res = await fetch(`${API_URL}/jobs/${jobId}`);
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+      const res = await fetch(`${API_URL}/jobs/${jobId}`, { headers });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || `Backend returned ${res.status}`);
@@ -279,6 +288,16 @@ export default function Home() {
     setJob(null);
     setIsLoading(true);
 
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setError("Please log in to synthesize.");
+      setIsLoading(false);
+      return;
+    }
+
     const body = new FormData();
     files.forEach((f, i) => {
       body.append("files", f);
@@ -291,6 +310,9 @@ export default function Home() {
       const res = await fetch(`${API_URL}/synthesize`, {
         method: "POST",
         body,
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (!res.ok) {
