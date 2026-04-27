@@ -25,8 +25,14 @@ type SynthesizeResponse = {
   themes_dropped: number;
 };
 
+const stemOf = (name: string) => {
+  const ext = extOf(name);
+  return ext ? name.slice(0, -ext.length) : name;
+};
+
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
+  const [labels, setLabels] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SynthesizeResponse | null>(null);
@@ -61,10 +67,7 @@ export default function Home() {
       return;
     }
 
-    const stems = picked.map((f) => {
-      const ext = extOf(f.name);
-      return ext ? f.name.slice(0, -ext.length) : f.name;
-    });
+    const stems = picked.map((f) => stemOf(f.name));
     if (new Set(stems).size !== stems.length) {
       setError(
         "Duplicate filenames detected. Each transcript stem must be unique (e.g. P1.txt, P2.txt).",
@@ -73,12 +76,34 @@ export default function Home() {
     }
 
     setFiles(picked);
+    setLabels(picked.map(() => ""));
     setResult(null);
   };
+
+  const setLabelAt = (idx: number, value: string) => {
+    setLabels((prev) => {
+      const next = [...prev];
+      next[idx] = value;
+      return next;
+    });
+  };
+
+  // Resolved participant id for file i: label if non-empty, else filename stem.
+  const resolvedId = (idx: number) =>
+    (labels[idx] ?? "").trim() || stemOf(files[idx]?.name ?? "");
 
   const submit = async () => {
     if (files.length === 0) {
       setError("Pick at least one .txt transcript first.");
+      return;
+    }
+
+    // Resolved ids must be unique (labels override stems, but only if set).
+    const ids = files.map((_, i) => resolvedId(i));
+    if (new Set(ids).size !== ids.length) {
+      setError(
+        "Two participants resolve to the same id. Edit the labels so each is unique.",
+      );
       return;
     }
 
@@ -87,7 +112,12 @@ export default function Home() {
     setIsLoading(true);
 
     const body = new FormData();
-    files.forEach((f) => body.append("files", f));
+    files.forEach((f, i) => {
+      body.append("files", f);
+      // Send label per file in the same order. Empty string → backend
+      // falls back to the filename stem.
+      body.append("labels", labels[i] ?? "");
+    });
 
     try {
       const res = await fetch(`${API_URL}/synthesize`, {
@@ -159,16 +189,35 @@ export default function Home() {
         </label>
 
         {files.length > 0 && (
-          <ul className="mt-4 space-y-1 text-sm text-neutral-600">
-            {files.map((f) => (
-              <li key={f.name} className="flex justify-between">
-                <span className="truncate">{f.name}</span>
-                <span className="ml-4 tabular-nums text-neutral-400">
-                  {(f.size / 1024).toFixed(1)} KB
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-4 space-y-3">
+            <p className="text-xs uppercase tracking-wide text-neutral-500">
+              Optional labels — used as participant id (e.g. “P1 — Alice,
+              consultant”). Leave blank to use the filename.
+            </p>
+            <ul className="space-y-2 text-sm text-neutral-600">
+              {files.map((f, i) => (
+                <li
+                  key={f.name}
+                  className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    {f.name}
+                    <span className="ml-2 tabular-nums text-neutral-400">
+                      {(f.size / 1024).toFixed(1)} KB
+                    </span>
+                  </span>
+                  <input
+                    type="text"
+                    value={labels[i] ?? ""}
+                    onChange={(e) => setLabelAt(i, e.target.value)}
+                    disabled={isLoading}
+                    placeholder={stemOf(f.name)}
+                    className="w-full rounded-md border border-neutral-300 px-2 py-1 text-sm placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none disabled:opacity-50 sm:w-64"
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <button
