@@ -4,8 +4,18 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-const MAX_FILE_BYTES = 2 * 1024 * 1024; // keep in sync with backend
+const MAX_TEXT_BYTES = 2 * 1024 * 1024; // keep in sync with backend
+const MAX_AUDIO_BYTES = 24 * 1024 * 1024; // Whisper API cap
 const MAX_FILES = 20;
+const TEXT_EXTS = [".txt"];
+const AUDIO_EXTS = [".mp3", ".wav", ".m4a", ".mp4", ".webm", ".mpeg", ".mpga"];
+const ALLOWED_EXTS = [...TEXT_EXTS, ...AUDIO_EXTS];
+
+const extOf = (name: string) => {
+  const dot = name.lastIndexOf(".");
+  return dot === -1 ? "" : name.slice(dot).toLowerCase();
+};
+const isAudio = (name: string) => AUDIO_EXTS.includes(extOf(name));
 
 type SynthesizeResponse = {
   markdown: string;
@@ -26,16 +36,22 @@ export default function Home() {
     if (!incoming) return;
     const picked = Array.from(incoming);
 
-    const badType = picked.find((f) => !f.name.toLowerCase().endsWith(".txt"));
+    const badType = picked.find((f) => !ALLOWED_EXTS.includes(extOf(f.name)));
     if (badType) {
-      setError(`Only .txt files are supported in v0 (got ${badType.name}).`);
+      setError(
+        `Unsupported file type: ${badType.name} (allowed: ${ALLOWED_EXTS.join(", ")}).`,
+      );
       return;
     }
 
-    const tooBig = picked.find((f) => f.size > MAX_FILE_BYTES);
+    const tooBig = picked.find((f) => {
+      const cap = isAudio(f.name) ? MAX_AUDIO_BYTES : MAX_TEXT_BYTES;
+      return f.size > cap;
+    });
     if (tooBig) {
+      const cap = isAudio(tooBig.name) ? MAX_AUDIO_BYTES : MAX_TEXT_BYTES;
       setError(
-        `${tooBig.name} is larger than ${MAX_FILE_BYTES / 1024 / 1024} MB.`,
+        `${tooBig.name} is larger than ${cap / 1024 / 1024} MB.`,
       );
       return;
     }
@@ -45,7 +61,10 @@ export default function Home() {
       return;
     }
 
-    const stems = picked.map((f) => f.name.replace(/\.txt$/i, ""));
+    const stems = picked.map((f) => {
+      const ext = extOf(f.name);
+      return ext ? f.name.slice(0, -ext.length) : f.name;
+    });
     if (new Set(stems).size !== stems.length) {
       setError(
         "Duplicate filenames detected. Each transcript stem must be unique (e.g. P1.txt, P2.txt).",
@@ -120,12 +139,19 @@ export default function Home() {
       <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
         <label className="block">
           <span className="text-sm font-medium text-neutral-700">
-            Upload transcripts (.txt)
+            Upload transcripts (.txt) or audio (mp3, wav, m4a, mp4, webm)
           </span>
           <input
             type="file"
             multiple
-            accept=".txt,text/plain"
+            accept={[
+              ".txt",
+              "text/plain",
+              ...AUDIO_EXTS,
+              "audio/*",
+              "video/mp4",
+              "video/webm",
+            ].join(",")}
             onChange={(e) => pickFiles(e.target.files)}
             disabled={isLoading}
             className="mt-2 block w-full cursor-pointer text-sm text-neutral-700 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-700 disabled:opacity-50"
@@ -163,8 +189,11 @@ export default function Home() {
 
       {isLoading && (
         <p className="mt-8 text-sm text-neutral-500">
+          {files.some((f) => isAudio(f.name))
+            ? "Transcribing audio → "
+            : ""}
           Extracting themes → clustering across interviews → generating
-          founder takeaways. This usually takes 30–90 seconds.
+          founder takeaways. Audio adds ~1 min per 5 min of recording.
         </p>
       )}
 
