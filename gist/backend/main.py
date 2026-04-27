@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -56,19 +56,47 @@ def health() -> dict:
 
 
 @app.post("/synthesize", response_model=SynthesizeResponse)
-async def synthesize(files: list[UploadFile]) -> SynthesizeResponse:
+async def synthesize(
+    files: list[UploadFile],
+    labels: list[str] = Form(default=[]),
+) -> SynthesizeResponse:
     if not files:
         raise HTTPException(400, "No files provided")
     if len(files) > MAX_FILES_PER_REQUEST:
         raise HTTPException(
             400, f"Too many files (max {MAX_FILES_PER_REQUEST} per request)"
         )
+    if labels and len(labels) != len(files):
+        raise HTTPException(
+            400,
+            f"labels count ({len(labels)}) does not match files count "
+            f"({len(files)}). Send one label per file (empty string allowed).",
+        )
+
+    # Resolve participant ids and validate uniqueness up front, before any
+    # expensive reads or Whisper/Haiku calls. Filename stem is the fallback
+    # when label is empty. Empty filenames will fail later in the per-file loop.
+    resolved_ids: list[str] = []
+    seen: set[str] = set()
+    for idx, f in enumerate(files):
+        if not f.filename:
+            continue  # the per-file loop will raise a 400 with full context
+        label = labels[idx].strip() if idx < len(labels) else ""
+        pid = label or Path(f.filename).stem
+        if pid in seen:
+            raise HTTPException(
+                400,
+                f"Duplicate participant id '{pid}'. "
+                "Edit the label or rename the file so each id is unique.",
+            )
+        seen.add(pid)
+        resolved_ids.append(pid)
 
     all_themes: list[dict] = []
     participants: set[str] = set()
     total_dropped = 0
 
-    for f in files:
+    for idx, f in enumerate(files):
         if not f.filename:
             raise HTTPException(400, "File missing filename")
 
@@ -118,13 +146,8 @@ async def synthesize(files: list[UploadFile]) -> SynthesizeResponse:
                     "check that the file contains speech.",
                 )
 
-        participant_id = Path(f.filename).stem
-        if participant_id in participants:
-            raise HTTPException(
-                400,
-                f"Duplicate participant id '{participant_id}'. "
-                "Rename files so each stem is unique.",
-            )
+        # Participant ids were resolved + dedup'd in the first pass above.
+        participant_id = resolved_ids[idx]
         participants.add(participant_id)
 
         verified, dropped = extract_from_text(text, participant_id)
