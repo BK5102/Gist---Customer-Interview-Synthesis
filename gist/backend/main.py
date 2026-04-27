@@ -6,10 +6,12 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from fastapi import BackgroundTasks, FastAPI, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from auth.supabase_client import require_auth
+from db import db_available, create_project, get_project, save_synthesis, save_transcript
 from synth.cluster import cluster_themes_cached
 from synth.extract import extract_from_text
 from synth.format import render_markdown
@@ -95,6 +97,8 @@ class SynthesizeResult(BaseModel):
     participant_count: int
     themes_extracted: int
     themes_dropped: int
+    project_id: str | None = None
+    synthesis_id: str | None = None
 
 
 class JobStartResponse(BaseModel):
@@ -129,6 +133,8 @@ async def synthesize(
     background_tasks: BackgroundTasks,
     files: list[UploadFile],
     labels: list[str] = Form(default=[]),
+    project_id: str | None = None,
+    user_id: str = Depends(require_auth),
 ) -> JobStartResponse:
     """Validate inputs, kick off the synthesis pipeline as a background job.
 
@@ -210,9 +216,28 @@ async def synthesize(
             }
         )
 
+    # Resolve or create project.
+    if db_available():
+        if project_id:
+            proj = get_project(user_id, project_id)
+            if not proj:
+                raise HTTPException(
+                    404, f"Project {project_id} not found or access denied"
+                )
+            resolved_project_id = project_id
+        else:
+            first_name = prepared[0]["filename"]
+            proj_name = f"Synthesis {first_name}"
+            proj = create_project(user_id, proj_name)
+            resolved_project_id = proj["id"]
+    else:
+        resolved_project_id = project_id or ""
+
     job_id = uuid.uuid4().hex[:12]
     JOBS[job_id] = {
         "job_id": job_id,
+        "user_id": user_id,
+        "project_id": resolved_project_id,
         "status": "queued",
         "current": None,
         "total": None,
@@ -227,7 +252,9 @@ async def synthesize(
         "result": None,
         "error": None,
     }
-    background_tasks.add_task(_run_pipeline, job_id, prepared)
+    background_tasks.add_task(
+        _run_pipeline, job_id, prepared, user_id, resolved_project_id
+    )
     return JobStartResponse(job_id=job_id, status="queued")
 
 
@@ -240,7 +267,12 @@ def get_job(job_id: str) -> JobStatusResponse:
 
 
 # ─── pipeline ───────────────────────────────────────────────────────────────
-def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
+def _run_pipeline(
+    job_id: str,
+    prepared: list[dict[str, Any]],
+    user_id: str,
+    project_id: str,
+) -> None:
     """Run transcribe → extract → cluster → insights → render in the bg.
 
     All upstream errors land in JOBS[job_id]["error"] so the client can
@@ -289,6 +321,7 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
         # 2. Per-file theme extraction (Haiku).
         all_themes: list[dict] = []
         total_dropped = 0
+        transcript_rows: list[dict[str, Any]] = []
         for k, p in enumerate(prepared, 1):
             _set_job(job_id, status="extracting", current=k, total=len(prepared))
             _set_file_status(job_id, p["participant_id"], "extracting")
@@ -298,6 +331,22 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
                 theme["participant_id"] = p["participant_id"]
             all_themes.extend(verified)
             _set_file_status(job_id, p["participant_id"], "extracted")
+
+            # Persist transcript to DB if configured.
+            if db_available() and project_id:
+                try:
+                    row = save_transcript(
+                        project_id=project_id,
+                        filename=p["filename"],
+                        content=p["text"],
+                        participant_label=p["participant_id"],
+                        source_type="audio_upload" if p["ext"] in AUDIO_EXTENSIONS else "text_upload",
+                    )
+                    transcript_rows.append(row)
+                except Exception:
+                    # Don't fail the pipeline if DB write fails; log and continue.
+                    import logging
+                    logging.getLogger("gist").exception("Failed to save transcript")
 
         if not all_themes:
             _set_job(
@@ -315,6 +364,23 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
         insights = generate_insights_cached(clusters)
         markdown = render_markdown(clusters, insights)
 
+        # Persist synthesis to DB if configured.
+        synthesis_id: str | None = None
+        if db_available() and project_id:
+            try:
+                t_ids = [r["id"] for r in transcript_rows]
+                synth_row = save_synthesis(
+                    project_id=project_id,
+                    markdown_output=markdown,
+                    transcript_ids=t_ids,
+                    themes_json=clusters,
+                    model_used="claude-sonnet-4-6",
+                )
+                synthesis_id = synth_row["id"]
+            except Exception:
+                import logging
+                logging.getLogger("gist").exception("Failed to save synthesis")
+
         _set_job(
             job_id,
             status="done",
@@ -324,6 +390,8 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
                 "participant_count": len({p["participant_id"] for p in prepared}),
                 "themes_extracted": len(all_themes),
                 "themes_dropped": total_dropped,
+                "project_id": project_id or None,
+                "synthesis_id": synthesis_id,
             },
         )
     except Exception as e:  # last-resort: keep job dict consistent
@@ -332,3 +400,52 @@ def _run_pipeline(job_id: str, prepared: list[dict[str, Any]]) -> None:
             status="error",
             error=f"Pipeline crashed: {e!r}\n{traceback.format_exc()}",
         )
+
+
+# ─── projects API ───────────────────────────────────────────────────────────
+class CreateProjectRequest(BaseModel):
+    name: str
+
+
+@app.get("/projects")
+def list_projects(user_id: str = Depends(require_auth)) -> list[dict[str, Any]]:
+    if not db_available():
+        raise HTTPException(503, "Database not configured")
+    return get_projects(user_id)
+
+
+@app.post("/projects", status_code=201)
+def create_project_endpoint(
+    body: CreateProjectRequest,
+    user_id: str = Depends(require_auth),
+) -> dict[str, Any]:
+    if not db_available():
+        raise HTTPException(503, "Database not configured")
+    return create_project(user_id, body.name)
+
+
+@app.get("/projects/{project_id}")
+def get_project_detail(
+    project_id: str,
+    user_id: str = Depends(require_auth),
+) -> dict[str, Any]:
+    if not db_available():
+        raise HTTPException(503, "Database not configured")
+    proj = get_project(user_id, project_id)
+    if not proj:
+        raise HTTPException(404, "Project not found")
+    proj["syntheses"] = get_syntheses_for_project(project_id)
+    return proj
+
+
+@app.get("/syntheses/{synthesis_id}")
+def get_synthesis_detail(
+    synthesis_id: str,
+    user_id: str = Depends(require_auth),
+) -> dict[str, Any]:
+    if not db_available():
+        raise HTTPException(503, "Database not configured")
+    synth = get_synthesis(user_id, synthesis_id)
+    if not synth:
+        raise HTTPException(404, "Synthesis not found")
+    return synth
