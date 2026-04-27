@@ -16,14 +16,15 @@ load_dotenv(BACKEND_DIR / ".env", override=True)
 MODEL = "claude-sonnet-4-6"
 
 
-def extract(transcript_path: str, participant_id: str) -> tuple[list[dict], int]:
-    """Extract verified themes from a single transcript.
+def extract_from_text(
+    transcript_text: str, participant_id: str
+) -> tuple[list[dict], int]:
+    """Extract verified themes from raw transcript text.
 
-    Returns (verified_themes, dropped_count).
+    Returns (verified_themes, dropped_count). No disk I/O, no caching —
+    callers that want caching should wrap this.
     """
-    transcript_text = Path(transcript_path).read_text(encoding="utf-8")
-
-    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"], max_retries=6)
     response = client.messages.create(
         model=MODEL,
         max_tokens=4096,
@@ -43,7 +44,7 @@ def extract(transcript_path: str, participant_id: str) -> tuple[list[dict], int]
     themes: list[dict] = []
     for block in response.content:
         if block.type == "tool_use" and block.name == "extract_themes":
-            themes = block.input["themes"]
+            themes = block.input.get("themes", [])
             break
 
     verified: list[dict] = []
@@ -55,6 +56,12 @@ def extract(transcript_path: str, participant_id: str) -> tuple[list[dict], int]
             dropped += 1
 
     return verified, dropped
+
+
+def extract(transcript_path: str, participant_id: str) -> tuple[list[dict], int]:
+    """Extract verified themes from a transcript file on disk."""
+    transcript_text = Path(transcript_path).read_text(encoding="utf-8")
+    return extract_from_text(transcript_text, participant_id)
 
 
 if __name__ == "__main__":
