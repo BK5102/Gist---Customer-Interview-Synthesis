@@ -14,7 +14,8 @@ from synth.cluster import cluster_themes_cached
 from synth.extract import extract_from_text
 from synth.format import render_markdown
 from synth.insights import generate_insights_cached
-from transcribe.whisper import WHISPER_MAX_BYTES, transcribe_bytes
+from transcribe.whisper import MAX_AUDIO_BYTES as WHISPER_AUDIO_BYTES
+from transcribe.whisper import transcribe_bytes
 
 BACKEND_DIR = Path(__file__).resolve().parent
 load_dotenv(BACKEND_DIR / ".env", override=True)
@@ -28,7 +29,7 @@ AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".mp4", ".webm", ".mpeg", ".mpga"}
 ALLOWED_EXTENSIONS = TEXT_EXTENSIONS | AUDIO_EXTENSIONS
 
 MAX_TEXT_BYTES = 2 * 1024 * 1024  # 2 MB
-MAX_AUDIO_BYTES = WHISPER_MAX_BYTES  # 24 MB
+MAX_AUDIO_BYTES = WHISPER_AUDIO_BYTES  # 200 MB; chunker handles >25 MB
 
 # Comma-separated list of allowed CORS origins. Defaults to local dev.
 # Production: set CORS_ORIGINS=https://your-vercel-domain.vercel.app
