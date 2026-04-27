@@ -161,7 +161,7 @@ def transcribe(audio_path: str | Path) -> str:
     """Transcribe an audio file on disk to plain text.
 
     Files <= CHUNK_TARGET_BYTES go straight to the hosted API. Larger
-    files are split into chunks via pydub/ffmpeg and the transcripts are
+    files are split into chunks via ffmpeg (-c copy) and the transcripts are
     joined with spaces. Raises FileNotFoundError if the path doesn't exist
     and ValueError if the file exceeds MAX_AUDIO_BYTES even after chunking
     (a sanity guardrail, not an API limit).

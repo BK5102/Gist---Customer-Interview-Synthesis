@@ -96,10 +96,54 @@
   subprocess is simpler and more predictable for fixed-duration slicing. Removed the
   unused dependency.
 
-### Next up (Day 6)
-- Frontend drag-and-drop polish, per-file status badges, estimated-time messaging.
-- End-to-end test with a real recorded interview (audio upload → wait → read synthesis).
-- Tag `v0.2.0`.
+## Day 6 — 2026-04-27
+
+### What I shipped
+- **Backend per-file progress tracking**: `file_progress` array on every job, with statuses
+  `pending | transcribing | extracting | extracted | error`. Pipeline updates each file's
+  status as it moves through transcription and extraction.
+- **Frontend drag-and-drop zone**: visual border change on drag-over, drop handler, plus
+  a hidden file-input "Browse files" button for accessibility.
+- **Per-file status badges** in the file list during processing: Pending → Transcribing…
+  → Extracting… → Done. Uses color-coded badges (amber/blue/green).
+- **Remove file button**: each file can be deleted from the queue before submitting.
+- **Estimated time messaging**: based on total audio size (~1 MB ≈ 1 min at 128 kbps,
+  transcription ~1 min wall-clock per 5 min of audio). Shows before submission so users
+  know what to expect.
+- **End-to-end test**: ran `POST /synthesize` with P1.txt + P2.txt through the full
+  pipeline. Verified file_progress tracked both files (extracted) and final result
+  rendered 19 clusters, 26 themes, 2 dropped, full markdown synthesis.
+- **TypeScript passes**: `npx tsc --noEmit` is clean.
+- Tagged `v0.2.0`.
+
+### Key decisions (and why)
+- **Keep in-memory `JOBS` dict, just enrich it.** Phase 2 will swap in Postgres; for now
+  the file_progress array is enough to debug per-file failures and give users granular
+  feedback. Tried not to over-engineer.
+- **Pure-dict storage for file_progress, with Pydantic model fallback.** Initially stored
+  `FileProgress()` Pydantic objects directly in the job dict, but `JobStatusResponse`
+  validation on GET routes could convert them back to model instances. The `_set_file_status`
+  helper now handles both dicts and model instances so the pipeline doesn't crash regardless
+  of which route touched the job first.
+- **Estimated time from file size, not duration metadata.** We don't have audio duration
+  on the client without parsing headers, so we use the bitrate heuristic. It's imprecise
+  but directionally correct and better than no estimate at all.
+- **Remove individual files rather than clear-all.** Early iterations considered a
+  "Clear all" button, but per-file removal is more useful: users often drop 5 files
+  and then realize one is wrong.
+
+### What surprised me
+- The `_set_file_status` bug took 3 iterations to fix. The root cause was mixing Pydantic
+  model instantiation with raw dict storage in the same mutable object. FastAPI's
+  `response_model` doesn't mutate the return value, but reading the same job dict back
+  through Pydantic in tests or Swagger docs *can* create model instances in memory,
+  which then break dict-indexing code. The real lesson: if a store is meant to be raw
+  dicts, never instantiate Pydantic models into it.
+- End-to-end latency for 2 text transcripts was ~50 seconds (extraction dominates).
+  This is acceptable but means audio-heavy jobs will need the progress UI to feel fast.
+- Drag-and-drop actually feels better than the native file input. The visual feedback
+  (border darkening) makes the affordance obvious. Worth the extra 20 lines of event
+  handler code.
 
 ## Day 1 — 2026-04-16
 
