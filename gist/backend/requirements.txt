@@ -6,8 +6,7 @@ python-dotenv
 pydantic
 # Phase 1
 openai
-pydub
-imageio-ffmpeg  # ships a static ffmpeg binary so pydub works without a system install
+imageio-ffmpeg  # ships a static ffmpeg binary so chunking works without a system install
 # Phase 2
 supabase
 pyjwt[crypto]

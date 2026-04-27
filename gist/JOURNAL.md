@@ -1,5 +1,106 @@
 # Journal
 
+## Day 3 — 2026-04-20
+
+### What I shipped
+- FastAPI endpoint `POST /synthesize` accepting multiple `.txt` files, returning markdown.
+- `GET /health` for Railway deploy checks.
+- Thinnest viable Next.js frontend: drag-and-drop multi-file upload, "Synthesize" button,
+  loading state, rendered markdown via `react-markdown`.
+- Railway deployment config (`Procfile`, `runtime.txt`) and CORS wired for Vercel.
+- `README.md` covering architecture, run-locally, and deploy notes.
+- Tagged `v0.1.0`.
+
+### Key decisions (and why)
+- **Single-file upload endpoint to start.** It's simpler than streaming multipart in chunks.
+  Could parallelize later if latency matters.
+- **Frontend as a thin shell over the API.** All the LLM logic lives in Python where tool-use
+  is native. React just renders what the backend returns.
+- **Railway over Render.** Railway's free tier was enough for a single FastAPI worker at this
+  stage, and the GitHub auto-deploy hook meant every `git push` updated the live URL
+  within ~60 seconds.
+
+### What surprised me
+- CORS preflight on Railway took three tries to get right. `allow_origins=["*"]` with
+  credentials doesn't work in modern browsers; had to explicitly list the Vercel domain.
+- `react-markdown` bundles are larger than expected (~120 KB gzipped). Acceptable for now,
+  but worth splitting if we add a dashboard later.
+- A stranger could actually use the tool end-to-end within 3 days. The 3-day v0 sprint
+  really does work if you constrain scope aggressively.
+
+## Day 4 — 2026-04-23
+
+### What I shipped
+- `backend/transcribe/whisper.py` — audio ingestion pipeline supporting two backends:
+  Groq (`whisper-large-v3`, free tier) and OpenAI (`whisper-1`, paid fallback).
+- Updated `POST /synthesize` to accept audio extensions (`.mp3`, `.wav`, `.m4a`, `.mp4`),
+  transcribe first, then run the existing text pipeline.
+- Frontend updated to accept audio files alongside `.txt` transcripts.
+- Tested on a 5-minute mock interview MP3; transcription quality was high enough to
+  extract meaningful themes.
+
+### Key decisions (and why)
+- **Groq as primary provider.** It's free, faster, and uses `whisper-large-v3` which beats
+  OpenAI's `whisper-1` on accuracy. Fallback to OpenAI means the pipeline still works if
+  Groq hits rate limits.
+- **OpenAI-compatible SDK for both.** Using `openai` package with `base_url` swap means
+  one code path for both providers — no branching logic beyond the initial key check.
+- **Return transcript alongside synthesis.** Users want to see (and sometimes edit) the raw
+  transcript before trusting the synthesis. Will expose this in UI in Day 6.
+
+### What surprised me
+- Groq's free tier is genuinely fast — a 5-minute file transcribed in ~2 seconds.
+- Audio quality matters enormously. A low-bitrate recording had a 3% word-error rate jump
+  vs a clean WAV. Need to warn users about this in the UI eventually.
+- The existing extraction prompt worked unchanged on transcript text derived from audio.
+  No prompt retuning needed.
+
+## Day 5 — 2026-04-27
+
+### What I shipped
+- `backend/transcribe/whisper.py`: `ffmpeg -c copy` chunking for files larger than the
+  Whisper API's 25 MB cap. Splits at fixed-duration boundaries, transcribes each chunk
+  sequentially, joins with spaces. Supports files up to 200 MB.
+- File type and size validation in `POST /synthesize` (backend rejects unsupported formats
+  and oversized files with clear 4xx messages).
+- **Per-file participant labels** in both frontend and backend. User can type
+  "P1 — Alice, consultant" for each file; blank labels fall back to filename stem.
+- **Async job system**: `POST /synthesize` returns 202 + `job_id`; frontend polls
+  `GET /jobs/{job_id}` every 2 seconds. Job progress shows exact stage
+  (queued → transcribing → extracting → clustering → insights → done/error).
+- In-memory job store (`JOBS` dict) — sufficient for v0; Phase 2 will replace with Postgres.
+
+### Key decisions (and why)
+- **Skip automated speaker diarization for v1.** Whisper doesn't label speakers natively,
+  and `pyannote.audio` is heavy. Manual participant labels are a pragmatic UX compromise
+  that ships today instead of blocking on a hard ML problem.
+- **Stream-copy chunking (`-c copy`) instead of re-encoding.** Keeps chunking fast and
+  lossless. Used `imageio-ffmpeg` to ship a static ffmpeg binary so users don't need a
+  system install.
+- **Synchronous validation on POST, async work in background tasks.** This lets us return
+  immediate 400s for bad inputs (wrong format, too large, duplicate IDs) while still
+  running the long transcription pipeline off the request thread.
+- **Backend-wide duplicate participant-ID guard.** Two files resolving to the same label
+  or stem is a data-loss risk for clustering. We validate uniqueness up front.
+
+### What surprised me
+- ffmpeg stream-copy chunking is near-instant on a 45-minute MP3 (~3 seconds for 4 chunks).
+  `_audio_duration_seconds` probes duration by parsing ffmpeg stderr with regex; it's
+  hacky but avoids a ffprobe dependency.
+- The frontend stage tracker (transcribing → extracting → clustering → insights) made
+  a 90-second wait feel acceptable. Visible progress is a genuine UX requirement, not
+  polish.
+- BackgroundTasks in FastAPI runs in-process. If the server restarts, in-flight jobs die.
+  Documented this explicitly for Phase 2 (move to Postgres queue or Redis).
+- `pydub` was listed in BUILD_PLAN and `requirements.txt` but never used — `ffmpeg`
+  subprocess is simpler and more predictable for fixed-duration slicing. Removed the
+  unused dependency.
+
+### Next up (Day 6)
+- Frontend drag-and-drop polish, per-file status badges, estimated-time messaging.
+- End-to-end test with a real recorded interview (audio upload → wait → read synthesis).
+- Tag `v0.2.0`.
+
 ## Day 1 — 2026-04-16
 
 ### What I shipped
