@@ -173,3 +173,50 @@ def get_syntheses_for_project(project_id: str) -> list[dict[str, Any]]:
         .execute()
     )
     return resp.data or []
+
+
+# ─── notion_connections ────────────────────────────────────────────────────
+
+def get_notion_connection(user_id: str) -> dict[str, Any] | None:
+    """Fetch the Notion connection for a user, if any."""
+    resp = (
+        _db()
+        .table("notion_connections")
+        .select("*")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return resp.data[0] if resp.data else None
+
+
+def save_notion_connection(
+    user_id: str,
+    access_token: str,
+    workspace_id: str | None = None,
+    workspace_name: str | None = None,
+) -> dict[str, Any]:
+    """Upsert a Notion connection for the user."""
+    payload = {
+        "user_id": user_id,
+        "access_token": access_token,
+        "workspace_id": workspace_id,
+        "workspace_name": workspace_name,
+    }
+    resp = (
+        _db()
+        .table("notion_connections")
+        .upsert(payload, on_conflict="user_id")
+        .execute()
+    )
+    return resp.data[0]
+
+
+def delete_notion_connection(user_id: str) -> None:
+    """Remove the Notion connection for a user."""
+    (
+        _db()
+        .table("notion_connections")
+        .delete()
+        .eq("user_id", user_id)
+        .execute()
+    )

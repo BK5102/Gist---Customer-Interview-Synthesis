@@ -215,6 +215,55 @@
   env vars; push frontend to Vercel with `NEXT_PUBLIC_SUPABASE_URL` +
   `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Test end-to-end with a real Supabase project.
 
+## Phase 3 — Notion Integration + Ship (Days 14–17, 2026-04-27)
+
+### What I shipped
+- **Notion OAuth**: `GET /notion/auth` returns Notion OAuth URL; user clicks,
+  Notion redirects to `GET /notion/callback`, backend exchanges code for token
+  and saves to `notion_connections` table. Frontend `/settings` page shows
+  connect/disconnect state.
+- **Database picker**: `GET /notion/databases` lists user's Notion databases
+  the integration has access to. Dropdown shown on synthesis detail page.
+- **Markdown → Notion blocks** (`integrations/notion.py`): converts headings
+  (H1/H2/H3), bullet lists, numbered lists, blockquotes, horizontal rules, and
+  paragraphs into Notion block objects.
+- **Push to Notion**: `POST /notion/push` creates a new page in the selected
+  database with the synthesis content. Returns Notion page URL.
+- **Error handling**: catches 401 (revoked token → prompt reconnect), 404
+  (deleted database), and generic API errors with friendly messages.
+- **Landing page**: logged-out homepage shows value prop, "Get started" / "Log in"
+  CTAs, and a no-nonsense tagline. No fake logos or testimonials.
+- **Settings navbar link** and `/settings` page with Notion integration status.
+- Tagged `v1.0.0`.
+
+### Key decisions (and why)
+- **Redirect-based OAuth instead of popup.** Popups are blocked by many browsers.
+  A full redirect to Notion and back to `/settings` is simpler and more reliable.
+  The `state` param carries the user_id so the callback knows who to save the
+  token for.
+- **Strip inline markdown formatting rather than faithfully convert.** Notion's
+  rich_text annotations require parsing bold/italic spans, which means a full
+  markdown AST parser. For v1, stripping `**` and `*` is acceptable — the content
+  is readable and the converter is ~100 lines instead of 500.
+- **Push from `/syntheses/[id]` rather than `/projects/[id]`.** The user has
+  already reviewed the markdown on the detail page; adding the push button there
+  is the lowest-friction moment.
+- **Store access_token plaintext in Postgres.** Notion tokens are long-lived
+  (no expiry) but the BUILD_PLAN mentions "encrypt at rest if you want to be safe."
+  Skipping encryption for v1 keeps the code simple; if users ask, we'll add
+  `cryptography` Fernet encryption later.
+
+### What surprised me
+- Notion's OAuth flow requires a "Public integration" (not Internal) to get a
+  `redirect_uri`. Internal integrations skip OAuth but can only access pages
+  explicitly shared with them. Public integration is strictly better for a
+  multi-user product.
+- The Notion `search` API returns both pages and databases; filtering by
+  `{"value":"database","property":"object"}` is required or the list is noisy.
+- The `children` blocks array in `POST /pages` has a 100-block limit. Our typical
+  synthesis is 20–40 blocks, so we're safe for now. For very long syntheses
+  we'd need to paginate with `PATCH /blocks/{id}/children`.
+
 ## Day 1 — 2026-04-16
 
 ### What I shipped

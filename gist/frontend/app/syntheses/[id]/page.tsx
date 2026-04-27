@@ -18,10 +18,18 @@ type SynthesisDetail = {
   created_at: string;
 };
 
+type NotionDb = { id: string; title: string };
+
 export default function SynthesisDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [synth, setSynth] = useState<SynthesisDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notionConnected, setNotionConnected] = useState(false);
+  const [databases, setDatabases] = useState<NotionDb[]>([]);
+  const [selectedDb, setSelectedDb] = useState("");
+  const [pushing, setPushing] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
+  const [pushUrl, setPushUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -43,6 +51,18 @@ export default function SynthesisDetailPage() {
       }
       const data = (await res.json()) as SynthesisDetail;
       setSynth(data);
+
+      // Check Notion connection and list databases
+      const dbRes = await fetch(`${API_URL}/notion/databases`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (dbRes.ok) {
+        setNotionConnected(true);
+        const dbData = (await dbRes.json()) as NotionDb[];
+        setDatabases(dbData);
+        if (dbData.length > 0) setSelectedDb(dbData[0].id);
+      }
+
       setLoading(false);
     };
     load();
@@ -51,6 +71,34 @@ export default function SynthesisDetailPage() {
   const copyMarkdown = async () => {
     if (!synth) return;
     await navigator.clipboard.writeText(synth.markdown_output);
+  };
+
+  const pushToNotion = async () => {
+    if (!synth || !selectedDb) return;
+    setPushing(true);
+    setPushError(null);
+    setPushUrl(null);
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return;
+    const res = await fetch(`${API_URL}/notion/push`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ synthesis_id: synth.id, database_id: selectedDb }),
+    });
+    setPushing(false);
+    if (!res.ok) {
+      const text = await res.text();
+      setPushError(text || "Push failed");
+      return;
+    }
+    const data = (await res.json()) as { notion_page_url: string };
+    setPushUrl(data.notion_page_url);
   };
 
   if (loading) {
@@ -103,6 +151,48 @@ export default function SynthesisDetailPage() {
           Copy markdown
         </button>
       </div>
+
+      {notionConnected && (
+        <div className="mb-4 rounded-md border border-neutral-200 bg-white p-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <select
+              value={selectedDb}
+              onChange={(e) => setSelectedDb(e.target.value)}
+              className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+            >
+              {databases.map((db) => (
+                <option key={db.id} value={db.id}>
+                  {db.title}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={pushToNotion}
+              disabled={pushing || !selectedDb}
+              className="rounded-md bg-neutral-900 px-3 py-1 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+            >
+              {pushing ? "Pushing…" : "Push to Notion"}
+            </button>
+          </div>
+          {pushError && (
+            <p className="mt-2 text-xs text-red-700">{pushError}</p>
+          )}
+          {pushUrl && (
+            <p className="mt-2 text-xs text-green-700">
+              Pushed!{" "}
+              <a
+                href={pushUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+              >
+                Open in Notion
+              </a>
+            </p>
+          )}
+        </div>
+      )}
 
       <article className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm prose prose-neutral max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:mt-8 prose-h2:border-t prose-h2:border-neutral-200 prose-h2:pt-6 prose-h3:mt-6 prose-blockquote:border-l-neutral-300 prose-blockquote:text-neutral-600">
         <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>

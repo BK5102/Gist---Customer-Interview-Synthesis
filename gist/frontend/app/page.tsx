@@ -128,6 +128,8 @@ const stemOf = (name: string) => {
 };
 
 export default function Home() {
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
   const [labels, setLabels] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,6 +138,15 @@ export default function Home() {
   const [job, setJob] = useState<JobStatus | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auth state on mount
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setAuthLoading(false);
+    });
+  }, []);
 
   // Cancel any outstanding poll on unmount so we don't leak timers across
   // hot-reloads in dev.
@@ -361,6 +372,45 @@ export default function Home() {
   const audioFiles = files.filter((f) => isAudio(f.name));
   const estMinutes = totalEstimateMinutes(files);
   const hasAudio = audioFiles.length > 0;
+
+  if (authLoading) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-12">
+        <p className="text-sm text-neutral-500">Loading…</p>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
+        <h1 className="text-4xl font-semibold tracking-tight text-neutral-900">
+          Turn interviews into insight
+        </h1>
+        <p className="mx-auto mt-4 max-w-lg text-lg text-neutral-600">
+          Upload customer interview transcripts or audio. Get a themed synthesis
+          with traceable quotes — so you know exactly what to build next.
+        </p>
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <a
+            href="/signup"
+            className="rounded-md bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-neutral-700"
+          >
+            Get started
+          </a>
+          <a
+            href="/login"
+            className="rounded-md border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+          >
+            Log in
+          </a>
+        </div>
+        <p className="mt-6 text-xs text-neutral-400">
+          No fake testimonials. No logos. Just a tool that works.
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
