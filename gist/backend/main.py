@@ -460,8 +460,11 @@ from integrations.notion import (
     NotionClient,
 )
 from db import (
+    consume_oauth_state,
+    create_oauth_state,
     delete_notion_connection,
     get_notion_connection,
+    purge_expired_oauth_states,
     save_notion_connection,
 )
 
@@ -478,7 +481,13 @@ def _frontend_settings_url() -> str:
 def notion_auth(user_id: str = Depends(require_auth)) -> dict[str, str]:
     if not notion_configured():
         raise HTTPException(503, "Notion integration not configured")
-    url = auth_url(_notion_redirect_uri(), user_id)
+    # Opportunistically purge expired states so the table stays small.
+    try:
+        purge_expired_oauth_states()
+    except Exception:  # noqa: BLE001 — purge is best-effort
+        pass
+    state = create_oauth_state(user_id=user_id, provider="notion")
+    url = auth_url(_notion_redirect_uri(), state)
     return {"auth_url": url}
 
 
@@ -493,6 +502,17 @@ def notion_callback(
     if not code or not state:
         raise HTTPException(400, "Missing code or state")
 
+    # Validate the CSRF nonce we issued in /notion/auth. consume_oauth_state
+    # returns None when the state is unknown, expired, or for a different
+    # provider — and always deletes it so the nonce is single-use.
+    user_id = consume_oauth_state(state, "notion")
+    if not user_id:
+        raise HTTPException(
+            400,
+            "Invalid or expired OAuth state. Restart the connect flow from "
+            "Settings.",
+        )
+
     try:
         token_resp = exchange_code(code, _notion_redirect_uri())
     except Exception as e:
@@ -505,7 +525,6 @@ def notion_callback(
     if not access_token:
         raise HTTPException(400, "No access_token in Notion response")
 
-    user_id = state
     save_notion_connection(
         user_id=user_id,
         access_token=access_token,
@@ -576,6 +595,25 @@ def push_to_notion(
     return {
         "notion_page_id": page["id"],
         "notion_page_url": page.get("url", ""),
+    }
+
+
+@app.get("/notion/connection")
+def notion_connection_status(
+    user_id: str = Depends(require_auth),
+) -> dict[str, Any]:
+    """Cheap connection check — one DB read, no Notion API call.
+
+    Used by Settings + Synthesis pages to render the right UI without
+    hitting /notion/databases (which proxies a third-party request).
+    """
+    conn = get_notion_connection(user_id)
+    if not conn:
+        return {"connected": False}
+    return {
+        "connected": True,
+        "workspace_id": conn.get("workspace_id"),
+        "workspace_name": conn.get("workspace_name"),
     }
 
 

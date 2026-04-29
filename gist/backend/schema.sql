@@ -78,3 +78,23 @@ alter table notion_connections enable row level security;
 
 create policy "Users manage own notion connections" on notion_connections
   for all using (auth.uid() = user_id);
+
+-- ─── oauth_states (Phase 3 — CSRF protection) ───────────────
+-- Random nonces issued by GET /notion/auth and consumed by /notion/callback.
+-- Without this, anyone who knows a user_id could complete an OAuth flow on
+-- that user's behalf since `state` would be guessable.
+create table oauth_states (
+  state text primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  provider text not null,
+  created_at timestamptz default now(),
+  expires_at timestamptz not null
+);
+
+create index oauth_states_user_id_idx on oauth_states(user_id);
+create index oauth_states_expires_idx on oauth_states(expires_at);
+
+alter table oauth_states enable row level security;
+
+-- Backend uses the service role for state writes/reads, so we don't need a
+-- user-facing policy. This table never appears in client SELECTs.
