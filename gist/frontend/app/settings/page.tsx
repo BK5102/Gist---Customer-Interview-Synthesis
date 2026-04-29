@@ -5,10 +5,16 @@ import { createClient } from "@/lib/supabase/client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+type NotionStatus =
+  | { connected: false }
+  | { connected: true; workspace_id?: string; workspace_name?: string };
+
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
-  const [notionConnected, setNotionConnected] = useState(false);
+  const [notion, setNotion] = useState<NotionStatus>({ connected: false });
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -22,15 +28,17 @@ export default function SettingsPage() {
         return;
       }
 
-      // Check Notion connection status
+      // Cheap connection-status check — single DB read, no Notion API call.
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        const res = await fetch(`${API_URL}/notion/databases`, {
+        const res = await fetch(`${API_URL}/notion/connection`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        setNotionConnected(res.ok);
+        if (res.ok) {
+          setNotion((await res.json()) as NotionStatus);
+        }
       }
       setLoading(false);
     };
@@ -38,16 +46,29 @@ export default function SettingsPage() {
   }, []);
 
   const connectNotion = async () => {
+    setError(null);
+    setBusy(true);
     const supabase = createClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      setBusy(false);
+      return;
+    }
     const res = await fetch(`${API_URL}/notion/auth`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     if (!res.ok) {
-      alert("Failed to start Notion OAuth");
+      let detail = "Failed to start Notion OAuth";
+      try {
+        const parsed = await res.json();
+        if (typeof parsed.detail === "string") detail = parsed.detail;
+      } catch {
+        /* keep default */
+      }
+      setError(detail);
+      setBusy(false);
       return;
     }
     const { auth_url } = (await res.json()) as { auth_url: string };
@@ -55,16 +76,22 @@ export default function SettingsPage() {
   };
 
   const disconnectNotion = async () => {
+    setError(null);
+    setBusy(true);
     const supabase = createClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      setBusy(false);
+      return;
+    }
     await fetch(`${API_URL}/notion/connection`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
-    setNotionConnected(false);
+    setNotion({ connected: false });
+    setBusy(false);
   };
 
   if (loading) {
@@ -96,29 +123,38 @@ export default function SettingsPage() {
           <div>
             <p className="text-sm font-medium text-neutral-900">Notion</p>
             <p className="text-xs text-neutral-500">
-              {notionConnected
-                ? "Connected. Push syntheses directly to a Notion database."
+              {notion.connected
+                ? notion.workspace_name
+                  ? `Connected to "${notion.workspace_name}". Push syntheses directly.`
+                  : "Connected. Push syntheses directly to a Notion database."
                 : "Connect your Notion workspace to push syntheses."}
             </p>
           </div>
-          {notionConnected ? (
+          {notion.connected ? (
             <button
               type="button"
               onClick={disconnectNotion}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+              disabled={busy}
+              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
             >
-              Disconnect
+              {busy ? "Disconnecting…" : "Disconnect"}
             </button>
           ) : (
             <button
               type="button"
               onClick={connectNotion}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700"
+              disabled={busy}
+              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
             >
-              Connect Notion
+              {busy ? "Connecting…" : "Connect Notion"}
             </button>
           )}
         </div>
+        {error && (
+          <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {error}
+          </p>
+        )}
       </section>
     </main>
   );
