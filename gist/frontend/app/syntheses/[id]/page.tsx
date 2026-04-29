@@ -52,15 +52,23 @@ export default function SynthesisDetailPage() {
       const data = (await res.json()) as SynthesisDetail;
       setSynth(data);
 
-      // Check Notion connection and list databases
-      const dbRes = await fetch(`${API_URL}/notion/databases`, {
+      // Cheap connection check first; only hit Notion's API if connected.
+      const connRes = await fetch(`${API_URL}/notion/connection`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (dbRes.ok) {
-        setNotionConnected(true);
-        const dbData = (await dbRes.json()) as NotionDb[];
-        setDatabases(dbData);
-        if (dbData.length > 0) setSelectedDb(dbData[0].id);
+      if (connRes.ok) {
+        const conn = (await connRes.json()) as { connected: boolean };
+        if (conn.connected) {
+          setNotionConnected(true);
+          const dbRes = await fetch(`${API_URL}/notion/databases`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (dbRes.ok) {
+            const dbData = (await dbRes.json()) as NotionDb[];
+            setDatabases(dbData);
+            if (dbData.length > 0) setSelectedDb(dbData[0].id);
+          }
+        }
       }
 
       setLoading(false);
@@ -94,7 +102,14 @@ export default function SynthesisDetailPage() {
     setPushing(false);
     if (!res.ok) {
       const text = await res.text();
-      setPushError(text || "Push failed");
+      let detail = text || "Push failed";
+      try {
+        const parsed = JSON.parse(text);
+        if (typeof parsed.detail === "string") detail = parsed.detail;
+      } catch {
+        /* keep raw text */
+      }
+      setPushError(detail);
       return;
     }
     const data = (await res.json()) as { notion_page_url: string };
