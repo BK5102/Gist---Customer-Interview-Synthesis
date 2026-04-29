@@ -1,8 +1,10 @@
 # Notion integration: OAuth + API client + markdown-to-blocks converter
 import os
+import random
 import re
+import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 from dotenv import load_dotenv
@@ -13,6 +15,65 @@ load_dotenv(BACKEND_DIR / ".env", override=True)
 NOTION_API_BASE = "https://api.notion.com/v1"
 NOTION_OAUTH_AUTHORIZE = "https://api.notion.com/v1/oauth/authorize"
 NOTION_OAUTH_TOKEN = "https://api.notion.com/v1/oauth/token"
+
+# Notion API hard limits (https://developers.notion.com/reference/request-limits)
+NOTION_MAX_BLOCKS_PER_REQUEST = 100
+NOTION_MAX_RICH_TEXT_CHARS = 2000
+
+# Rate-limit handling. Notion enforces ~3 req/sec per integration and
+# returns 429 with a Retry-After header when exceeded.
+NOTION_MAX_RETRIES = 4
+NOTION_INITIAL_BACKOFF_SEC = 1.0
+NOTION_MAX_BACKOFF_SEC = 30.0
+
+
+def _request_with_backoff(
+    fn: Callable[[], httpx.Response],
+    *,
+    max_retries: int = NOTION_MAX_RETRIES,
+) -> httpx.Response:
+    """Run an HTTP call, honoring 429 Retry-After with exponential backoff.
+
+    Retries on 429 and 5xx responses. Other 4xx errors propagate immediately
+    so the caller can map them to user-facing errors. Network errors
+    (httpx.RequestError) get one retry with backoff.
+    """
+    backoff = NOTION_INITIAL_BACKOFF_SEC
+    last_exc: Exception | None = None
+    for attempt in range(max_retries + 1):
+        try:
+            resp = fn()
+        except httpx.RequestError as e:
+            last_exc = e
+            if attempt >= max_retries:
+                raise
+            time.sleep(min(backoff, NOTION_MAX_BACKOFF_SEC))
+            backoff = min(backoff * 2, NOTION_MAX_BACKOFF_SEC)
+            continue
+
+        # Retry on 429 with Retry-After, plus 5xx server errors.
+        if resp.status_code == 429 and attempt < max_retries:
+            retry_after = resp.headers.get("Retry-After")
+            try:
+                wait = float(retry_after) if retry_after else backoff
+            except ValueError:
+                wait = backoff
+            # Add jitter so multiple clients don't synchronize.
+            wait += random.uniform(0, 0.5)
+            time.sleep(min(wait, NOTION_MAX_BACKOFF_SEC))
+            backoff = min(backoff * 2, NOTION_MAX_BACKOFF_SEC)
+            continue
+        if 500 <= resp.status_code < 600 and attempt < max_retries:
+            time.sleep(min(backoff, NOTION_MAX_BACKOFF_SEC))
+            backoff = min(backoff * 2, NOTION_MAX_BACKOFF_SEC)
+            continue
+
+        return resp
+
+    # Should not reach here, but if we did all retries hit RequestError:
+    if last_exc:
+        raise last_exc
+    return resp  # type: ignore[possibly-undefined]
 
 
 def _client_id() -> str:
@@ -50,18 +111,20 @@ def exchange_code(code: str, redirect_uri: str) -> dict[str, Any]:
 
     credentials = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
 
-    resp = httpx.post(
-        NOTION_OAUTH_TOKEN,
-        headers={
-            "Authorization": f"Basic {credentials}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": redirect_uri,
-        },
-        timeout=30.0,
+    resp = _request_with_backoff(
+        lambda: httpx.post(
+            NOTION_OAUTH_TOKEN,
+            headers={
+                "Authorization": f"Basic {credentials}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": redirect_uri,
+            },
+            timeout=30.0,
+        )
     )
     resp.raise_for_status()
     return resp.json()
@@ -89,11 +152,13 @@ class NotionClient:
             if start_cursor:
                 payload["start_cursor"] = start_cursor
 
-            resp = httpx.post(
-                f"{NOTION_API_BASE}/search",
-                headers=self.headers,
-                json=payload,
-                timeout=30.0,
+            resp = _request_with_backoff(
+                lambda: httpx.post(
+                    f"{NOTION_API_BASE}/search",
+                    headers=self.headers,
+                    json=payload,
+                    timeout=30.0,
+                )
             )
             resp.raise_for_status()
             data = resp.json()
@@ -104,10 +169,12 @@ class NotionClient:
         return results
 
     def get_database(self, database_id: str) -> dict[str, Any]:
-        resp = httpx.get(
-            f"{NOTION_API_BASE}/databases/{database_id}",
-            headers=self.headers,
-            timeout=30.0,
+        resp = _request_with_backoff(
+            lambda: httpx.get(
+                f"{NOTION_API_BASE}/databases/{database_id}",
+                headers=self.headers,
+                timeout=30.0,
+            )
         )
         resp.raise_for_status()
         return resp.json()
@@ -118,35 +185,80 @@ class NotionClient:
         title: str,
         blocks: list[dict[str, Any]],
     ) -> dict[str, Any]:
-        """Create a new page in a database with the given block content."""
+        """Create a new page in a database with the given block content.
+
+        Notion caps `children` at 100 blocks per request. We send the first
+        chunk with the page-creation call, then append the rest via
+        `PATCH /blocks/{page_id}/children` in further 100-block batches.
+        """
+        first_chunk = blocks[:NOTION_MAX_BLOCKS_PER_REQUEST]
         payload = {
             "parent": {"database_id": database_id},
             "properties": {
-                "Name": {"title": [{"text": {"content": title}}]},
+                "Name": {"title": [{"text": {"content": title[:NOTION_MAX_RICH_TEXT_CHARS]}}]},
             },
-            "children": blocks,
+            "children": first_chunk,
         }
-        resp = httpx.post(
-            f"{NOTION_API_BASE}/pages",
-            headers=self.headers,
-            json=payload,
-            timeout=60.0,
+        resp = _request_with_backoff(
+            lambda: httpx.post(
+                f"{NOTION_API_BASE}/pages",
+                headers=self.headers,
+                json=payload,
+                timeout=60.0,
+            )
         )
         resp.raise_for_status()
-        return resp.json()
+        page = resp.json()
+
+        # Append remaining blocks in 100-at-a-time batches.
+        page_id = page["id"]
+        remaining = blocks[NOTION_MAX_BLOCKS_PER_REQUEST:]
+        for i in range(0, len(remaining), NOTION_MAX_BLOCKS_PER_REQUEST):
+            batch = remaining[i : i + NOTION_MAX_BLOCKS_PER_REQUEST]
+            patch_resp = _request_with_backoff(
+                lambda b=batch: httpx.patch(
+                    f"{NOTION_API_BASE}/blocks/{page_id}/children",
+                    headers=self.headers,
+                    json={"children": b},
+                    timeout=60.0,
+                )
+            )
+            patch_resp.raise_for_status()
+
+        return page
 
 
 # ─── markdown → Notion blocks ────────────────────────────────────────────────
 
 def _rich_text(content: str) -> list[dict[str, Any]]:
-    """Convert a string with inline markdown (bold, italic) to Notion rich_text."""
+    """Convert a string with inline markdown (bold, italic) to Notion rich_text.
+
+    Notion caps each text object's `content` at 2000 chars. Long strings are
+    split across multiple text objects in the same rich_text array (which
+    renders identically to a single one). Bold/italic markers are stripped
+    to plain text — annotations are a future improvement.
+    """
     if not content:
         return []
 
-    # Notion API supports **bold** and *italic* via annotations, but easiest
-    # is to strip markdown and return plain text for now. We can improve later.
     text = content.replace("**", "").replace("__", "").replace("*", "").replace("_", "")
-    return [{"type": "text", "text": {"content": text}}]
+    if len(text) <= NOTION_MAX_RICH_TEXT_CHARS:
+        return [{"type": "text", "text": {"content": text}}]
+
+    # Split into 2000-char slices, preferring word boundaries when possible.
+    slices: list[str] = []
+    while text:
+        if len(text) <= NOTION_MAX_RICH_TEXT_CHARS:
+            slices.append(text)
+            break
+        # Look for the last space within the limit so we don't cut a word.
+        cut = text.rfind(" ", 0, NOTION_MAX_RICH_TEXT_CHARS)
+        if cut <= 0:
+            cut = NOTION_MAX_RICH_TEXT_CHARS
+        slices.append(text[:cut])
+        text = text[cut:].lstrip()
+
+    return [{"type": "text", "text": {"content": s}} for s in slices]
 
 
 def markdown_to_notion_blocks(markdown: str) -> list[dict[str, Any]]:
