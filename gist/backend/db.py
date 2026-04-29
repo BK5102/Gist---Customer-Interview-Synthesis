@@ -2,6 +2,8 @@
 # Uses the service-role key so RLS is bypassed; we enforce user ownership
 # in Python before calling these functions.
 import os
+import secrets
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -220,3 +222,79 @@ def delete_notion_connection(user_id: str) -> None:
         .eq("user_id", user_id)
         .execute()
     )
+
+
+# ─── oauth_states (CSRF protection) ────────────────────────────────────────
+# Issued by GET /<provider>/auth, validated and consumed by /<provider>/callback.
+# Single-use, time-limited.
+
+OAUTH_STATE_TTL_MIN = 10
+
+
+def create_oauth_state(user_id: str, provider: str) -> str:
+    """Mint a single-use OAuth state nonce for the given user/provider.
+
+    Returns the opaque state string the caller should embed in the OAuth
+    authorize URL. Validates and consumes it via consume_oauth_state on
+    the callback side.
+    """
+    state = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=OAUTH_STATE_TTL_MIN)
+    (
+        _db()
+        .table("oauth_states")
+        .insert(
+            {
+                "state": state,
+                "user_id": user_id,
+                "provider": provider,
+                "expires_at": expires_at.isoformat(),
+            }
+        )
+        .execute()
+    )
+    return state
+
+
+def consume_oauth_state(state: str, provider: str) -> str | None:
+    """Look up an OAuth state nonce, return its user_id, then delete it.
+
+    Returns None when the state is unknown, expired, or for a different
+    provider. The row is deleted regardless to make the nonce single-use.
+    """
+    if not state:
+        return None
+    resp = (
+        _db()
+        .table("oauth_states")
+        .select("*")
+        .eq("state", state)
+        .eq("provider", provider)
+        .execute()
+    )
+    row = resp.data[0] if resp.data else None
+    # Always delete (single-use) — even on mismatch a noop delete is cheap.
+    _db().table("oauth_states").delete().eq("state", state).execute()
+    if not row:
+        return None
+    expires_at = datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) > expires_at:
+        return None
+    return row["user_id"]
+
+
+def purge_expired_oauth_states() -> int:
+    """Delete expired oauth_states rows. Returns the count purged.
+
+    Called opportunistically from /notion/auth so the table stays small
+    without a separate cron.
+    """
+    now_iso = datetime.now(timezone.utc).isoformat()
+    resp = (
+        _db()
+        .table("oauth_states")
+        .delete()
+        .lt("expires_at", now_iso)
+        .execute()
+    )
+    return len(resp.data or [])
