@@ -1,8 +1,18 @@
 # Phase 2: Supabase JWT verification middleware.
-# Fetches and caches the Supabase JWKS to verify Bearer tokens from the frontend.
+#
+# Supports two key styles:
+#   * Legacy HS256 — older Supabase projects sign tokens with a shared
+#     "JWT Secret" (set SUPABASE_JWT_SECRET in backend/.env). No JWKS
+#     endpoint, no key rotation; symmetric secret only.
+#   * New RS256 / ES256 — newer projects publish JWKS at
+#     /auth/v1/.well-known/jwks.json. We fetch + cache the keys and
+#     verify with the asymmetric public key.
+#
+# We prefer HS256 when SUPABASE_JWT_SECRET is set, fall back to JWKS.
+# This matches the typical migration path: legacy projects work today,
+# upgraded projects get verified via JWKS without code changes.
 import os
 import time
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -30,8 +40,14 @@ def _supabase_url() -> str:
     return url.rstrip("/")
 
 
+def _jwt_secret() -> str:
+    """Legacy HS256 shared secret. Empty string when not configured."""
+    return os.environ.get("SUPABASE_JWT_SECRET", "").strip()
+
+
 def _jwks_uri() -> str:
-    return f"{_supabase_url()}/.well-known/jwks.json"
+    # Supabase publishes JWKS under the auth subpath, not the root .well-known.
+    return f"{_supabase_url()}/auth/v1/.well-known/jwks.json"
 
 
 def _fetch_jwks() -> dict:
@@ -61,25 +77,63 @@ def _get_signing_key(token: str) -> jwt.PyJWK:
     kid = unverified_header.get("kid")
     if not kid:
         raise jwt.InvalidTokenError("JWT header missing 'kid'")
-    return signing_keys.find_by_key_id(kid)
+    # PyJWT exposes lookup-by-kid via __getitem__, not a named method.
+    try:
+        return signing_keys[kid]
+    except KeyError as e:
+        raise jwt.InvalidTokenError(
+            f"No signing key in JWKS for kid '{kid}'"
+        ) from e
 
 
 def verify_token(token: str) -> dict[str, Any]:
     """Verify a Supabase JWT access token.
 
-    Returns the decoded payload on success. Raises HTTPException(401) on failure.
+    Returns the decoded payload on success. Raises HTTPException(401) on
+    failure. The verification path is picked from the token's own `alg`
+    header — Supabase projects can be on legacy HS256 (shared secret) OR
+    on new JWT Signing Keys (RS256/ES256 via JWKS), and a single project
+    can issue both during migration.
     """
     try:
-        signing_key = _get_signing_key(token)
-        payload = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["RS256"],
-            audience="authenticated",
-            issuer=f"{_supabase_url()}/",
-            options={"require": ["exp", "iat", "sub"]},
+        # Inspect the token to decide which path to take. PyJWT raises
+        # InvalidTokenError for malformed inputs here.
+        unverified_header = jwt.get_unverified_header(token)
+        alg = unverified_header.get("alg", "").upper()
+
+        if alg == "HS256":
+            secret = _jwt_secret()
+            if not secret:
+                raise jwt.InvalidTokenError(
+                    "Token is HS256-signed but SUPABASE_JWT_SECRET is not "
+                    "configured. Add it from Supabase → Auth → JWT Keys → "
+                    "Legacy JWT Secret."
+                )
+            payload = jwt.decode(
+                token,
+                secret,
+                algorithms=["HS256"],
+                audience="authenticated",
+                options={"require": ["exp", "iat", "sub"]},
+            )
+            return payload
+
+        if alg in ("RS256", "ES256"):
+            signing_key = _get_signing_key(token)
+            payload = jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=[alg],
+                audience="authenticated",
+                # Don't pin issuer — Supabase has shipped multiple iss values
+                # across project versions (with and without trailing /).
+                options={"require": ["exp", "iat", "sub"]},
+            )
+            return payload
+
+        raise jwt.InvalidTokenError(
+            f"Unsupported JWT alg '{alg}' (expected HS256, RS256, or ES256)"
         )
-        return payload
     except jwt.ExpiredSignatureError as e:
         raise HTTPException(status_code=401, detail="Token expired") from e
     except jwt.InvalidTokenError as e:

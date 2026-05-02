@@ -4,9 +4,11 @@
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
+from functools import wraps
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TypeVar
 
+import httpx
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
@@ -29,6 +31,37 @@ def _db() -> Client:
     return _supabase
 
 
+def _reset_db_client() -> None:
+    """Force a fresh Supabase client on the next call.
+
+    PostgREST runs on HTTP/2 and the underlying httpx client pools
+    connections. When Supabase closes an idle stream we sometimes see a
+    `httpx.RemoteProtocolError: ConnectionTerminated error_code:1` on the
+    next request from a stale pooled connection. Dropping the client
+    forces a new one with fresh sockets.
+    """
+    global _supabase
+    _supabase = None
+
+
+T = TypeVar("T")
+
+
+def _with_db_retry(fn: Callable[..., T]) -> Callable[..., T]:
+    """Retry once on stale-connection errors from Supabase's HTTP/2 client."""
+
+    @wraps(fn)
+    def wrapper(*args: Any, **kwargs: Any) -> T:
+        try:
+            return fn(*args, **kwargs)
+        except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError):
+            # Connection died mid-request; nuke the pool and try once more.
+            _reset_db_client()
+            return fn(*args, **kwargs)
+
+    return wrapper
+
+
 def db_available() -> bool:
     """Return True if Supabase service-role credentials are configured."""
     return bool(
@@ -37,12 +70,14 @@ def db_available() -> bool:
     )
 
 
+@_with_db_retry
 def create_project(user_id: str, name: str) -> dict[str, Any]:
     """Create a project for a user. Returns the created row."""
     resp = _db().table("projects").insert({"user_id": user_id, "name": name}).execute()
     return resp.data[0]
 
 
+@_with_db_retry
 def get_projects(user_id: str) -> list[dict[str, Any]]:
     """List all projects for a user, newest first."""
     resp = (
@@ -56,6 +91,7 @@ def get_projects(user_id: str) -> list[dict[str, Any]]:
     return resp.data or []
 
 
+@_with_db_retry
 def get_project(user_id: str, project_id: str) -> dict[str, Any] | None:
     """Fetch a single project if it belongs to the user."""
     resp = (
@@ -69,6 +105,7 @@ def get_project(user_id: str, project_id: str) -> dict[str, Any] | None:
     return resp.data[0] if resp.data else None
 
 
+@_with_db_retry
 def save_transcript(
     project_id: str,
     filename: str,
@@ -98,6 +135,7 @@ def save_transcript(
     return resp.data[0]
 
 
+@_with_db_retry
 def get_transcripts_for_project(project_id: str) -> list[dict[str, Any]]:
     """List transcripts for a project, in creation order."""
     resp = (
@@ -111,6 +149,7 @@ def get_transcripts_for_project(project_id: str) -> list[dict[str, Any]]:
     return resp.data or []
 
 
+@_with_db_retry
 def save_synthesis(
     project_id: str,
     markdown_output: str,
@@ -138,6 +177,7 @@ def save_synthesis(
     return resp.data[0]
 
 
+@_with_db_retry
 def get_syntheses_for_user(user_id: str) -> list[dict[str, Any]]:
     """List syntheses across all projects for a user, newest first."""
     resp = (
@@ -151,6 +191,7 @@ def get_syntheses_for_user(user_id: str) -> list[dict[str, Any]]:
     return resp.data or []
 
 
+@_with_db_retry
 def get_synthesis(user_id: str, synthesis_id: str) -> dict[str, Any] | None:
     """Fetch a single synthesis if it belongs to the user."""
     resp = (
@@ -164,6 +205,7 @@ def get_synthesis(user_id: str, synthesis_id: str) -> dict[str, Any] | None:
     return resp.data[0] if resp.data else None
 
 
+@_with_db_retry
 def get_syntheses_for_project(project_id: str) -> list[dict[str, Any]]:
     """List syntheses for a project."""
     resp = (
@@ -179,6 +221,7 @@ def get_syntheses_for_project(project_id: str) -> list[dict[str, Any]]:
 
 # ─── notion_connections ────────────────────────────────────────────────────
 
+@_with_db_retry
 def get_notion_connection(user_id: str) -> dict[str, Any] | None:
     """Fetch the Notion connection for a user, if any."""
     resp = (
@@ -191,6 +234,7 @@ def get_notion_connection(user_id: str) -> dict[str, Any] | None:
     return resp.data[0] if resp.data else None
 
 
+@_with_db_retry
 def save_notion_connection(
     user_id: str,
     access_token: str,
@@ -213,6 +257,7 @@ def save_notion_connection(
     return resp.data[0]
 
 
+@_with_db_retry
 def delete_notion_connection(user_id: str) -> None:
     """Remove the Notion connection for a user."""
     (
@@ -231,6 +276,7 @@ def delete_notion_connection(user_id: str) -> None:
 OAUTH_STATE_TTL_MIN = 10
 
 
+@_with_db_retry
 def create_oauth_state(user_id: str, provider: str) -> str:
     """Mint a single-use OAuth state nonce for the given user/provider.
 
@@ -256,6 +302,7 @@ def create_oauth_state(user_id: str, provider: str) -> str:
     return state
 
 
+@_with_db_retry
 def consume_oauth_state(state: str, provider: str) -> str | None:
     """Look up an OAuth state nonce, return its user_id, then delete it.
 
@@ -283,6 +330,7 @@ def consume_oauth_state(state: str, provider: str) -> str | None:
     return row["user_id"]
 
 
+@_with_db_retry
 def purge_expired_oauth_states() -> int:
     """Delete expired oauth_states rows. Returns the count purged.
 
