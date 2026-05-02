@@ -1,6 +1,119 @@
 # Journal
 
-## Day 3 — 2026-04-20
+## Hardening Pass — 2026-05-01
+
+The Phase 2 + Phase 3 commits earlier this week were "feature-complete on
+paper." Today was the first end-to-end run on a real Supabase project +
+real Notion workspace, and the tour through every place the design met
+reality was instructive. Eight bugs, all in the seams between systems.
+
+### What I shipped
+- **OAuth CSRF fix.** The original `/notion/auth` passed `user_id` as the
+  OAuth `state` parameter and `/notion/callback` blindly accepted state
+  as authoritative. Anyone who knew or guessed a user_id could complete
+  OAuth on that user's behalf. Replaced with a server-issued 32-byte
+  nonce stored in a new `oauth_states` table (10-min TTL, single-use,
+  deleted on consume regardless of validity). Opportunistic purge inside
+  `/notion/auth` keeps the table small without a cron.
+- **Block + rich_text limits.** Notion caps `children` at 100 blocks
+  per page-creation request and rich_text content at 2000 chars per
+  text object. `create_page` now sends the first 100 blocks with the
+  POST and appends the rest via `PATCH /blocks/{id}/children`.
+  `_rich_text` slices long strings at the last word boundary under
+  2000 chars across multiple text objects (renders identically).
+- **429 backoff.** Wrapped every Notion HTTP call in
+  `_request_with_backoff` that honors `Retry-After`, retries 5xx with
+  capped exponential backoff + jitter, fast-fails 4xx so the 401/404
+  mapping still fires.
+- **Notion internal-token fallback.** Notion now requires a marketplace
+  profile to flip an integration to Public. For solo dev that's
+  prohibitive, so when `NOTION_INTERNAL_TOKEN` is set instead of the
+  OAuth pair, `/notion/auth` validates via `/users/me`, saves a
+  connection inline, and short-circuits the consent redirect. Frontend
+  Settings branches on `mode: oauth | internal` from the response shape.
+- **JWT alg detection + JWKS path correction.** Phase 2 hard-coded
+  RS256 + the wrong JWKS path. New flow inspects the unverified token
+  header and routes:
+    - HS256 → `SUPABASE_JWT_SECRET` (legacy projects)
+    - RS256/ES256 → JWKS at `/auth/v1/.well-known/jwks.json` (projects
+      migrated to Supabase's new JWT Signing Keys)
+  PyJWKSet doesn't have `find_by_key_id` in this version — it's
+  `__getitem__`.
+- **Supabase HTTP/2 stale-connection retry.** Got
+  `httpx.RemoteProtocolError ConnectionTerminated error_code:1` on the
+  first request after Supabase silently closed an idle stream. Wrapped
+  every public function in `db.py` with a single-retry decorator that
+  drops the cached client and reconnects on `RemoteProtocolError`,
+  `ConnectError`, or `ReadError`.
+- **Cheap connection-status endpoint.** Replaced `Settings` and
+  `/syntheses/[id]` connection probes that were calling the heavy
+  `/notion/databases` endpoint just to check `res.ok`. New
+  `GET /notion/connection` returns `{connected, workspace_name?}` from
+  one DB read — no Notion API call. Saved a Notion request per page
+  load.
+- **Landing-page → projects wiring.** The home page synthesis flow was
+  orphaned from the projects dashboard: results rendered inline and
+  were lost on reload. `/?project=<uuid>` now persists the synthesis
+  via `project_id` on the form, and the page redirects to
+  `/syntheses/<id>` on done so the Notion push UI is reachable.
+- **Missing imports + alert() cleanup.** `list_projects` was calling
+  `get_projects` without importing it (NameError 500). Settings page
+  used `alert()` for OAuth init failures inconsistent with the existing
+  red-banner pattern; now matches.
+
+### Key decisions (and why)
+- **Hoist participant-id dedupe to a first pass.** The original loop
+  validated uniqueness *after* reading bytes for each file, which meant
+  duplicate-label errors fired in 30+ seconds (after the previous file's
+  Whisper/Haiku call completed) instead of milliseconds. Pre-resolving
+  all `(filename, label) → participant_id` up front fails fast on bad
+  input and matches the rest of the validation contract.
+- **Strip `emailRedirectTo` from signup when Confirm Email is off.**
+  Even with email confirmation disabled, Supabase still validates the
+  `emailRedirectTo` URL against its Site URL + Redirect URLs allowlist.
+  When the allowlist isn't configured, signup fails with the misleading
+  "Invalid path specified in request URL". For solo/local dev where
+  email confirmation is off, dropping the option entirely is cleaner
+  than fighting allowlist propagation.
+- **Strip `/rest/v1/` from copy-pasted Supabase URLs.** The dashboard
+  shows the URL with the REST path on some pages; the JS client
+  appends its own paths internally. The right env value is just the
+  bare project URL.
+- **One-line decorator over manual try/except in every helper.**
+  Adding `@_with_db_retry` to 15 functions via a small Python script
+  keeps the helpers readable. The decorator pattern also gives a single
+  place to extend (e.g. logging which call retried, jittered backoff)
+  without touching each function.
+
+### What surprised me
+- **Browser "CORS error" is a junk signal.** Most of the day's "CORS:
+  No 'Access-Control-Allow-Origin' header" messages were not CORS
+  issues — they were unhandled backend exceptions whose responses
+  bypassed Starlette's exception middleware before CORS headers were
+  added. The actual fixes were always in the route handler, never in
+  CORS config. Backend log was the ground truth every time.
+- **Notion "Public" is gated behind a marketplace profile now.** The
+  BUILD_PLAN assumed flipping a toggle from Internal to Public was a
+  10-minute task. As of mid-2026 it requires a published profile with
+  description, logo, support URL, privacy/TOS URLs. For a solo founder
+  testing locally, the internal-token fallback is the right escape
+  hatch.
+- **Supabase ships JWKS at `/auth/v1/.well-known/jwks.json`, not the
+  root `/.well-known`.** Cost a few minutes of "the JWKS endpoint is
+  404ing." Rare for an OIDC server to put JWKS under a sub-path.
+- **PostgREST schema cache is on a delay.** Created a table via SQL,
+  then immediately got "Could not find the table 'public.X' in the
+  schema cache" from PostgREST. The fix is `NOTIFY pgrst, 'reload
+  schema';` in the same SQL Editor session — table-create alone doesn't
+  invalidate the cache.
+- **Eight discrete bugs, zero of them in the synthesis logic.** The
+  extraction → clustering → insights → markdown pipeline that's been
+  the core of this project has worked unchanged since Day 2. Every
+  bug today was in plumbing — auth, DB, OAuth, integration. The
+  expensive-to-build interesting code is also the most stable. The
+  cheap-to-build glue is where errors compound.
+
+
 
 ### What I shipped
 - FastAPI endpoint `POST /synthesize` accepting multiple `.txt` files, returning markdown.
