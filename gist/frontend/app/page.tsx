@@ -159,6 +159,20 @@ export default function Home() {
     });
   }, []);
 
+  // Cmd/Ctrl+Enter submits when files are picked + nothing is in flight.
+  // Lives at document level so a blurred input doesn't swallow it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" || !(e.metaKey || e.ctrlKey)) return;
+      if (isLoading || files.length === 0) return;
+      e.preventDefault();
+      submit();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, files.length, labels, projectId]);
+
   // Cancel any outstanding poll on unmount so we don't leak timers across
   // hot-reloads in dev.
   useEffect(() => {
@@ -547,14 +561,27 @@ export default function Home() {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={submit}
-          disabled={isLoading || files.length === 0}
-          className="mt-6 inline-flex items-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isLoading ? "Synthesizing…" : "Synthesize"}
-        </button>
+        <div className="mt-6 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={submit}
+            disabled={isLoading || files.length === 0}
+            className="inline-flex items-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isLoading ? "Synthesizing…" : "Synthesize"}
+          </button>
+          {files.length > 0 && !isLoading && (
+            <span className="text-xs text-neutral-400">
+              <kbd className="rounded border border-neutral-300 px-1.5 py-0.5 font-mono text-[10px] text-neutral-600">
+                ⌘
+              </kbd>
+              <span className="mx-1">+</span>
+              <kbd className="rounded border border-neutral-300 px-1.5 py-0.5 font-mono text-[10px] text-neutral-600">
+                Enter
+              </kbd>
+            </span>
+          )}
+        </div>
 
         {error && (
           <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">

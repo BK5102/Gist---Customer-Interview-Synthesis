@@ -96,13 +96,22 @@ export default function ProjectDetailPage() {
         Syntheses
       </h2>
       {project.syntheses.length === 0 && (
-        <p className="rounded-lg border border-neutral-200 bg-white p-6 text-sm text-neutral-500">
-          No syntheses yet.{" "}
-          <Link href="/" className="underline">
+        <div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center">
+          <h3 className="text-base font-semibold text-neutral-800">
+            No syntheses yet
+          </h3>
+          <p className="mt-1 text-sm text-neutral-500">
+            Drop a few customer-interview transcripts into this project and
+            Gist will extract themes, cluster them, and surface founder
+            takeaways.
+          </p>
+          <Link
+            href={`/?project=${project.id}`}
+            className="mt-4 inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700"
+          >
             Upload transcripts
-          </Link>{" "}
-          to create one.
-        </p>
+          </Link>
+        </div>
       )}
       <ul className="space-y-3">
         {project.syntheses.map((s) => (

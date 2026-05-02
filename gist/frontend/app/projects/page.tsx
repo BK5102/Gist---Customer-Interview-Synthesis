@@ -104,13 +104,19 @@ export default function ProjectsPage() {
       </form>
 
       {projects && projects.length === 0 && (
-        <p className="rounded-lg border border-neutral-200 bg-white p-6 text-sm text-neutral-500">
-          No projects yet. Create your first one above, or start a{" "}
-          <Link href="/" className="underline">
-            new synthesis
-          </Link>{" "}
-          and we&rsquo;ll make one automatically.
-        </p>
+        <div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center">
+          <h2 className="text-base font-semibold text-neutral-800">
+            No projects yet
+          </h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            A project groups transcripts and syntheses together. Make one
+            per research round, customer segment, or product area.
+          </p>
+          <p className="mt-4 text-xs text-neutral-400">
+            Name a project above and click <strong>Create project</strong> to
+            get started.
+          </p>
+        </div>
       )}
 
       {projects && projects.length > 0 && (
