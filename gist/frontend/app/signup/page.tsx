@@ -19,13 +19,11 @@ export default function SignupPage() {
     setMessage(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    // Skip emailRedirectTo: when "Confirm email" is off in Supabase, no
+    // confirmation email is sent and the user is logged in immediately.
+    // Including it forces Supabase to validate the URL against the
+    // Site URL + Redirect URLs allowlist, which is fragile to misconfigure.
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
     setLoading(false);
 
@@ -34,9 +32,15 @@ export default function SignupPage() {
       return;
     }
 
-    setMessage(
-      "Check your email for a confirmation link. If you don't see it, check spam.",
-    );
+    // If Supabase auto-confirms (Confirm Email off), session is set →
+    // route to the dashboard. Otherwise tell the user to check their inbox.
+    if (data.session) {
+      window.location.href = "/projects";
+    } else {
+      setMessage(
+        "Check your email for a confirmation link. If you don't see it, check spam.",
+      );
+    }
   };
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/client";
 
@@ -37,6 +38,11 @@ type SynthesizeResponse = {
   participant_count: number;
   themes_extracted: number;
   themes_dropped: number;
+  // Set when /synthesize was given a project_id and the result was persisted.
+  // The home page redirects to /syntheses/<id> when this is present so the
+  // user lands somewhere with the Notion push UI + a stable URL to share.
+  project_id?: string | null;
+  synthesis_id?: string | null;
 };
 
 type FileProgressItem = {
@@ -128,6 +134,11 @@ const stemOf = (name: string) => {
 };
 
 export default function Home() {
+  // Optional ?project=<uuid> binds the synthesis to a project so the
+  // backend persists it and we can redirect to /syntheses/<id> on done.
+  const searchParams = useSearchParams();
+  const projectId = searchParams?.get("project") ?? null;
+
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
@@ -177,6 +188,13 @@ export default function Home() {
       if (next.status === "done" && next.result) {
         setResult(next.result);
         setIsLoading(false);
+        // If the backend persisted the synthesis (because we passed
+        // project_id), jump to the detail page where the Notion push UI
+        // lives. Otherwise stay here so the user can still see + copy
+        // the markdown inline (legacy unauthenticated flow).
+        if (next.result.synthesis_id) {
+          window.location.href = `/syntheses/${next.result.synthesis_id}`;
+        }
         return;
       }
       if (next.status === "error") {
@@ -316,6 +334,11 @@ export default function Home() {
       // falls back to the filename stem.
       body.append("labels", labels[i] ?? "");
     });
+    if (projectId) {
+      // Persist this synthesis under the given project so the user can
+      // open it later, and so the Notion push UI on /syntheses/[id] works.
+      body.append("project_id", projectId);
+    }
 
     try {
       const res = await fetch(`${API_URL}/synthesize`, {
