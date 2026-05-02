@@ -11,7 +11,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from auth.supabase_client import require_auth
-from db import db_available, create_project, get_project, save_synthesis, save_transcript
+from db import (
+    create_project,
+    db_available,
+    get_project,
+    get_projects,
+    get_synthesis,
+    get_syntheses_for_project,
+    get_syntheses_for_user,
+    save_synthesis,
+    save_transcript,
+)
 from synth.cluster import cluster_themes_cached
 from synth.extract import extract_from_text
 from synth.format import render_markdown
@@ -455,8 +465,12 @@ def get_synthesis_detail(
 from integrations.notion import (
     auth_url,
     exchange_code,
+    fetch_bot_info,
+    get_internal_token,
     markdown_to_notion_blocks,
     notion_configured,
+    notion_internal_configured,
+    notion_oauth_configured,
     NotionClient,
 )
 from db import (
@@ -478,17 +492,67 @@ def _frontend_settings_url() -> str:
 
 
 @app.get("/notion/auth")
-def notion_auth(user_id: str = Depends(require_auth)) -> dict[str, str]:
+def notion_auth(user_id: str = Depends(require_auth)) -> dict[str, Any]:
+    """Start a Notion connection for the current user.
+
+    Two modes, picked by what's configured in backend/.env:
+
+      * OAuth (Public integration) — preferred for production. Mints a CSRF
+        nonce, returns {mode: "oauth", auth_url} and the frontend redirects
+        the user to Notion's consent screen.
+
+      * Internal token — used for solo/local dev when Notion's marketplace-
+        profile requirements block a Public integration. Validates the env
+        token by hitting /users/me, saves the connection inline, and
+        returns {mode: "internal", connected: true, workspace_name}.
+    """
     if not notion_configured():
-        raise HTTPException(503, "Notion integration not configured")
-    # Opportunistically purge expired states so the table stays small.
+        raise HTTPException(
+            503,
+            "Notion integration not configured. Set NOTION_CLIENT_ID + "
+            "NOTION_CLIENT_SECRET (OAuth) or NOTION_INTERNAL_TOKEN "
+            "(internal integration) in backend/.env.",
+        )
+
+    # Prefer OAuth when both are configured — it's the right thing for
+    # multi-tenant production.
+    if notion_oauth_configured():
+        try:
+            purge_expired_oauth_states()
+        except Exception:  # noqa: BLE001 — purge is best-effort
+            pass
+        state = create_oauth_state(user_id=user_id, provider="notion")
+        url = auth_url(_notion_redirect_uri(), state)
+        return {"mode": "oauth", "auth_url": url}
+
+    # Internal token path — validate, then save as if OAuth had completed.
+    assert notion_internal_configured()
+    token = get_internal_token()
     try:
-        purge_expired_oauth_states()
-    except Exception:  # noqa: BLE001 — purge is best-effort
-        pass
-    state = create_oauth_state(user_id=user_id, provider="notion")
-    url = auth_url(_notion_redirect_uri(), state)
-    return {"auth_url": url}
+        bot = fetch_bot_info(token)
+    except Exception as e:  # noqa: BLE001 — surface a useful 502 either way
+        raise HTTPException(
+            502,
+            f"Failed to validate NOTION_INTERNAL_TOKEN with Notion: {e}",
+        ) from e
+
+    workspace_name = bot.get("bot", {}).get("workspace_name") or bot.get(
+        "workspace_name"
+    )
+    workspace_id = bot.get("bot", {}).get("workspace_id") or bot.get(
+        "workspace_id"
+    )
+    save_notion_connection(
+        user_id=user_id,
+        access_token=token,
+        workspace_id=workspace_id,
+        workspace_name=workspace_name,
+    )
+    return {
+        "mode": "internal",
+        "connected": True,
+        "workspace_name": workspace_name,
+    }
 
 
 @app.get("/notion/callback")

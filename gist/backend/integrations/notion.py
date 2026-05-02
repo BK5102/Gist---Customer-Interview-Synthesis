@@ -84,8 +84,55 @@ def _client_secret() -> str:
     return os.environ.get("NOTION_CLIENT_SECRET", "").strip()
 
 
+def _internal_token() -> str:
+    return os.environ.get("NOTION_INTERNAL_TOKEN", "").strip()
+
+
 def notion_configured() -> bool:
+    """True when either an OAuth client OR an Internal Integration token is set.
+
+    Internal tokens skip OAuth entirely — useful for solo/local dev when
+    marketplace-profile requirements block creating a Public integration.
+    """
+    return bool((_client_id() and _client_secret()) or _internal_token())
+
+
+def notion_oauth_configured() -> bool:
+    """True only for the full OAuth path (Public integration)."""
     return bool(_client_id() and _client_secret())
+
+
+def notion_internal_configured() -> bool:
+    """True only when an Internal Integration token is set."""
+    return bool(_internal_token())
+
+
+def get_internal_token() -> str:
+    """Fetch the Internal Integration token, raising if unset."""
+    token = _internal_token()
+    if not token:
+        raise RuntimeError("NOTION_INTERNAL_TOKEN not configured")
+    return token
+
+
+def fetch_bot_info(access_token: str) -> dict[str, Any]:
+    """Call /users/me to validate a token and pull workspace metadata.
+
+    Used both to verify an internal token before saving and (optionally)
+    to enrich an OAuth connection with workspace info if it's missing.
+    """
+    resp = _request_with_backoff(
+        lambda: httpx.get(
+            f"{NOTION_API_BASE}/users/me",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Notion-Version": "2022-06-28",
+            },
+            timeout=30.0,
+        )
+    )
+    resp.raise_for_status()
+    return resp.json()
 
 
 def auth_url(redirect_uri: str, state: str) -> str:

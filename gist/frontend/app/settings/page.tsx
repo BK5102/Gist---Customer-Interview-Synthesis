@@ -60,7 +60,7 @@ export default function SettingsPage() {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     if (!res.ok) {
-      let detail = "Failed to start Notion OAuth";
+      let detail = "Failed to start Notion connection";
       try {
         const parsed = await res.json();
         if (typeof parsed.detail === "string") detail = parsed.detail;
@@ -71,8 +71,25 @@ export default function SettingsPage() {
       setBusy(false);
       return;
     }
-    const { auth_url } = (await res.json()) as { auth_url: string };
-    window.location.href = auth_url;
+    // Backend returns one of two shapes:
+    //   { mode: "oauth", auth_url }      → redirect to Notion consent screen
+    //   { mode: "internal", connected }  → connection saved server-side already
+    const body = (await res.json()) as
+      | { mode: "oauth"; auth_url: string }
+      | {
+          mode: "internal";
+          connected: true;
+          workspace_name: string | null;
+        };
+    if (body.mode === "oauth") {
+      window.location.href = body.auth_url;
+      return;
+    }
+    setNotion({
+      connected: true,
+      workspace_name: body.workspace_name ?? undefined,
+    });
+    setBusy(false);
   };
 
   const disconnectNotion = async () => {
