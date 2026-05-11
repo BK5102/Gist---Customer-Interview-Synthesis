@@ -16,35 +16,54 @@ async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <nav className="border-b border-neutral-200 bg-white">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          Gist
+    <nav
+      className="sticky top-0 z-40 border-b border-neutral-200/60 bg-white/70
+                 backdrop-blur-xl backdrop-saturate-150 transition-all"
+    >
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+        <Link
+          href="/"
+          className="group flex items-center gap-2 text-lg font-semibold tracking-tight"
+        >
+          {/* Gradient G logomark */}
+          <span
+            className="grid h-7 w-7 place-items-center rounded-md
+                       bg-brand-gradient text-white shadow-soft
+                       transition-transform duration-300 ease-out-expo
+                       group-hover:rotate-3 group-hover:scale-105"
+          >
+            <span className="text-sm font-bold leading-none">G</span>
+          </span>
+          <span className="bg-gradient-to-r from-neutral-900 to-brand-700 bg-clip-text text-transparent">
+            Gist
+          </span>
         </Link>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-1 text-sm">
           {user ? (
             <>
-              <span className="text-neutral-500">{user.email}</span>
-              <Link href="/settings" className="text-neutral-700 hover:text-neutral-900">
+              <Link href="/projects" className="btn-ghost">
+                Projects
+              </Link>
+              <Link href="/settings" className="btn-ghost">
                 Settings
               </Link>
-              <form action="/logout" method="post">
-                <button
-                  type="submit"
-                  className="text-neutral-700 hover:text-neutral-900"
-                >
+              <span className="ml-2 hidden text-xs text-neutral-400 sm:inline">
+                {user.email}
+              </span>
+              <form action="/logout" method="post" className="ml-1">
+                <button type="submit" className="btn-ghost">
                   Log out
                 </button>
               </form>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-neutral-700 hover:text-neutral-900">
+              <Link href="/login" className="btn-ghost">
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="rounded-md bg-neutral-900 px-3 py-1.5 text-white hover:bg-neutral-700"
+                className="btn-primary px-4 py-1.5 text-xs"
               >
                 Sign up
               </Link>
@@ -63,9 +82,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-neutral-50 text-neutral-900 antialiased">
+      <body className="min-h-screen text-neutral-900 antialiased">
         <Navbar />
-        {children}
+        <main className="relative">{children}</main>
       </body>
     </html>
   );

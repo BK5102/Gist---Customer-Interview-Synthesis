@@ -52,17 +52,24 @@ export default function ProjectDetailPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
-        <p className="text-sm text-neutral-500">Loading project…</p>
+      <main className="page">
+        <div className="space-y-4">
+          <div className="skeleton h-6 w-24 rounded-md" />
+          <div className="skeleton h-10 w-72 rounded-md" />
+          <div className="skeleton h-20 rounded-xl" />
+        </div>
       </main>
     );
   }
 
   if (!project) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
+      <main className="page text-center">
         <p className="text-sm text-neutral-500">Project not found.</p>
-        <Link href="/projects" className="mt-2 inline-block text-sm underline">
+        <Link
+          href="/projects"
+          className="mt-3 inline-block text-sm text-brand-700 underline"
+        >
           Back to projects
         </Link>
       </main>
@@ -70,67 +77,84 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-6">
-        <Link href="/projects" className="text-xs text-neutral-500 underline">
-          ← Projects
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          {project.name}
-        </h1>
-        <p className="text-xs text-neutral-500">
-          Created {new Date(project.created_at).toLocaleDateString()}
-        </p>
-      </div>
+    <main className="page">
+      <Link
+        href="/projects"
+        className="inline-flex items-center gap-1 text-xs text-neutral-500 transition-colors hover:text-brand-700"
+      >
+        ← Projects
+      </Link>
 
-      <div className="mb-6">
-        <Link
-          href={`/?project=${project.id}`}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700"
-        >
+      <header className="mt-3 mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {project.name}
+          </h1>
+          <p className="mt-1 text-xs text-neutral-500">
+            Created {new Date(project.created_at).toLocaleDateString()} ·{" "}
+            {project.syntheses.length} synthesis
+            {project.syntheses.length === 1 ? "" : "es"}
+          </p>
+        </div>
+        <Link href={`/?project=${project.id}`} className="btn-primary">
           New synthesis
         </Link>
-      </div>
+      </header>
 
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-500">
-        Syntheses
-      </h2>
+      <h2 className="eyebrow mb-3">Syntheses</h2>
+
       {project.syntheses.length === 0 && (
-        <div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center">
-          <h3 className="text-base font-semibold text-neutral-800">
+        <div className="rounded-2xl border border-dashed border-brand-300 bg-brand-gradient-soft p-12 text-center">
+          <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-brand-gradient text-white shadow-glow animate-float">
+            <span className="text-xl">↑</span>
+          </div>
+          <h3 className="mt-4 text-lg font-semibold text-neutral-800">
             No syntheses yet
           </h3>
-          <p className="mt-1 text-sm text-neutral-500">
-            Drop a few customer-interview transcripts into this project and
-            Gist will extract themes, cluster them, and surface founder
-            takeaways.
+          <p className="mt-1 text-sm text-neutral-600">
+            Drop a few customer-interview transcripts and Gist will extract
+            themes, cluster them, and surface founder takeaways.
           </p>
           <Link
             href={`/?project=${project.id}`}
-            className="mt-4 inline-block rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700"
+            className="btn-primary mt-5"
           >
             Upload transcripts
           </Link>
         </div>
       )}
-      <ul className="space-y-3">
-        {project.syntheses.map((s) => (
-          <li
-            key={s.id}
-            className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow"
-          >
-            <Link
-              href={`/syntheses/${s.id}`}
-              className="text-sm font-medium text-neutral-900"
+
+      {project.syntheses.length > 0 && (
+        <ul className="space-y-3">
+          {project.syntheses.map((s, i) => (
+            <li
+              key={s.id}
+              className="animate-fade-in-up"
+              style={{
+                animationDelay: `${i * 0.05}s`,
+                animationFillMode: "backwards",
+              }}
             >
-              Synthesis {new Date(s.created_at).toLocaleDateString()}
-            </Link>
-            <p className="mt-1 text-xs text-neutral-500">
-              {new Date(s.created_at).toLocaleString()}
-            </p>
-          </li>
-        ))}
-      </ul>
+              <Link
+                href={`/syntheses/${s.id}`}
+                className="card card-hover block p-5 group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-neutral-900 transition-colors group-hover:text-brand-700">
+                    Synthesis · {new Date(s.created_at).toLocaleDateString()}
+                  </span>
+                  <span className="text-xs text-neutral-400 transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {new Date(s.created_at).toLocaleString()}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }

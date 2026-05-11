@@ -1,9 +1,30 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/client";
+
+function FeatureCard({
+  icon,
+  title,
+  body,
+}: {
+  icon: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="card card-hover p-5">
+      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-lg text-brand-700">
+        {icon}
+      </div>
+      <h3 className="mt-3 text-sm font-semibold text-neutral-900">{title}</h3>
+      <p className="mt-1 text-xs leading-relaxed text-neutral-600">{body}</p>
+    </div>
+  );
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MAX_TEXT_BYTES = 2 * 1024 * 1024; // keep in sync with backend
@@ -420,66 +441,222 @@ export default function Home() {
 
   if (!user) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-neutral-900">
-          Turn interviews into insight
-        </h1>
-        <p className="mx-auto mt-4 max-w-lg text-lg text-neutral-600">
-          Upload customer interview transcripts or audio. Get a themed synthesis
-          with traceable quotes — so you know exactly what to build next.
-        </p>
-        <div className="mt-8 flex items-center justify-center gap-4">
-          <a
-            href="/signup"
-            className="rounded-md bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-neutral-700"
+      <div className="relative overflow-hidden">
+        {/* Soft radial gradient backdrop */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-hero-radial"
+          aria-hidden="true"
+        />
+        {/* Decorative floating orbs */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 -right-24 h-72 w-72
+                     rounded-full bg-brand-300/30 blur-3xl animate-float"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-72 -left-24 h-80 w-80
+                     rounded-full bg-accent-400/20 blur-3xl animate-float"
+          style={{ animationDelay: "1.5s" }}
+        />
+
+        <main className="page-wide relative">
+          {/* Hero */}
+          <section className="py-16 text-center sm:py-24">
+            <div className="animate-fade-in-up">
+              <span className="pill bg-brand-50 text-brand-700 ring-brand-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+                Now with audio + Notion push
+              </span>
+            </div>
+
+            <h1
+              className="mt-6 text-5xl font-bold tracking-tight text-neutral-900 sm:text-6xl
+                         animate-fade-in-up"
+              style={{ animationDelay: "0.1s", animationFillMode: "backwards" }}
+            >
+              Turn interviews into{" "}
+              <span className="bg-gradient-to-r from-brand-600 via-brand-500 to-accent-500 bg-clip-text text-transparent">
+                insight
+              </span>
+            </h1>
+
+            <p
+              className="mx-auto mt-6 max-w-2xl text-lg text-neutral-600 sm:text-xl
+                         animate-fade-in-up"
+              style={{ animationDelay: "0.2s", animationFillMode: "backwards" }}
+            >
+              Drop your customer-interview transcripts or audio. Get themed
+              synthesis with traceable quotes — so you know exactly what to
+              build next.
+            </p>
+
+            <div
+              className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4
+                         animate-fade-in-up"
+              style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}
+            >
+              <Link href="/signup" className="btn-primary px-6 py-3 text-base">
+                Get started — free
+                <svg
+                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </Link>
+              <Link href="/login" className="btn-secondary px-6 py-3 text-base">
+                Log in
+              </Link>
+            </div>
+
+            <p
+              className="mt-6 text-xs text-neutral-400 animate-fade-in-up"
+              style={{ animationDelay: "0.4s", animationFillMode: "backwards" }}
+            >
+              No fake testimonials · No logos · Just a tool that works
+            </p>
+          </section>
+
+          {/* Feature pills row */}
+          <section
+            className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3
+                       animate-fade-in-up"
+            style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}
           >
-            Get started
-          </a>
-          <a
-            href="/login"
-            className="rounded-md border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-          >
-            Log in
-          </a>
-        </div>
-        <p className="mt-6 text-xs text-neutral-400">
-          No fake testimonials. No logos. Just a tool that works.
-        </p>
-      </main>
+            <FeatureCard
+              icon="⌁"
+              title="Audio + text"
+              body="Drop .mp3/.m4a/.wav up to 200 MB or paste a transcript. Whisper handles the rest."
+            />
+            <FeatureCard
+              icon="◇"
+              title="Verbatim quotes"
+              body="Every theme is anchored to a real quote. Hallucinated paraphrases are dropped automatically."
+            />
+            <FeatureCard
+              icon="↗"
+              title="Push to Notion"
+              body="One click sends the synthesis straight to a database in your workspace."
+            />
+          </section>
+
+          {/* How-it-works strip */}
+          <section className="mt-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <span className="eyebrow">How it works</span>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+                Four steps, ninety seconds
+              </h2>
+            </div>
+            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-4">
+              {[
+                ["1", "Upload", "Drop transcripts or audio files"],
+                ["2", "Transcribe", "Whisper turns audio into text"],
+                ["3", "Synthesize", "Themes + insights, with quotes"],
+                ["4", "Share", "Copy markdown or push to Notion"],
+              ].map(([n, title, body], i) => (
+                <div
+                  key={n}
+                  className="card card-hover p-5 animate-fade-in-up"
+                  style={{
+                    animationDelay: `${0.6 + i * 0.1}s`,
+                    animationFillMode: "backwards",
+                  }}
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-gradient text-sm font-bold text-white shadow-soft">
+                    {n}
+                  </div>
+                  <h3 className="mt-4 font-semibold text-neutral-900">
+                    {title}
+                  </h3>
+                  <p className="mt-1 text-sm text-neutral-600">{body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* CTA footer */}
+          <section className="mt-24 pb-16 text-center">
+            <div className="mx-auto max-w-2xl rounded-2xl bg-brand-gradient-soft p-10 ring-1 ring-brand-200">
+              <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">
+                Ready to stop reading transcripts?
+              </h2>
+              <p className="mt-2 text-neutral-600">
+                Set up takes about a minute. Your first synthesis is free.
+              </p>
+              <Link
+                href="/signup"
+                className="btn-primary mt-6 px-6 py-3 text-base"
+              >
+                Create your account
+              </Link>
+            </div>
+          </section>
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="page">
       <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Gist</h1>
-        <p className="mt-2 text-neutral-600">
-          Drop customer-interview transcripts. Get themed synthesis with
-          traceable quotes.
+        <span className="eyebrow">Upload</span>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          New synthesis
+        </h1>
+        <p className="mt-1 text-neutral-600">
+          Drop transcripts or audio. Get themed synthesis with traceable
+          quotes.
         </p>
       </header>
 
-      <section className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+      <section className="card p-6">
         {/* Drag-and-drop zone */}
         <div
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={`
-            flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors
-            ${isDragging ? "border-neutral-900 bg-neutral-50" : "border-neutral-300"}
+            flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 text-center
+            transition-all duration-300 ease-out-expo
+            ${
+              isDragging
+                ? "border-brand-500 bg-brand-50 scale-[1.01] shadow-glow"
+                : "border-neutral-300 bg-neutral-50/50 hover:border-brand-300 hover:bg-brand-50/30"
+            }
             ${isLoading ? "opacity-50" : ""}
           `}
         >
-          <p className="text-sm font-medium text-neutral-700">
+          <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-gradient text-white shadow-soft animate-float">
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"
+              />
+            </svg>
+          </div>
+          <p className="mt-4 text-base font-semibold text-neutral-800">
             {isDragging
-              ? "Drop files here"
-              : "Drag & drop transcripts or audio here"}
+              ? "Drop to upload"
+              : "Drag & drop, or browse"}
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            .txt, .mp3, .wav, .m4a, .mp4, .webm — up to {MAX_FILES} files
+            .txt, .mp3, .wav, .m4a, .mp4, .webm · up to {MAX_FILES} files · 200 MB each
           </p>
-          <label className="mt-3 inline-flex cursor-pointer items-center rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm hover:bg-neutral-50">
+          <label className="btn-secondary mt-4 cursor-pointer text-xs">
             Browse files
             <input
               type="file"
@@ -500,10 +677,8 @@ export default function Home() {
         </div>
 
         {files.length > 0 && (
-          <div className="mt-4 space-y-3">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">
-              Files ({files.length})
-            </p>
+          <div className="mt-6 space-y-3">
+            <p className="eyebrow">Files ({files.length})</p>
             <ul className="space-y-2">
               {files.map((f, i) => {
                 const fp = job?.file_progress?.find(
@@ -512,10 +687,10 @@ export default function Home() {
                 return (
                   <li
                     key={f.name + i}
-                    className="flex flex-col gap-2 rounded-md border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-600 sm:flex-row sm:items-center sm:gap-3"
+                    className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-3 text-sm text-neutral-700 transition-all duration-200 hover:border-brand-200 hover:shadow-soft sm:flex-row sm:items-center sm:gap-3 animate-fade-in"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <span className="truncate">
+                      <span className="truncate font-medium">
                         {f.name}
                         <span className="ml-2 tabular-nums text-neutral-400">
                           {(f.size / 1024).toFixed(1)} KB
@@ -530,16 +705,16 @@ export default function Home() {
                         onChange={(e) => setLabelAt(i, e.target.value)}
                         disabled={isLoading}
                         placeholder={stemOf(f.name)}
-                        className="w-full rounded-md border border-neutral-300 bg-white px-2 py-1 text-sm placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none disabled:opacity-50 sm:w-64"
+                        className="input w-full py-1.5 text-xs sm:w-56"
                       />
                       {!isLoading && (
                         <button
                           type="button"
                           onClick={() => removeFile(i)}
-                          className="rounded-md px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                          className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-700"
                           title="Remove file"
                         >
-                          Remove
+                          ×
                         </button>
                       )}
                     </div>
@@ -549,12 +724,16 @@ export default function Home() {
             </ul>
 
             {hasAudio && (
-              <p className="text-xs text-neutral-500">
+              <p className="rounded-lg bg-brand-50/50 px-3 py-2 text-xs text-brand-800">
                 Estimated time: ~{estMinutes} min
-                {estMinutes === 1 ? "" : "s"} for{" "}
-                {audioFiles.length} audio file
+                {estMinutes === 1 ? "" : "s"} for {audioFiles.length} audio
+                file
                 {audioFiles.length === 1 ? "" : "s"} (
-                {(audioFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(1)}{" "}
+                {(
+                  audioFiles.reduce((s, f) => s + f.size, 0) /
+                  1024 /
+                  1024
+                ).toFixed(1)}{" "}
                 MB total). Text files are near-instant.
               </p>
             )}
@@ -566,17 +745,43 @@ export default function Home() {
             type="button"
             onClick={submit}
             disabled={isLoading || files.length === 0}
-            className="inline-flex items-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-primary"
           >
-            {isLoading ? "Synthesizing…" : "Synthesize"}
+            {isLoading ? (
+              <>
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeOpacity="0.25"
+                    strokeWidth="3"
+                  />
+                  <path
+                    d="M12 2a10 10 0 0110 10"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                Synthesizing…
+              </>
+            ) : (
+              "Synthesize"
+            )}
           </button>
           {files.length > 0 && !isLoading && (
             <span className="text-xs text-neutral-400">
-              <kbd className="rounded border border-neutral-300 px-1.5 py-0.5 font-mono text-[10px] text-neutral-600">
+              <kbd className="rounded border border-neutral-300 bg-white px-1.5 py-0.5 font-mono text-[10px] text-neutral-600">
                 ⌘
               </kbd>
               <span className="mx-1">+</span>
-              <kbd className="rounded border border-neutral-300 px-1.5 py-0.5 font-mono text-[10px] text-neutral-600">
+              <kbd className="rounded border border-neutral-300 bg-white px-1.5 py-0.5 font-mono text-[10px] text-neutral-600">
                 Enter
               </kbd>
             </span>
@@ -584,25 +789,20 @@ export default function Home() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
             {error}
           </p>
         )}
       </section>
 
       {isLoading && job && (
-        <div className="mt-8 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-neutral-700">
+        <div className="card mt-6 p-6 animate-fade-in">
+          <p className="text-sm font-semibold text-neutral-900">
             {stageLabel(job)}
           </p>
-          <ol className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-500 sm:grid-cols-4">
+          <ol className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
             {(
-              [
-                "transcribing",
-                "extracting",
-                "clustering",
-                "insights",
-              ] as const
+              ["transcribing", "extracting", "clustering", "insights"] as const
             ).map((stage) => {
               const order = [
                 "queued",
@@ -617,30 +817,41 @@ export default function Home() {
               return (
                 <li
                   key={stage}
-                  className={
+                  className={`flex items-center gap-1.5 transition-colors ${
                     active
-                      ? "font-semibold text-neutral-900"
+                      ? "font-semibold text-brand-700"
                       : reached
                         ? "text-neutral-700"
                         : "text-neutral-400"
-                  }
+                  }`}
                 >
-                  {reached ? "●" : "○"} {stage}
+                  <span
+                    className={`grid h-4 w-4 place-items-center rounded-full text-[8px] transition-all ${
+                      active
+                        ? "bg-brand-gradient text-white shadow-glow"
+                        : reached
+                          ? "bg-brand-200 text-brand-700"
+                          : "bg-neutral-200 text-neutral-400"
+                    }`}
+                  >
+                    {reached ? "✓" : "○"}
+                  </span>
+                  {stage}
                 </li>
               );
             })}
           </ol>
-          <p className="mt-3 text-xs text-neutral-400">
-            Polling /jobs/{job.job_id.slice(0, 8)} every {POLL_MS / 1000}s.
-            Audio adds ~1 min per 5 min of recording.
+          <p className="mt-4 text-xs text-neutral-400">
+            Polling /jobs/{job.job_id.slice(0, 8)} every {POLL_MS / 1000}s · Audio
+            adds ~1 min per 5 min of recording.
           </p>
         </div>
       )}
 
-      {result && (
-        <section className="mt-8 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">
+      {result && !result.synthesis_id && (
+        <section className="card mt-6 p-6 animate-fade-in">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="eyebrow">
               {result.participant_count} participants ·{" "}
               {result.cluster_count} clusters · {result.themes_extracted} themes
               {result.themes_dropped > 0
@@ -650,12 +861,12 @@ export default function Home() {
             <button
               type="button"
               onClick={copyMarkdown}
-              className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+              className="btn-secondary text-xs"
             >
               Copy markdown
             </button>
           </div>
-          <article className="prose prose-neutral max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:mt-8 prose-h2:border-t prose-h2:border-neutral-200 prose-h2:pt-6 prose-h3:mt-6 prose-blockquote:border-l-neutral-300 prose-blockquote:text-neutral-600">
+          <article className="prose prose-neutral prose-brand max-w-none">
             <ReactMarkdown>{result.markdown}</ReactMarkdown>
           </article>
         </section>

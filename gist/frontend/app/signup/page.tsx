@@ -32,8 +32,6 @@ export default function SignupPage() {
       return;
     }
 
-    // If Supabase auto-confirms (Confirm Email off), session is set →
-    // route to the dashboard. Otherwise tell the user to check their inbox.
     if (data.session) {
       window.location.href = "/projects";
     } else {
@@ -44,68 +42,87 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        Start keeping your interview syntheses in one place.
-      </p>
+    <div className="relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-hero-radial"
+      />
+      <main className="mx-auto max-w-md px-6 py-16 sm:py-24 animate-fade-in">
+        <div className="card p-8">
+          <div className="text-center">
+            <span
+              className="inline-grid h-10 w-10 place-items-center rounded-xl
+                         bg-brand-gradient text-white shadow-glow"
+            >
+              <span className="text-base font-bold">G</span>
+            </span>
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+              Create your account
+            </h1>
+            <p className="mt-1 text-sm text-neutral-600">
+              Keep your interview syntheses in one place.
+            </p>
+          </div>
 
-      <form onSubmit={handleSignup} className="mt-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">
-            Email
-          </label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">
-            Password
-          </label>
-          <input
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-          />
-          <p className="mt-1 text-xs text-neutral-500">
-            Must be at least 6 characters.
+          <form onSubmit={handleSignup} className="mt-8 space-y-4">
+            <div>
+              <label className="label">Email</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="input mt-1.5"
+                autoComplete="email"
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="label">Password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                className="input mt-1.5"
+                autoComplete="new-password"
+              />
+            </div>
+
+            {error && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+                {error}
+              </p>
+            )}
+            {message && (
+              <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
+                {message}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full"
+            >
+              {loading ? "Creating account…" : "Create account"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-neutral-600">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-brand-700 transition-colors hover:text-brand-800"
+            >
+              Log in
+            </Link>
           </p>
         </div>
-
-        {error && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-            {error}
-          </p>
-        )}
-        {message && (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-            {message}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? "Creating account…" : "Sign up"}
-        </button>
-      </form>
-
-      <p className="mt-4 text-center text-sm text-neutral-600">
-        Already have an account?{" "}
-        <Link href="/login" className="font-medium text-neutral-900 underline">
-          Log in
-        </Link>
-      </p>
-    </main>
+      </main>
+    </div>
   );
 }

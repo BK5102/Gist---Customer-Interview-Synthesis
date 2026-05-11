@@ -118,17 +118,24 @@ export default function SynthesisDetailPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
-        <p className="text-sm text-neutral-500">Loading synthesis…</p>
+      <main className="page">
+        <div className="space-y-4">
+          <div className="skeleton h-6 w-24 rounded-md" />
+          <div className="skeleton h-10 w-72 rounded-md" />
+          <div className="skeleton h-96 rounded-2xl" />
+        </div>
       </main>
     );
   }
 
   if (!synth) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
+      <main className="page text-center">
         <p className="text-sm text-neutral-500">Synthesis not found.</p>
-        <Link href="/projects" className="mt-2 inline-block text-sm underline">
+        <Link
+          href="/projects"
+          className="mt-3 inline-block text-sm text-brand-700 underline"
+        >
           Back to projects
         </Link>
       </main>
@@ -136,44 +143,55 @@ export default function SynthesisDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-6">
-        <Link
-          href={`/projects/${synth.project_id}`}
-          className="text-xs text-neutral-500 underline"
-        >
-          ← Project
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Synthesis
-        </h1>
-        <p className="text-xs text-neutral-500">
-          {new Date(synth.created_at).toLocaleString()}
-        </p>
-      </div>
+    <main className="page">
+      <Link
+        href={`/projects/${synth.project_id}`}
+        className="inline-flex items-center gap-1 text-xs text-neutral-500 transition-colors hover:text-brand-700"
+      >
+        ← Project
+      </Link>
 
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-xs uppercase tracking-wide text-neutral-500">
+      <header className="mt-3 mb-6">
+        <span className="eyebrow">Synthesis</span>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          Interview Synthesis
+        </h1>
+        <p className="mt-1 text-xs text-neutral-500">
+          {new Date(synth.created_at).toLocaleString()} ·{" "}
           {synth.transcript_ids?.length ?? 0} transcript
           {(synth.transcript_ids?.length ?? 0) === 1 ? "" : "s"} ·{" "}
-          {synth.model_used ?? "claude-sonnet-4-6"}
+          <span className="font-mono">
+            {synth.model_used ?? "claude-sonnet-4-6"}
+          </span>
         </p>
+      </header>
+
+      {/* Action bar */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
           onClick={copyMarkdown}
-          className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          className="btn-secondary text-xs"
         >
+          <svg
+            className="h-3.5 w-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+          </svg>
           Copy markdown
         </button>
-      </div>
 
-      {notionConnected && (
-        <div className="mb-4 rounded-md border border-neutral-200 bg-white p-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        {notionConnected && databases.length > 0 && (
+          <div className="flex items-center gap-2">
             <select
               value={selectedDb}
               onChange={(e) => setSelectedDb(e.target.value)}
-              className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+              className="input max-w-[12rem] py-1.5 text-xs"
             >
               {databases.map((db) => (
                 <option key={db.id} value={db.id}>
@@ -185,32 +203,40 @@ export default function SynthesisDetailPage() {
               type="button"
               onClick={pushToNotion}
               disabled={pushing || !selectedDb}
-              className="rounded-md bg-neutral-900 px-3 py-1 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+              className="btn-primary text-xs"
             >
               {pushing ? "Pushing…" : "Push to Notion"}
             </button>
           </div>
-          {pushError && (
-            <p className="mt-2 text-xs text-red-700">{pushError}</p>
-          )}
-          {pushUrl && (
-            <p className="mt-2 text-xs text-green-700">
-              Pushed!{" "}
-              <a
-                href={pushUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="underline"
-              >
-                Open in Notion
-              </a>
-            </p>
-          )}
-        </div>
+        )}
+      </div>
+
+      {pushError && (
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+          {pushError}
+        </p>
+      )}
+      {pushUrl && (
+        <p className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-green-600 text-xs text-white">
+            ✓
+          </span>
+          Pushed to Notion.{" "}
+          <a
+            href={pushUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium underline"
+          >
+            Open in Notion ↗
+          </a>
+        </p>
       )}
 
-      <article className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm prose prose-neutral max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:mt-8 prose-h2:border-t prose-h2:border-neutral-200 prose-h2:pt-6 prose-h3:mt-6 prose-blockquote:border-l-neutral-300 prose-blockquote:text-neutral-600">
-        <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>
+      <article className="card p-8">
+        <div className="prose prose-neutral prose-brand max-w-none">
+          <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>
+        </div>
       </article>
     </main>
   );

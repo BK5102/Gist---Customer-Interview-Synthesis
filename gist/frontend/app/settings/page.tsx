@@ -113,46 +113,72 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
-        <p className="text-sm text-neutral-500">Loading settings…</p>
+      <main className="page">
+        <div className="space-y-4">
+          <div className="skeleton h-8 w-40 rounded-md" />
+          <div className="skeleton h-24 rounded-xl" />
+          <div className="skeleton h-32 rounded-xl" />
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+    <main className="page">
+      <header className="mb-8">
+        <span className="eyebrow">Account</span>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Settings</h1>
+      </header>
 
-      <section className="mt-8 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+      <section className="card p-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Account
         </h2>
-        <p className="mt-2 text-sm text-neutral-700">
-          {user?.email ?? "Unknown"}
-        </p>
+        <div className="mt-3 flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-gradient text-sm font-semibold text-white shadow-soft">
+            {user?.email?.[0]?.toUpperCase() ?? "?"}
+          </span>
+          <p className="text-sm text-neutral-800">
+            {user?.email ?? "Unknown"}
+          </p>
+        </div>
       </section>
 
-      <section className="mt-4 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+      <section className="card mt-4 p-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Integrations
         </h2>
-        <div className="mt-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-neutral-900">Notion</p>
-            <p className="text-xs text-neutral-500">
-              {notion.connected
-                ? notion.workspace_name
-                  ? `Connected to "${notion.workspace_name}". Push syntheses directly.`
-                  : "Connected. Push syntheses directly to a Notion database."
-                : "Connect your Notion workspace to push syntheses."}
-            </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            {/* Notion icon: simple geometric N */}
+            <span className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-200 bg-white font-bold text-neutral-700">
+              N
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-neutral-900">Notion</p>
+                {notion.connected && (
+                  <span className="pill bg-green-50 text-green-700 ring-green-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Connected
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-neutral-500">
+                {notion.connected
+                  ? notion.workspace_name
+                    ? `Workspace: "${notion.workspace_name}" · Push syntheses directly.`
+                    : "Connected. Push syntheses directly to a Notion database."
+                  : "Connect your Notion workspace to push syntheses with one click."}
+              </p>
+            </div>
           </div>
           {notion.connected ? (
             <button
               type="button"
               onClick={disconnectNotion}
               disabled={busy}
-              className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+              className="btn-secondary"
             >
               {busy ? "Disconnecting…" : "Disconnect"}
             </button>
@@ -161,14 +187,14 @@ export default function SettingsPage() {
               type="button"
               onClick={connectNotion}
               disabled={busy}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+              className="btn-primary"
             >
               {busy ? "Connecting…" : "Connect Notion"}
             </button>
           )}
         </div>
         {error && (
-          <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
             {error}
           </p>
         )}

@@ -68,51 +68,60 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
-        <p className="text-sm text-neutral-500">Loading projects…</p>
+      <main className="page">
+        <div className="space-y-4">
+          <div className="skeleton h-8 w-48 rounded-md" />
+          <div className="skeleton h-20 rounded-xl" />
+          <div className="skeleton h-20 rounded-xl" />
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
-        <Link
-          href="/"
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700"
-        >
+    <main className="page">
+      <header className="mb-8 flex items-center justify-between">
+        <div>
+          <span className="eyebrow">Workspace</span>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+            Projects
+          </h1>
+        </div>
+        <Link href="/" className="btn-primary">
           New synthesis
         </Link>
-      </div>
+      </header>
 
-      <form onSubmit={createProject} className="mb-6 flex gap-2">
+      <form onSubmit={createProject} className="mb-8 flex gap-2">
         <input
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="Project name"
-          className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          placeholder="Project name — e.g. Q2 customer discovery"
+          className="input flex-1"
         />
         <button
           type="submit"
           disabled={creating || !newName.trim()}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+          className="btn-secondary"
         >
           {creating ? "Creating…" : "Create project"}
         </button>
       </form>
 
       {projects && projects.length === 0 && (
-        <div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center">
-          <h2 className="text-base font-semibold text-neutral-800">
+        <div className="rounded-2xl border border-dashed border-brand-300 bg-brand-gradient-soft p-12 text-center">
+          <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-brand-gradient text-white shadow-glow animate-float">
+            <span className="text-xl">+</span>
+          </div>
+          <h2 className="mt-4 text-lg font-semibold text-neutral-800">
             No projects yet
           </h2>
-          <p className="mt-1 text-sm text-neutral-500">
-            A project groups transcripts and syntheses together. Make one
-            per research round, customer segment, or product area.
+          <p className="mt-1 text-sm text-neutral-600">
+            A project groups transcripts and syntheses together. Make one per
+            research round, customer segment, or product area.
           </p>
-          <p className="mt-4 text-xs text-neutral-400">
+          <p className="mt-4 text-xs text-neutral-500">
             Name a project above and click <strong>Create project</strong> to
             get started.
           </p>
@@ -121,20 +130,31 @@ export default function ProjectsPage() {
 
       {projects && projects.length > 0 && (
         <ul className="space-y-3">
-          {projects.map((proj) => (
+          {projects.map((proj, i) => (
             <li
               key={proj.id}
-              className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow"
+              className="animate-fade-in-up"
+              style={{
+                animationDelay: `${i * 0.05}s`,
+                animationFillMode: "backwards",
+              }}
             >
               <Link
                 href={`/projects/${proj.id}`}
-                className="block text-sm font-medium text-neutral-900"
+                className="card card-hover block p-5 group"
               >
-                {proj.name}
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-neutral-900 transition-colors group-hover:text-brand-700">
+                    {proj.name}
+                  </h2>
+                  <span className="text-xs text-neutral-400 transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Created {new Date(proj.created_at).toLocaleDateString()}
+                </p>
               </Link>
-              <p className="mt-1 text-xs text-neutral-500">
-                Created {new Date(proj.created_at).toLocaleDateString()}
-              </p>
             </li>
           ))}
         </ul>
