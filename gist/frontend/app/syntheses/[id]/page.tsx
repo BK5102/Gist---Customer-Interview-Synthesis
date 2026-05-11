@@ -34,44 +34,51 @@ export default function SynthesisDetailPage() {
   useEffect(() => {
     if (!id) return;
     const load = async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = "/login";
-        return;
-      }
-      const res = await fetch(`${API_URL}/syntheses/${id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (!res.ok) {
-        setLoading(false);
-        return;
-      }
-      const data = (await res.json()) as SynthesisDetail;
-      setSynth(data);
+      try {
+        const supabase = createClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = "/login";
+          return;
+        }
+        const res = await fetch(`${API_URL}/syntheses/${id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as SynthesisDetail;
+        setSynth(data);
 
-      // Cheap connection check first; only hit Notion's API if connected.
-      const connRes = await fetch(`${API_URL}/notion/connection`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (connRes.ok) {
-        const conn = (await connRes.json()) as { connected: boolean };
-        if (conn.connected) {
-          setNotionConnected(true);
-          const dbRes = await fetch(`${API_URL}/notion/databases`, {
+        // Cheap connection check first; only hit Notion's API if connected.
+        // Wrapped separately so a Notion-side outage doesn't block the
+        // markdown render — the user can still read the synthesis.
+        try {
+          const connRes = await fetch(`${API_URL}/notion/connection`, {
             headers: { Authorization: `Bearer ${session.access_token}` },
           });
-          if (dbRes.ok) {
-            const dbData = (await dbRes.json()) as NotionDb[];
-            setDatabases(dbData);
-            if (dbData.length > 0) setSelectedDb(dbData[0].id);
+          if (connRes.ok) {
+            const conn = (await connRes.json()) as { connected: boolean };
+            if (conn.connected) {
+              setNotionConnected(true);
+              const dbRes = await fetch(`${API_URL}/notion/databases`, {
+                headers: { Authorization: `Bearer ${session.access_token}` },
+              });
+              if (dbRes.ok) {
+                const dbData = (await dbRes.json()) as NotionDb[];
+                setDatabases(dbData);
+                if (dbData.length > 0) setSelectedDb(dbData[0].id);
+              }
+            }
           }
+        } catch {
+          /* Notion check failed — degrade gracefully, hide push UI */
         }
+      } catch {
+        /* synthesis fetch failed — leave null so "not found" state shows */
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
     load();
   }, [id]);

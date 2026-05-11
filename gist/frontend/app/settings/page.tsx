@@ -18,29 +18,42 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const init = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (!user) {
-        window.location.href = "/login";
-        return;
-      }
-
-      // Cheap connection-status check — single DB read, no Notion API call.
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        const res = await fetch(`${API_URL}/notion/connection`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (res.ok) {
-          setNotion((await res.json()) as NotionStatus);
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+        if (!user) {
+          window.location.href = "/login";
+          return;
         }
+
+        // Cheap connection-status check — single DB read, no Notion API call.
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          try {
+            const res = await fetch(`${API_URL}/notion/connection`, {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (res.ok) {
+              setNotion((await res.json()) as NotionStatus);
+            }
+          } catch (e) {
+            // Backend unreachable / CORS — show the account section anyway,
+            // and surface a soft error in the integration card below.
+            setError(
+              e instanceof Error
+                ? `Couldn't reach the backend to check Notion status: ${e.message}`
+                : "Couldn't reach the backend to check Notion status.",
+            );
+          }
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     init();
   }, []);

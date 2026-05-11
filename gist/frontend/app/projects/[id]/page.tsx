@@ -28,24 +28,27 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     if (!id) return;
     const load = async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = "/login";
-        return;
-      }
-      const res = await fetch(`${API_URL}/projects/${id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (!res.ok) {
+      try {
+        const supabase = createClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = "/login";
+          return;
+        }
+        const res = await fetch(`${API_URL}/projects/${id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as ProjectDetail;
+        setProject(data);
+      } catch {
+        // Backend unreachable — leave project null so the "not found"
+        // empty state shows with a back link to /projects.
+      } finally {
         setLoading(false);
-        return;
       }
-      const data = (await res.json()) as ProjectDetail;
-      setProject(data);
-      setLoading(false);
     };
     load();
   }, [id]);
