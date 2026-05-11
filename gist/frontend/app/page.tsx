@@ -476,7 +476,11 @@ export default function Home() {
               style={{ animationDelay: "0.1s", animationFillMode: "backwards" }}
             >
               Turn interviews into{" "}
-              <span className="bg-gradient-to-r from-brand-600 via-brand-500 to-accent-500 bg-clip-text text-transparent">
+              <span
+                className="bg-gradient-to-r from-brand-700 via-brand-500 via-accent-500 to-brand-700
+                           bg-[length:200%_auto] bg-clip-text text-transparent
+                           animate-gradient-pan"
+              >
                 insight
               </span>
             </h1>

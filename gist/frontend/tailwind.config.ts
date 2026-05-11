@@ -65,6 +65,9 @@ const config: Config = {
         "shimmer": "shimmer 2s linear infinite",
         "float": "float 4s ease-in-out infinite",
         "spin-slow": "spin 8s linear infinite",
+        // Continuously pans a gradient across text for a flowing-color
+        // effect. Used on the hero "insight" word.
+        "gradient-pan": "gradientPan 5s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -82,6 +85,10 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-6px)" },
+        },
+        gradientPan: {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
         },
       },
       transitionTimingFunction: {
