@@ -2,7 +2,9 @@
 
 Turn customer interview transcripts into themed synthesis with traceable quotes — built for solo founders doing customer discovery.
 
-**Status: v1.0 — auth, persistence, audio, and Notion push live locally.**
+**🌐 Live: [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app)**
+
+**Status: v1.0 — auth, persistence, audio, and Notion push in production.**
 
 Drop `.txt` transcripts or audio (`.mp3 .wav .m4a .mp4 .webm` up to 200 MB), and Gist returns markdown with:
 
@@ -136,18 +138,38 @@ Open `http://localhost:3000`, sign up, log in, create a project, drop a transcri
 
 ## Deploy
 
-**Backend → Railway**
+The repo's actual layout is `gist/backend/` and `gist/frontend/` (one level under the repo root). Both Railway and Vercel need to know that — easiest way is to set Root Directory explicitly.
 
-- Set **Root Directory** to `backend`
-- Nixpacks picks up `requirements.txt` + `runtime.txt` (Python 3.11) and runs the `Procfile`
-- Env vars: copy your local `backend/.env` (rotating any keys you care about) and set `CORS_ORIGINS=https://<your-vercel-domain>`
+### Backend → Railway
 
-**Frontend → Vercel**
+1. **New Project → Deploy from GitHub repo** → pick this repo
+2. Service **Settings → Build → Root Directory** = `gist/backend`
+   *(Skipping this gives `directory /build-sessions/.../backend does not exist`.)*
+3. **Settings → Networking** → **Generate Domain** (you'll get something like `gist-backend-production-XXXX.up.railway.app`)
+4. **Variables**: copy every line from your local `backend/.env`. Don't set `PORT` — Railway provides `$PORT` and the `Procfile` honors it.
+5. `CORS_ORIGINS` is a comma-separated list with **no spaces around commas, no trailing slashes**:
+   ```
+   http://localhost:3000,https://<your-vercel-domain>.vercel.app
+   ```
+6. Verify: hit `https://<railway-domain>/health` — expect `{"status":"ok"}`. The bare URL gives a 404 (no root route); always use `/health` for liveness checks.
 
-- Set **Root Directory** to `frontend`
-- Env vars: same three as `frontend/.env.local`, but with `NEXT_PUBLIC_API_URL=https://<your-railway-domain>`
+### Frontend → Vercel
 
-If you're using Notion OAuth (not internal token), update `NOTION_REDIRECT_URI` on Railway to `https://<railway-domain>/notion/callback` and add the same URL to your Notion integration's Redirect URIs.
+1. **+ Add New → Project** → import the same repo
+2. **Framework Preset** must be **Next.js**. If Vercel auto-detects "Other" because of the nested folder, set it manually. Symptom of skipping this: build fails with `No Output Directory named "public" found`.
+3. **Root Directory** = `gist/frontend`
+4. **Environment Variables**:
+   - `NEXT_PUBLIC_API_URL` = your Railway URL (bare, no trailing slash, no `/health`)
+   - `NEXT_PUBLIC_SUPABASE_URL` = same value as in your local `frontend/.env.local`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = same value as in your local `frontend/.env.local`
+5. Deploy. Vercel gives you a `*.vercel.app` URL — add it to `CORS_ORIGINS` on Railway (step 5 above) and Railway will auto-redeploy.
+
+### Common production gotchas
+
+- **DNS failure on Supabase URL** (`net::ERR_NAME_NOT_RESOLVED`) — Supabase free-tier projects pause after a week of inactivity. Log into the Supabase dashboard and click **Restart project**.
+- **CORS preflight failure on every route** — you forgot to add the Vercel URL to `CORS_ORIGINS` on Railway, or you used a trailing slash. The fix is always on Railway, never in the frontend.
+- **Tables missing in production** — re-run `gist/backend/schema.sql` in the Supabase SQL Editor, then `NOTIFY pgrst, 'reload schema';` to refresh PostgREST's cache.
+- **Notion redirect URI mismatch** (OAuth only) — if you used the OAuth flow rather than internal token, update `NOTION_REDIRECT_URI` on Railway to `https://<railway-domain>/notion/callback` and add the same URL to your Notion integration's Redirect URIs.
 
 ## Repo layout
 
@@ -198,4 +220,4 @@ This is a hobby project. If you actually use it for customer discovery and have 
 
 ## Status
 
-`v1.0.0` is the current target tag — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion). Phase 4 (real users + iteration) is the next thing.
+**`v1.0.1` is live in production** at [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app) — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion). Phase 4 (real users + iteration) is in progress.
