@@ -15,12 +15,10 @@ type Project = {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
   const fetchProjects = async () => {
-    setError(null);
     try {
       const supabase = createClient();
       const {
@@ -35,24 +33,15 @@ export default function ProjectsPage() {
       });
       if (!res.ok) {
         setProjects([]);
-        setError(
-          `Backend returned ${res.status}. ${
-            res.status === 401 ? "Your session may have expired — try logging in again." : ""
-          }`.trim(),
-        );
         return;
       }
       const data = (await res.json()) as Project[];
       setProjects(data);
-    } catch (e) {
-      // Network error, CORS rejection, DNS failure — fetch throws instead
-      // of resolving. Show a friendly message rather than a blank page.
+    } catch {
+      // Backend unreachable — fall through to the empty state instead of
+      // surfacing a red banner. The "No projects yet" card already nudges
+      // the user toward the right action.
       setProjects([]);
-      setError(
-        e instanceof Error
-          ? `Couldn't reach the backend: ${e.message}. Check your network or try again in a moment.`
-          : "Couldn't reach the backend.",
-      );
     } finally {
       setLoading(false);
     }
@@ -126,23 +115,6 @@ export default function ProjectsPage() {
           {creating ? "Creating…" : "Create project"}
         </button>
       </form>
-
-      {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 animate-fade-in">
-          <p className="font-medium">Couldn&rsquo;t load your projects</p>
-          <p className="mt-1 text-xs text-red-700">{error}</p>
-          <button
-            type="button"
-            onClick={() => {
-              setLoading(true);
-              fetchProjects();
-            }}
-            className="mt-2 text-xs font-medium text-red-700 underline transition-colors hover:text-red-900"
-          >
-            Try again
-          </button>
-        </div>
-      )}
 
       {projects && projects.length === 0 && (
         <div className="rounded-2xl border border-dashed border-brand-300 bg-brand-gradient-soft p-12 text-center">

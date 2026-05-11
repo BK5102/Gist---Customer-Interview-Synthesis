@@ -41,14 +41,10 @@ export default function SettingsPage() {
             if (res.ok) {
               setNotion((await res.json()) as NotionStatus);
             }
-          } catch (e) {
-            // Backend unreachable / CORS — show the account section anyway,
-            // and surface a soft error in the integration card below.
-            setError(
-              e instanceof Error
-                ? `Couldn't reach the backend to check Notion status: ${e.message}`
-                : "Couldn't reach the backend to check Notion status.",
-            );
+          } catch {
+            // Backend unreachable — leave notion state as disconnected
+            // so the user sees the "Connect Notion" CTA instead of a
+            // red banner.
           }
         }
       } finally {
