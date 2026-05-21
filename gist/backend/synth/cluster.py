@@ -124,10 +124,7 @@ def cluster_themes(all_themes: list[dict]) -> list[dict]:
                     f"keys={list(block.input.keys())}",
                     file=sys.stderr,
                 )
-                print(
-                    json.dumps(block.input, indent=2)[:1500],
-                    file=sys.stderr,
-                )
+                print("[cluster] malformed tool_use payload omitted", file=sys.stderr)
             return block.input.get("clusters", [])
 
     return []

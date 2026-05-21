@@ -1,6 +1,5 @@
 # FastAPI entry point — POST /synthesize, GET /jobs/{job_id}, GET /health
 import os
-import traceback
 import uuid
 from pathlib import Path
 from typing import Any
@@ -22,10 +21,10 @@ from db import (
     save_synthesis,
     save_transcript,
 )
-from synth.cluster import cluster_themes_cached
+from synth.cluster import cluster_themes, cluster_themes_cached
 from synth.extract import extract_from_text
 from synth.format import render_markdown
-from synth.insights import generate_insights_cached
+from synth.insights import generate_insights, generate_insights_cached
 from transcribe.whisper import MAX_AUDIO_BYTES as WHISPER_AUDIO_BYTES
 from transcribe.whisper import transcribe_bytes
 
@@ -42,6 +41,11 @@ ALLOWED_EXTENSIONS = TEXT_EXTENSIONS | AUDIO_EXTENSIONS
 
 MAX_TEXT_BYTES = 2 * 1024 * 1024  # 2 MB
 MAX_AUDIO_BYTES = WHISPER_AUDIO_BYTES  # 200 MB; chunker handles >25 MB
+STORE_TRANSCRIPTS = os.environ.get("STORE_TRANSCRIPTS", "false").lower() == "true"
+ENABLE_SYNTH_CACHE = os.environ.get("ENABLE_SYNTH_CACHE", "false").lower() == "true"
+STORE_PLAINTEXT_SYNTHESES = (
+    os.environ.get("STORE_PLAINTEXT_SYNTHESES", "false").lower() == "true"
+)
 
 # Comma-separated list of allowed CORS origins. Defaults to local dev.
 # Production: set CORS_ORIGINS=https://your-vercel-domain.vercel.app
@@ -56,6 +60,19 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=(), payment=()",
+    )
+    return response
 
 
 # ─── job state ──────────────────────────────────────────────────────────────
@@ -220,7 +237,7 @@ async def synthesize(
             {
                 "filename": f.filename,
                 "ext": ext,
-                "content": content,
+                "content": content if ext in AUDIO_EXTENSIONS else b"",
                 "text": text,  # None for audio until transcribed
                 "participant_id": resolved_ids[idx],
             }
@@ -269,9 +286,14 @@ async def synthesize(
 
 
 @app.get("/jobs/{job_id}", response_model=JobStatusResponse)
-def get_job(job_id: str) -> JobStatusResponse:
+def get_job(
+    job_id: str,
+    user_id: str = Depends(require_auth),
+) -> JobStatusResponse:
     job = JOBS.get(job_id)
     if not job:
+        raise HTTPException(404, f"Unknown job id: {job_id}")
+    if job.get("user_id") != user_id:
         raise HTTPException(404, f"Unknown job id: {job_id}")
     return JobStatusResponse(**job)
 
@@ -304,11 +326,14 @@ def _run_pipeline(
             _set_file_status(job_id, p["participant_id"], "transcribing")
             try:
                 p["text"] = transcribe_bytes(p["content"], p["filename"])
+                p["content"] = b""
             except ValueError as e:
+                p["content"] = b""
                 _set_file_status(job_id, p["participant_id"], "error")
                 _set_job(job_id, status="error", error=str(e))
                 return
             except Exception as e:  # openai/groq errors, network, etc.
+                p["content"] = b""
                 _set_file_status(job_id, p["participant_id"], "error")
                 _set_job(
                     job_id,
@@ -342,8 +367,10 @@ def _run_pipeline(
             all_themes.extend(verified)
             _set_file_status(job_id, p["participant_id"], "extracted")
 
-            # Persist transcript to DB if configured.
-            if db_available() and project_id:
+            # Raw transcripts are not persisted by default. Keeping them out
+            # of Supabase means project operators cannot read user transcripts
+            # from the dashboard or with the service-role key.
+            if STORE_TRANSCRIPTS and db_available() and project_id:
                 try:
                     row = save_transcript(
                         project_id=project_id,
@@ -357,6 +384,8 @@ def _run_pipeline(
                     # Don't fail the pipeline if DB write fails; log and continue.
                     import logging
                     logging.getLogger("gist").exception("Failed to save transcript")
+            else:
+                p["text"] = None
 
         if not all_themes:
             _set_job(
@@ -368,15 +397,24 @@ def _run_pipeline(
 
         # 3. Cluster + 4. insights + 5. render.
         _set_job(job_id, status="clustering", current=None, total=None)
-        clusters = cluster_themes_cached(all_themes)
+        clusters = (
+            cluster_themes_cached(all_themes)
+            if ENABLE_SYNTH_CACHE
+            else cluster_themes(all_themes)
+        )
 
         _set_job(job_id, status="insights")
-        insights = generate_insights_cached(clusters)
+        insights = (
+            generate_insights_cached(clusters)
+            if ENABLE_SYNTH_CACHE
+            else generate_insights(clusters)
+        )
         markdown = render_markdown(clusters, insights)
 
-        # Persist synthesis to DB if configured.
+        # Synthesis markdown can contain verbatim customer quotes. Do not
+        # persist it in plaintext unless the operator explicitly opts in.
         synthesis_id: str | None = None
-        if db_available() and project_id:
+        if STORE_PLAINTEXT_SYNTHESES and db_available() and project_id:
             try:
                 t_ids = [r["id"] for r in transcript_rows]
                 synth_row = save_synthesis(
@@ -408,7 +446,7 @@ def _run_pipeline(
         _set_job(
             job_id,
             status="error",
-            error=f"Pipeline crashed: {e!r}\n{traceback.format_exc()}",
+            error=f"Pipeline crashed: {e!r}",
         )
 
 

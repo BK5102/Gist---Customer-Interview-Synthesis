@@ -79,10 +79,7 @@ def generate_insights(clusters: list[dict]) -> dict:
 
     for block in response.content:
         if block.type == "tool_use" and block.name == "generate_insights":
-            print(
-                f"[insights] stop_reason={response.stop_reason}",
-                file=sys.stderr,
-            )
+            print(f"[insights] stop_reason={response.stop_reason}", file=sys.stderr)
             return block.input
 
     return {}

@@ -59,9 +59,9 @@ type SynthesizeResponse = {
   participant_count: number;
   themes_extracted: number;
   themes_dropped: number;
-  // Set when /synthesize was given a project_id and the result was persisted.
-  // The home page redirects to /syntheses/<id> when this is present so the
-  // user lands somewhere with the Notion push UI + a stable URL to share.
+  // Set only when the backend is explicitly configured to persist plaintext
+  // syntheses. Production keeps that off until client-side encrypted storage
+  // exists.
   project_id?: string | null;
   synthesis_id?: string | null;
 };
@@ -155,8 +155,8 @@ const stemOf = (name: string) => {
 };
 
 export default function Home() {
-  // Optional ?project=<uuid> binds the synthesis to a project so the
-  // backend persists it and we can redirect to /syntheses/<id> on done.
+  // Optional ?project=<uuid> identifies the project context. Production does
+  // not persist plaintext synthesis output by default.
   const searchParams = useSearchParams();
   const projectId = searchParams?.get("project") ?? null;
 
@@ -223,10 +223,9 @@ export default function Home() {
       if (next.status === "done" && next.result) {
         setResult(next.result);
         setIsLoading(false);
-        // If the backend persisted the synthesis (because we passed
-        // project_id), jump to the detail page where the Notion push UI
-        // lives. Otherwise stay here so the user can still see + copy
-        // the markdown inline (legacy unauthenticated flow).
+        // If plaintext persistence is explicitly enabled, jump to the detail
+        // page. Otherwise stay here so sensitive output is only shown in the
+        // active browser session.
         if (next.result.synthesis_id) {
           window.location.href = `/syntheses/${next.result.synthesis_id}`;
         }
@@ -370,8 +369,8 @@ export default function Home() {
       body.append("labels", labels[i] ?? "");
     });
     if (projectId) {
-      // Persist this synthesis under the given project so the user can
-      // open it later, and so the Notion push UI on /syntheses/[id] works.
+      // Project context only. The backend will not persist plaintext output
+      // unless STORE_PLAINTEXT_SYNTHESES is explicitly enabled.
       body.append("project_id", projectId);
     }
 

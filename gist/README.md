@@ -13,6 +13,12 @@ Drop `.txt` transcripts or audio (`.mp3 .wav .m4a .mp4 .webm` up to 200 MB), and
 
 Every quote is verified against the source transcript before it reaches the output. If a quote can't be found in the transcript (whitespace-normalized substring match), the theme is dropped and counted in the response — never made up.
 
+## Security note
+
+Gist is an early beta that processes potentially sensitive customer-interview material. Do not upload regulated data, credentials, financial secrets, or highly confidential customer/company information until stronger retention, deletion, and encryption controls are in place.
+
+Current protections include Supabase Auth, RLS-backed tables, backend ownership checks, restricted CORS, Notion OAuth state nonces, authenticated job polling, baseline security headers, raw transcript retention disabled by default, synthesis disk caching disabled by default for the web app, and plaintext synthesis persistence disabled by default. See [SECURITY_TRUST_PLAN.md](SECURITY_TRUST_PLAN.md) and [E2EE_STORAGE_PLAN.md](E2EE_STORAGE_PLAN.md) for the honest security posture and client-side encrypted storage plan.
+
 ## Pipeline
 
 ```

@@ -452,3 +452,98 @@ reality was instructive. Eight bugs, all in the seams between systems.
 - Hit a 422 "context reduction is suggested" from Sonnet at 8k max_tokens
   during an API capacity spike — a softer rate-limit signal I hadn't seen
   before, and one the SDK doesn't retry by default.
+
+## Launch + Phase 4 Growth Memory - 2026-05-21
+
+Deployment is complete for Gist, and launch posts are complete on LinkedIn,
+X, and Substack. The next workstream is Phase 4: bring in real users, measure
+activation, and learn from actual interview synthesis workflows.
+
+Created `USER_GROWTH_PLAN.md` with:
+- Target users and north-star activation metric.
+- Where to check users and usage: Supabase, Vercel, Railway, GitHub, LinkedIn,
+  X, and Substack.
+- Supabase SQL queries for user counts, daily signups, activated users,
+  syntheses, and Notion connection rate.
+- A 30-day plan for founder-led outreach, community distribution, activation
+  tuning, and repeat-use learning.
+- Recommended next instrumentation: a lightweight product `events` table for
+  signup, project, upload, synthesis, Notion, and copy events.
+
+## Security + Trust Pivot - 2026-05-21
+
+Bhavana correctly identified the main blocker for real users: founders, PMs,
+and researchers will not upload company-sensitive `.mp4` or `.txt` interview
+files to an unknown tool without clear security, privacy, retention, and data
+handling controls.
+
+What changed:
+- Added `SECURITY_TRUST_PLAN.md` with the honest current posture, platform
+  checklists for Supabase/Railway/Vercel, trust gaps, and hardening priorities.
+- Updated `USER_GROWTH_PLAN.md` so early outreach asks for redacted,
+  synthetic, or low-sensitivity transcripts until security is stronger.
+- Updated `README.md` with an early-beta security note.
+- Updated `PROMPT.md` as durable rebuild memory and added the rule that it must
+  stay current whenever meaningful product, architecture, deployment, security,
+  or growth changes are made.
+- Tightened `GET /jobs/{job_id}` so job results require auth and are only
+  returned to the user who owns the job.
+- Added baseline security headers to the FastAPI backend and Next.js frontend.
+
+Key strategic shift: before broad self-serve acquisition, Gist needs a public
+security/privacy page, deletion and retention controls, and clearer disclosure
+that audio may go to Groq/OpenAI and text-derived analysis may go to Anthropic.
+
+## Raw Transcript Retention Disabled - 2026-05-21
+
+Bhavana clarified the privacy bar: no one else should be able to see a user's
+raw transcript, not even the developer/operator. The previous architecture
+persisted raw transcript text in `transcripts.content`, which meant a Supabase
+project owner or anyone with the service-role key could read it.
+
+What changed:
+- Added `STORE_TRANSCRIPTS=false` as the production default.
+- `POST /synthesize` now keeps raw `.txt` content out of the prepared job
+  payload after decoding.
+- Audio/video bytes are cleared from the job payload immediately after
+  transcription finishes or fails.
+- Raw transcript rows are no longer saved to Supabase unless
+  `STORE_TRANSCRIPTS=true` is explicitly set.
+- Synthesis cache files are disabled by default for the web app with
+  `ENABLE_SYNTH_CACHE=false` so cluster/insight JSON containing quote excerpts
+  is not written to disk in production.
+- Added `backend/migrations/2026-05-21_scrub_transcript_content.sql` to replace
+  previously saved transcript bodies with `[raw transcript not retained]`.
+- Updated `SECURITY_TRUST_PLAN.md`, `README.md`, `.env.example`, and
+  `PROMPT.md`.
+
+Important remaining caveat: synthesis markdown is still saved in plaintext and
+may include verbatim quotes from transcripts. If the security requirement
+expands from "developer cannot read raw transcripts" to "developer cannot read
+any customer-derived content," the next step is encrypting or not persisting
+`syntheses.markdown_output`.
+
+## Plaintext Synthesis Storage Disabled - 2026-05-21
+
+Bhavana clarified the stronger storage requirement: when sensitive data is
+stored, the developer must not be able to see it at all. Server-side encryption
+does not meet that bar if the developer controls the server and encryption key.
+Saved sensitive content needs client-side encryption with a key/passphrase the
+server never receives.
+
+What changed:
+- Added `STORE_PLAINTEXT_SYNTHESES=false` as the production default.
+- `POST /synthesize` no longer saves generated synthesis markdown to Supabase
+  unless plaintext storage is explicitly enabled.
+- Added `backend/migrations/2026-05-21_scrub_plaintext_syntheses.sql` to remove
+  historical plaintext saved reports and `themes_json`.
+- Added `backend/migrations/2026-05-21_encrypted_artifacts.sql` for future
+  browser-encrypted saved reports.
+- Added `E2EE_STORAGE_PLAN.md` describing browser-side AES-GCM storage using a
+  user-held passphrase/key.
+- Updated `SECURITY_TRUST_PLAN.md`, `USER_GROWTH_PLAN.md`, `README.md`,
+  `.env.example`, and `PROMPT.md`.
+
+Current safe production defaults:
+`STORE_TRANSCRIPTS=false`, `ENABLE_SYNTH_CACHE=false`, and
+`STORE_PLAINTEXT_SYNTHESES=false`.
