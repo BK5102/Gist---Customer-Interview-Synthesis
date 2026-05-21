@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -85,6 +86,7 @@ export default function RootLayout({
       <body className="min-h-screen text-neutral-900 antialiased">
         <Navbar />
         <main className="relative">{children}</main>
+        <Analytics />
       </body>
     </html>
   );
