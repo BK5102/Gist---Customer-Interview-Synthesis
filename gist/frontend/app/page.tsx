@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { encryptStringWithLocalKey } from "@/lib/encryption";
+import { encryptStringWithRecoveryBackup } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
 
 function FeatureCard({
@@ -172,6 +172,7 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [recoverySecret, setRecoverySecret] = useState<string | null>(null);
   const [isSavingEncrypted, setIsSavingEncrypted] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -354,6 +355,7 @@ export default function Home() {
     setResult(null);
     setSaveStatus(null);
     setSaveError(null);
+    setRecoverySecret(null);
     setJob(null);
     setIsLoading(true);
 
@@ -460,7 +462,7 @@ export default function Home() {
           themes_dropped: result.themes_dropped,
         },
       });
-      const encrypted = await encryptStringWithLocalKey(plaintext);
+      const encrypted = await encryptStringWithRecoveryBackup(plaintext);
       const { error: insertError } = await supabase
         .from("encrypted_artifacts")
         .insert({
@@ -473,11 +475,21 @@ export default function Home() {
           kdf: encrypted.kdf,
           iterations: encrypted.iterations,
           algorithm: encrypted.algorithm,
+          encrypted_data_key: encrypted.encryptedDataKey,
+          data_key_iv: encrypted.dataKeyIv,
+          key_salt: encrypted.keySalt,
+          key_kdf: encrypted.keyKdf,
+          key_iterations: encrypted.keyIterations,
+          key_algorithm: encrypted.keyAlgorithm,
+          key_version: encrypted.keyVersion,
         });
 
       if (insertError) throw insertError;
+      setRecoverySecret(encrypted.recoverySecret);
       setSaveStatus(
-        "Encrypted synthesis saved with this browser's private key.",
+        encrypted.recoverySecret
+          ? "Encrypted synthesis saved. Save the recovery secret shown below."
+          : "Encrypted synthesis saved with your existing recovery backup.",
       );
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Encrypted save failed.");
@@ -938,10 +950,10 @@ export default function Home() {
               Save encrypted
             </p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-              The report is encrypted with a private key generated and stored
-              in this browser. Gist stores ciphertext only. If browser storage
-              is cleared or you switch devices, this saved report cannot be
-              recovered until export/import is added.
+              The report is encrypted in this browser. Gist stores ciphertext
+              plus an encrypted backup of the data key. Save the recovery
+              secret the first time it appears so you can restore on another
+              device.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <button
@@ -959,6 +971,21 @@ export default function Home() {
                 <span className="text-xs text-red-700">{saveError}</span>
               )}
             </div>
+            {recoverySecret && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <p className="text-xs font-semibold text-amber-900">
+                  Recovery secret
+                </p>
+                <p className="mt-1 break-all font-mono text-xs text-amber-950">
+                  {recoverySecret}
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-amber-800">
+                  Store this somewhere safe. Gist cannot recover encrypted
+                  saves without it if you switch devices or clear browser
+                  storage.
+                </p>
+              </div>
+            )}
           </div>
         </section>
       )}

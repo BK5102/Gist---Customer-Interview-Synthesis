@@ -45,6 +45,9 @@ async function Navbar() {
               <Link href="/projects" className="btn-ghost">
                 Projects
               </Link>
+              <Link href="/encrypted" className="btn-ghost">
+                Private saves
+              </Link>
               <Link href="/settings" className="btn-ghost">
                 Settings
               </Link>

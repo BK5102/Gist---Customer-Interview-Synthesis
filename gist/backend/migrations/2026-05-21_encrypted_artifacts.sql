@@ -13,8 +13,24 @@ create table if not exists encrypted_artifacts (
   kdf text not null default 'PBKDF2-SHA256',
   iterations int not null default 310000,
   algorithm text not null default 'AES-GCM',
+  encrypted_data_key text,
+  data_key_iv text,
+  key_salt text,
+  key_kdf text,
+  key_iterations int,
+  key_algorithm text,
+  key_version text,
   created_at timestamptz default now()
 );
+
+alter table encrypted_artifacts
+  add column if not exists encrypted_data_key text,
+  add column if not exists data_key_iv text,
+  add column if not exists key_salt text,
+  add column if not exists key_kdf text,
+  add column if not exists key_iterations int,
+  add column if not exists key_algorithm text,
+  add column if not exists key_version text;
 
 create index if not exists encrypted_artifacts_user_id_idx
   on encrypted_artifacts(user_id);

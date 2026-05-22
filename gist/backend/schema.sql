@@ -133,6 +133,13 @@ create table encrypted_artifacts (
   kdf text not null default 'PBKDF2-SHA256',
   iterations int not null default 310000,
   algorithm text not null default 'AES-GCM',
+  encrypted_data_key text,
+  data_key_iv text,
+  key_salt text,
+  key_kdf text,
+  key_iterations int,
+  key_algorithm text,
+  key_version text,
   created_at timestamptz default now()
 );
 
