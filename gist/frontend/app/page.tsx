@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { encryptStringWithRecoveryBackup } from "@/lib/encryption";
+import { encryptStringWithPassword } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
 
 function FeatureCard({
@@ -172,7 +172,10 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [recoverySecret, setRecoverySecret] = useState<string | null>(null);
+  const [privateSaveTitle, setPrivateSaveTitle] = useState("");
+  const [privateSavePassword, setPrivateSavePassword] = useState("");
+  const [privateSavePasswordConfirm, setPrivateSavePasswordConfirm] =
+    useState("");
   const [isSavingEncrypted, setIsSavingEncrypted] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -355,7 +358,9 @@ export default function Home() {
     setResult(null);
     setSaveStatus(null);
     setSaveError(null);
-    setRecoverySecret(null);
+    setPrivateSaveTitle("");
+    setPrivateSavePassword("");
+    setPrivateSavePasswordConfirm("");
     setJob(null);
     setIsLoading(true);
 
@@ -439,6 +444,19 @@ export default function Home() {
     setSaveStatus(null);
     setSaveError(null);
 
+    const password = privateSavePassword;
+    const title =
+      privateSaveTitle.trim() ||
+      `Synthesis - ${new Date().toLocaleDateString()}`;
+    if (password.length < 12) {
+      setSaveError("Use a password with at least 12 characters.");
+      return;
+    }
+    if (password !== privateSavePasswordConfirm) {
+      setSaveError("Passwords do not match.");
+      return;
+    }
+
     setIsSavingEncrypted(true);
     try {
       const supabase = createClient();
@@ -454,6 +472,7 @@ export default function Home() {
         type: "gist.synthesis.v1",
         saved_at: new Date().toISOString(),
         project_id: result.project_id ?? projectId,
+        title,
         markdown: result.markdown,
         stats: {
           cluster_count: result.cluster_count,
@@ -462,38 +481,31 @@ export default function Home() {
           themes_dropped: result.themes_dropped,
         },
       });
-      const encrypted = await encryptStringWithRecoveryBackup(plaintext);
+      const encrypted = await encryptStringWithPassword(plaintext, password);
       const { error: insertError } = await supabase
         .from("encrypted_artifacts")
         .insert({
           user_id: user.id,
           project_id: result.project_id ?? projectId,
           artifact_type: "synthesis",
+          title,
           ciphertext: encrypted.ciphertext,
           iv: encrypted.iv,
           salt: encrypted.salt,
           kdf: encrypted.kdf,
           iterations: encrypted.iterations,
           algorithm: encrypted.algorithm,
-          encrypted_data_key: encrypted.encryptedDataKey,
-          data_key_iv: encrypted.dataKeyIv,
-          key_salt: encrypted.keySalt,
-          key_kdf: encrypted.keyKdf,
-          key_iterations: encrypted.keyIterations,
-          key_algorithm: encrypted.keyAlgorithm,
-          key_version: encrypted.keyVersion,
         });
 
       if (insertError) throw insertError;
-      setRecoverySecret(encrypted.recoverySecret);
-      setSaveStatus(
-        encrypted.recoverySecret
-          ? "Encrypted synthesis saved. Save the recovery secret shown below."
-          : "Encrypted synthesis saved with your existing recovery backup.",
-      );
+      setPrivateSavePassword("");
+      setPrivateSavePasswordConfirm("");
+      setSaveStatus("Private synthesis saved. Use your password to open it.");
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Encrypted save failed.");
     } finally {
+      setPrivateSavePassword("");
+      setPrivateSavePasswordConfirm("");
       setIsSavingEncrypted(false);
     }
   };
@@ -947,23 +959,55 @@ export default function Home() {
 
           <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/40 p-4">
             <p className="text-sm font-semibold text-neutral-900">
-              Save encrypted
+              Save privately
             </p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-              The report is encrypted in this browser. Gist stores ciphertext
-              plus an encrypted backup of the data key. Save the recovery
-              secret the first time it appears so you can restore on another
-              device.
+              Choose a password for this save. Encryption happens in this
+              browser and the password is never stored or sent to Gist.
             </p>
+            <div className="mt-3 grid gap-3">
+              <input
+                type="text"
+                value={privateSaveTitle}
+                onChange={(e) => setPrivateSaveTitle(e.target.value)}
+                placeholder="Save title - e.g. Pricing interviews"
+                className="input"
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  type="password"
+                  value={privateSavePassword}
+                  onChange={(e) => setPrivateSavePassword(e.target.value)}
+                  placeholder="Private password"
+                  className="input"
+                />
+                <input
+                  type="password"
+                  value={privateSavePasswordConfirm}
+                  onChange={(e) =>
+                    setPrivateSavePasswordConfirm(e.target.value)
+                  }
+                  placeholder="Confirm password"
+                  className="input"
+                />
+              </div>
+            </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={saveEncrypted}
-                disabled={isSavingEncrypted}
+                disabled={
+                  isSavingEncrypted ||
+                  privateSavePassword.length < 12 ||
+                  privateSavePassword !== privateSavePasswordConfirm
+                }
                 className="btn-primary text-xs"
               >
-                {isSavingEncrypted ? "Encrypting..." : "Save encrypted"}
+                {isSavingEncrypted ? "Encrypting..." : "Save privately"}
               </button>
+              <Link href="/projects" className="btn-secondary text-xs">
+                Do not save
+              </Link>
               {saveStatus && (
                 <span className="text-xs text-green-700">{saveStatus}</span>
               )}
@@ -971,21 +1015,6 @@ export default function Home() {
                 <span className="text-xs text-red-700">{saveError}</span>
               )}
             </div>
-            {recoverySecret && (
-              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <p className="text-xs font-semibold text-amber-900">
-                  Recovery secret
-                </p>
-                <p className="mt-1 break-all font-mono text-xs text-amber-950">
-                  {recoverySecret}
-                </p>
-                <p className="mt-2 text-xs leading-relaxed text-amber-800">
-                  Store this somewhere safe. Gist cannot recover encrypted
-                  saves without it if you switch devices or clear browser
-                  storage.
-                </p>
-              </div>
-            )}
           </div>
         </section>
       )}

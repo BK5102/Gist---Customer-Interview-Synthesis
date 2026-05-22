@@ -127,6 +127,7 @@ create table encrypted_artifacts (
   user_id uuid references auth.users(id) on delete cascade not null,
   project_id uuid references projects(id) on delete cascade,
   artifact_type text not null check (artifact_type in ('synthesis', 'transcript')),
+  title text,
   ciphertext text not null,
   iv text not null,
   salt text not null,

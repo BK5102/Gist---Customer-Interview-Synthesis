@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import {
-  decryptStringWithLocalKey,
-  decryptStringWithRecoverySecret,
-  type EncryptedArtifactRecord,
+  decryptStringWithPassword,
+  type PasswordEncryptedArtifactRecord,
 } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
 
-type EncryptedArtifact = EncryptedArtifactRecord & {
+type EncryptedArtifact = PasswordEncryptedArtifactRecord & {
   id: string;
   artifact_type: string;
   project_id: string | null;
+  title: string | null;
   created_at: string;
 };
 
@@ -20,6 +21,7 @@ type DecryptedSynthesis = {
   type: string;
   saved_at: string;
   project_id: string | null;
+  title?: string;
   markdown: string;
   stats?: {
     cluster_count?: number;
@@ -30,9 +32,11 @@ type DecryptedSynthesis = {
 };
 
 export default function EncryptedSavesPage() {
+  const searchParams = useSearchParams();
+  const projectId = searchParams?.get("project") ?? null;
   const [artifacts, setArtifacts] = useState<EncryptedArtifact[]>([]);
   const [selected, setSelected] = useState<EncryptedArtifact | null>(null);
-  const [recoverySecret, setRecoverySecret] = useState("");
+  const [password, setPassword] = useState("");
   const [decrypted, setDecrypted] = useState<DecryptedSynthesis | null>(null);
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(false);
@@ -49,27 +53,32 @@ export default function EncryptedSavesPage() {
         return;
       }
 
-      const { data, error: loadError } = await supabase
+      let query = supabase
         .from("encrypted_artifacts")
         .select(
           [
             "id",
             "artifact_type",
             "project_id",
+            "title",
             "ciphertext",
             "iv",
-            "encrypted_data_key",
-            "data_key_iv",
-            "key_salt",
-            "key_kdf",
-            "key_iterations",
-            "key_algorithm",
-            "key_version",
+            "salt",
+            "kdf",
+            "iterations",
+            "algorithm",
             "created_at",
           ].join(","),
         )
-        .eq("artifact_type", "synthesis")
-        .order("created_at", { ascending: false });
+        .eq("artifact_type", "synthesis");
+
+      if (projectId) {
+        query = query.eq("project_id", projectId);
+      }
+
+      const { data, error: loadError } = await query.order("created_at", {
+        ascending: false,
+      });
 
       if (loadError) {
         setError(loadError.message);
@@ -80,41 +89,26 @@ export default function EncryptedSavesPage() {
     };
 
     loadArtifacts();
-  }, []);
+  }, [projectId]);
 
-  const openArtifact = async (artifact: EncryptedArtifact) => {
+  const selectArtifact = (artifact: EncryptedArtifact) => {
     setSelected(artifact);
     setError(null);
+    setPassword("");
     setDecrypted(null);
-    setOpening(true);
-    try {
-      const plaintext = await decryptStringWithLocalKey(artifact);
-      setDecrypted(JSON.parse(plaintext) as DecryptedSynthesis);
-    } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Enter the recovery secret to open this save.",
-      );
-    } finally {
-      setOpening(false);
-    }
   };
 
-  const restoreAndOpen = async () => {
-    if (!selected || !recoverySecret.trim()) return;
+  const openArtifact = async () => {
+    if (!selected || !password) return;
     setError(null);
     setOpening(true);
     try {
-      const plaintext = await decryptStringWithRecoverySecret(
-        selected,
-        recoverySecret,
-      );
+      const plaintext = await decryptStringWithPassword(selected, password);
       setDecrypted(JSON.parse(plaintext) as DecryptedSynthesis);
-      setRecoverySecret("");
     } catch {
-      setError("Recovery secret did not unlock this encrypted save.");
+      setError("Password did not unlock this private save.");
     } finally {
+      setPassword("");
       setOpening(false);
     }
   };
@@ -122,7 +116,7 @@ export default function EncryptedSavesPage() {
   if (loading) {
     return (
       <main className="page">
-        <p className="text-sm text-neutral-500">Loading encrypted saves...</p>
+        <p className="text-sm text-neutral-500">Loading private saves...</p>
       </main>
     );
   }
@@ -132,37 +126,37 @@ export default function EncryptedSavesPage() {
       <header className="mb-8">
         <span className="eyebrow">Private storage</span>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-          Encrypted saves
+          Private saves
         </h1>
         <p className="mt-1 text-sm text-neutral-600">
-          Saved reports are decrypted in this browser. Gist stores ciphertext
-          and encrypted data keys only.
+          Saved reports are decrypted in this browser with the password you
+          chose. Gist never stores that password.
         </p>
       </header>
 
       {artifacts.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-brand-300 bg-brand-gradient-soft p-10 text-center">
           <h2 className="text-lg font-semibold text-neutral-900">
-            No encrypted saves yet
+            No private saves yet
           </h2>
           <p className="mt-1 text-sm text-neutral-600">
-            Run a synthesis, then use Save encrypted.
+            Run a synthesis, then save it privately with a password.
           </p>
         </section>
       ) : (
-        <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+        <section className="grid gap-6 lg:grid-cols-[320px_1fr]">
           <ul className="space-y-2">
             {artifacts.map((artifact) => (
               <li key={artifact.id}>
                 <button
                   type="button"
-                  onClick={() => openArtifact(artifact)}
+                  onClick={() => selectArtifact(artifact)}
                   className={`card card-hover w-full p-4 text-left ${
                     selected?.id === artifact.id ? "ring-2 ring-brand-300" : ""
                   }`}
                 >
                   <p className="text-sm font-semibold text-neutral-900">
-                    Synthesis
+                    {artifact.title || "Private synthesis"}
                   </p>
                   <p className="mt-1 text-xs text-neutral-500">
                     {new Date(artifact.created_at).toLocaleString()}
@@ -175,34 +169,37 @@ export default function EncryptedSavesPage() {
           <div className="card p-6">
             {!selected && (
               <p className="text-sm text-neutral-500">
-                Choose an encrypted save to open it.
+                Choose a private save to open it.
               </p>
             )}
 
             {selected && !decrypted && (
               <div>
                 <p className="text-sm font-semibold text-neutral-900">
-                  {opening ? "Opening..." : "Recovery may be required"}
+                  Enter password
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-                  If this browser already has the private key, the save opens
-                  automatically. Otherwise, enter the recovery secret.
+                  This password decrypts the save in your browser. It is not
+                  sent to the backend or stored in Supabase.
                 </p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <input
                     type="password"
-                    value={recoverySecret}
-                    onChange={(e) => setRecoverySecret(e.target.value)}
-                    placeholder="Recovery secret"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") openArtifact();
+                    }}
+                    placeholder="Private password"
                     className="input flex-1"
                   />
                   <button
                     type="button"
-                    onClick={restoreAndOpen}
-                    disabled={opening || !recoverySecret.trim()}
+                    onClick={openArtifact}
+                    disabled={opening || !password}
                     className="btn-primary"
                   >
-                    Restore
+                    {opening ? "Opening..." : "Open"}
                   </button>
                 </div>
               </div>

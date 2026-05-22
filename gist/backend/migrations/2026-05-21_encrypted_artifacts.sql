@@ -7,6 +7,7 @@ create table if not exists encrypted_artifacts (
   user_id uuid references auth.users(id) on delete cascade not null,
   project_id uuid references projects(id) on delete cascade,
   artifact_type text not null check (artifact_type in ('synthesis', 'transcript')),
+  title text,
   ciphertext text not null,
   iv text not null,
   salt text not null,
@@ -24,6 +25,7 @@ create table if not exists encrypted_artifacts (
 );
 
 alter table encrypted_artifacts
+  add column if not exists title text,
   add column if not exists encrypted_data_key text,
   add column if not exists data_key_iv text,
   add column if not exists key_salt text,
