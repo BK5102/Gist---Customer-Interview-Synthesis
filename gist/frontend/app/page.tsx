@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import { encryptString } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
 
 function FeatureCard({
@@ -169,6 +170,11 @@ export default function Home() {
   const [result, setResult] = useState<SynthesizeResponse | null>(null);
   const [job, setJob] = useState<JobStatus | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [savePassphrase, setSavePassphrase] = useState("");
+  const [savePassphraseConfirm, setSavePassphraseConfirm] = useState("");
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSavingEncrypted, setIsSavingEncrypted] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auth state on mount
@@ -348,6 +354,8 @@ export default function Home() {
 
     setError(null);
     setResult(null);
+    setSaveStatus(null);
+    setSaveError(null);
     setJob(null);
     setIsLoading(true);
 
@@ -424,6 +432,71 @@ export default function Home() {
   const copyMarkdown = async () => {
     if (!result) return;
     await navigator.clipboard.writeText(result.markdown);
+  };
+
+  const saveEncrypted = async () => {
+    if (!result) return;
+    setSaveStatus(null);
+    setSaveError(null);
+
+    if (savePassphrase.length < 12) {
+      setSaveError("Use at least 12 characters for the encryption passphrase.");
+      return;
+    }
+    if (savePassphrase !== savePassphraseConfirm) {
+      setSaveError("Passphrases do not match.");
+      return;
+    }
+
+    setIsSavingEncrypted(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error("Please log in before saving encrypted output.");
+      }
+
+      const plaintext = JSON.stringify({
+        type: "gist.synthesis.v1",
+        saved_at: new Date().toISOString(),
+        project_id: result.project_id ?? projectId,
+        markdown: result.markdown,
+        stats: {
+          cluster_count: result.cluster_count,
+          participant_count: result.participant_count,
+          themes_extracted: result.themes_extracted,
+          themes_dropped: result.themes_dropped,
+        },
+      });
+      const encrypted = await encryptString(plaintext, savePassphrase);
+      const { error: insertError } = await supabase
+        .from("encrypted_artifacts")
+        .insert({
+          user_id: user.id,
+          project_id: result.project_id ?? projectId,
+          artifact_type: "synthesis",
+          ciphertext: encrypted.ciphertext,
+          iv: encrypted.iv,
+          salt: encrypted.salt,
+          kdf: encrypted.kdf,
+          iterations: encrypted.iterations,
+          algorithm: encrypted.algorithm,
+        });
+
+      if (insertError) throw insertError;
+      setSavePassphrase("");
+      setSavePassphraseConfirm("");
+      setSaveStatus(
+        "Encrypted synthesis saved. Keep your passphrase safe; it cannot be recovered.",
+      );
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Encrypted save failed.");
+    } finally {
+      setIsSavingEncrypted(false);
+    }
   };
 
   const audioFiles = files.filter((f) => isAudio(f.name));
@@ -872,6 +945,51 @@ export default function Home() {
           <article className="prose prose-neutral prose-brand max-w-none">
             <ReactMarkdown>{result.markdown}</ReactMarkdown>
           </article>
+
+          <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/40 p-4">
+            <p className="text-sm font-semibold text-neutral-900">
+              Save encrypted
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+              The report is encrypted in this browser before it is stored.
+              Gist stores ciphertext only. If you lose the passphrase, the
+              saved report cannot be recovered.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <input
+                type="password"
+                value={savePassphrase}
+                onChange={(e) => setSavePassphrase(e.target.value)}
+                className="input text-sm"
+                placeholder="Encryption passphrase"
+                autoComplete="new-password"
+              />
+              <input
+                type="password"
+                value={savePassphraseConfirm}
+                onChange={(e) => setSavePassphraseConfirm(e.target.value)}
+                className="input text-sm"
+                placeholder="Confirm passphrase"
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={saveEncrypted}
+                disabled={isSavingEncrypted}
+                className="btn-primary text-xs"
+              >
+                {isSavingEncrypted ? "Encrypting..." : "Save encrypted"}
+              </button>
+              {saveStatus && (
+                <span className="text-xs text-green-700">{saveStatus}</span>
+              )}
+              {saveError && (
+                <span className="text-xs text-red-700">{saveError}</span>
+              )}
+            </div>
+          </div>
         </section>
       )}
     </main>

@@ -547,3 +547,19 @@ What changed:
 Current safe production defaults:
 `STORE_TRANSCRIPTS=false`, `ENABLE_SYNTH_CACHE=false`, and
 `STORE_PLAINTEXT_SYNTHESES=false`.
+
+## Browser-Side Encrypted Save Started - 2026-05-21
+
+Implemented the first encrypted-storage slice:
+- Added `frontend/lib/encryption.ts` with Web Crypto PBKDF2-SHA256 key
+  derivation and AES-GCM encryption.
+- Added a "Save encrypted" form to the inline synthesis result on
+  `frontend/app/page.tsx`.
+- The passphrase is used only in the browser and is never sent to the backend.
+- Supabase receives only ciphertext, IV, salt, KDF metadata, algorithm, user id,
+  project id, and artifact type in `encrypted_artifacts`.
+
+Still next:
+- List encrypted artifacts.
+- Decrypt/read an encrypted artifact with the passphrase.
+- Delete encrypted artifacts.

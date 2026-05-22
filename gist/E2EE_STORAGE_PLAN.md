@@ -23,6 +23,22 @@ With those settings:
 - Synthesis markdown is returned to the signed-in user, but not persisted in plaintext.
 - Previously saved plaintext transcript/synthesis bodies should be scrubbed with the migrations in `backend/migrations/`.
 
+## Implementation Status
+
+Started:
+
+- `frontend/lib/encryption.ts` encrypts strings in the browser with PBKDF2-SHA256 + AES-GCM.
+- The synthesis result page section on `frontend/app/page.tsx` has a "Save encrypted" form.
+- The passphrase is used only in the browser and is never sent to the backend.
+- The app inserts only ciphertext, IV, salt, KDF metadata, and non-sensitive row metadata into `encrypted_artifacts`.
+
+Still next:
+
+- Encrypted artifact list page.
+- Decrypt/read flow.
+- Delete encrypted artifact.
+- Optional export/import for user-held keys if we move beyond passphrases.
+
 ## What Client-Side Encryption Would Store
 
 Add encrypted columns or a new encrypted artifacts table. The production migration is:
@@ -113,12 +129,12 @@ Option C: Account password-derived key
    - `ENABLE_SYNTH_CACHE=false`
    - `STORE_PLAINTEXT_SYNTHESES=false`
 2. Add `encrypted_artifacts` table and RLS.
-3. Add frontend Web Crypto helpers:
+3. Add frontend Web Crypto helpers: (started)
    - derive key
    - encrypt markdown
    - decrypt markdown
    - encode/decode base64
-4. Add "Save encrypted" UI after synthesis.
+4. Add "Save encrypted" UI after synthesis. (started)
 5. Add encrypted synthesis list/detail pages.
 6. Add delete controls.
 7. Add copy explaining unrecoverable passphrases.
