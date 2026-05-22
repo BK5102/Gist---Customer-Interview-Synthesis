@@ -17,7 +17,7 @@ What exists today:
 - Quote-bearing cluster/insight cache files are disabled by default for the web app (`ENABLE_SYNTH_CACHE=false`).
 - Plaintext synthesis persistence is disabled by default (`STORE_PLAINTEXT_SYNTHESES=false`).
 - `encrypted_artifacts` migration exists for future browser-encrypted saved reports.
-- Browser-side encrypted save has started: the frontend can encrypt a synthesis result locally and insert ciphertext into `encrypted_artifacts`.
+- Browser-side encrypted save has started: the frontend can encrypt a synthesis result locally with a browser-generated IndexedDB key and insert ciphertext into `encrypted_artifacts`.
 - Historical raw transcript rows can be scrubbed with `backend/migrations/2026-05-21_scrub_transcript_content.sql`.
 - Historical plaintext synthesis rows can be scrubbed with `backend/migrations/2026-05-21_scrub_plaintext_syntheses.sql`.
 - Notion OAuth uses a single-use state nonce.

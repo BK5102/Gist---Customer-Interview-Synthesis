@@ -27,9 +27,9 @@ With those settings:
 
 Started:
 
-- `frontend/lib/encryption.ts` encrypts strings in the browser with PBKDF2-SHA256 + AES-GCM.
+- `frontend/lib/encryption.ts` encrypts strings in the browser with a non-extractable AES-GCM key stored in IndexedDB.
 - The synthesis result page section on `frontend/app/page.tsx` has a "Save encrypted" form.
-- The passphrase is used only in the browser and is never sent to the backend.
+- No passphrase is requested in Phase 1.
 - The app inserts only ciphertext, IV, salt, KDF metadata, and non-sensitive row metadata into `encrypted_artifacts`.
 
 Still next:
@@ -37,7 +37,7 @@ Still next:
 - Encrypted artifact list page.
 - Decrypt/read flow.
 - Delete encrypted artifact.
-- Optional export/import for user-held keys if we move beyond passphrases.
+- Export/import recovery for the browser-held key.
 
 ## What Client-Side Encryption Would Store
 
@@ -76,22 +76,27 @@ RLS:
 For saving:
 
 1. User receives synthesis markdown in browser.
-2. User enters a private passphrase, or the browser uses a locally stored generated key.
-3. Browser creates a random salt.
-4. Browser derives an AES-GCM key with PBKDF2 or Argon2id.
-5. Browser creates a random IV.
-6. Browser encrypts markdown locally with Web Crypto.
-7. Browser sends only ciphertext, IV, salt, KDF metadata, and non-sensitive metadata to Supabase/API.
+2. Browser creates or reuses a non-extractable local AES-GCM key in IndexedDB.
+3. Browser creates a random IV.
+4. Browser encrypts markdown locally with Web Crypto.
+5. Browser sends only ciphertext, IV, key metadata, and non-sensitive metadata to Supabase/API.
 
 For reading:
 
 1. User opens saved encrypted synthesis.
 2. Browser fetches ciphertext.
-3. User enters passphrase.
-4. Browser derives the same key from salt/KDF settings.
-5. Browser decrypts locally and renders markdown.
+3. Browser loads the local AES-GCM key from IndexedDB.
+4. Browser decrypts locally and renders markdown.
 
 ## UX Choices
+
+Chosen Phase 1: Browser-generated local key
+
+- Browser generates a non-extractable AES-GCM key.
+- The key is stored locally in IndexedDB.
+- Save flow has no passphrase prompt.
+- Gist/Supabase stores ciphertext only.
+- If browser storage is cleared or the user switches devices, saved encrypted content is unavailable until export/import recovery is added.
 
 Option A: Passphrase per account
 
@@ -112,7 +117,7 @@ Option C: Account password-derived key
 
 ## Product Copy
 
-"Private saved syntheses are encrypted in your browser before storage. Gist stores ciphertext only. If you lose your encryption passphrase, we cannot recover saved encrypted content."
+"Private saved syntheses are encrypted in your browser before storage. Gist stores ciphertext only. If you clear browser storage or switch devices before exporting a recovery key, we cannot recover saved encrypted content."
 
 ## Limitations To State Honestly
 
@@ -137,4 +142,4 @@ Option C: Account password-derived key
 4. Add "Save encrypted" UI after synthesis. (started)
 5. Add encrypted synthesis list/detail pages.
 6. Add delete controls.
-7. Add copy explaining unrecoverable passphrases.
+7. Add export/import recovery key.
