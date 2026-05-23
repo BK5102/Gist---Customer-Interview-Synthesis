@@ -1,6 +1,10 @@
 # Gist Real-User Strategy Plan
 
-Status memory: deployment is complete for Gist, and the launch posts are complete on LinkedIn, X, and Substack. One week after shipping, there is no meaningful traffic yet. That is a distribution problem, not evidence that the product is too late or unwanted. The next phase is founder-led user recruitment: personally get the first 5-10 real users to try Gist with redacted, synthetic, or low-sensitivity customer interviews while security and retention controls are hardened.
+Status memory: deployment is complete for Gist, and the launch posts are complete on LinkedIn, X, and Substack. One week after shipping, there is no meaningful traffic yet. That is a distribution problem, not evidence that the product is too late or unwanted.
+
+Current product posture: Gist now has authentication, email verification/reset-password flows, stricter security defaults, no raw transcript retention by default, no plaintext synthesis retention by default, and browser-side encrypted private saves where the user chooses a password for each saved report. This makes the growth wedge clearer: **private-by-default customer interview synthesis with traceable quotes**.
+
+The next phase is founder-led, trust-first beta recruitment: personally get the first 5-10 real users to try Gist with redacted, synthetic, or low-sensitivity customer interviews, then convert the strongest trust objections into product/security work.
 
 The live app is:
 https://gist-customer-interview-synthesis.vercel.app
@@ -14,15 +18,15 @@ Bring in real users who run customer interviews and need faster synthesis:
 - Product managers and UX researchers doing early discovery
 - Startup accelerators, founder communities, and build-in-public circles
 
-The first growth goal is learning, not scale: get 10 real users to upload real transcripts, produce at least one synthesis, and tell us what they trusted, distrusted, or still had to do manually.
+The first growth goal is learning, not scale: get 10 real users to produce at least one synthesis and tell us what they trusted, distrusted, or still had to do manually.
 
 Honest public/customer framing:
 
-"I shipped the first usable version of Gist last week. It turns customer interview transcripts into traceable themes with verified quotes. I am looking for 5 founders, PMs, or researchers with 2-5 real customer calls. I will personally help run your first synthesis and use your feedback to improve the product."
+"I shipped the first usable version of Gist. It turns customer interview transcripts/audio into traceable themes with verified quotes, then lets you save reports privately with a password only you know. I am looking for 5 founders, PMs, or researchers with 2-5 customer calls. I will personally help run your first synthesis and use your feedback to improve the product."
 
 Security-aware version:
 
-"Customer interviews can contain sensitive company and customer information, so please start with redacted, synthetic, or low-sensitivity transcripts. I am using the first beta users to harden both product quality and security before asking teams to trust Gist with confidential research."
+"Customer interviews can contain sensitive company and customer information. Gist does not retain raw transcript bodies or plaintext synthesis reports by default, and private saves are encrypted in your browser with a password Gist does not store. Please still start with redacted, synthetic, or low-sensitivity transcripts while I harden the product with early beta users."
 
 ## North-Star Metric
 
@@ -39,6 +43,9 @@ Supporting metrics:
 - Notion connection rate
 - Notion push rate
 - Failed synthesis jobs
+- Private saves created
+- Private saves opened successfully
+- Private save decrypt failures
 - Repeat usage within 7 days
 
 ## Where To Check Users And Usage Today
@@ -48,7 +55,7 @@ Supporting metrics:
 Use Supabase as the source of truth for accounts and product usage.
 
 - Users: `Authentication -> Users`
-- Tables: `Table Editor -> projects`, `transcripts`, `syntheses`, `notion_connections`
+- Tables: `Table Editor -> projects`, `transcripts`, `syntheses`, `encrypted_artifacts`, `notion_connections`
 - SQL queries: `SQL Editor`
 - API/auth/database logs: `Logs`
 
@@ -93,6 +100,18 @@ from syntheses
 group by 1
 order by 1 desc;
 
+-- Daily encrypted private saves
+select date_trunc('day', created_at) as day, count(*) as private_saves
+from encrypted_artifacts
+group by 1
+order by 1 desc;
+
+-- Recent private saves metadata only; ciphertext should be unreadable
+select id, user_id, project_id, artifact_type, title, created_at
+from encrypted_artifacts
+order by created_at desc
+limit 20;
+
 -- Notion conversion
 select
   count(distinct u.id) as users,
@@ -101,7 +120,7 @@ from auth.users u
 left join notion_connections nc on nc.user_id = u.id;
 ```
 
-Current schema does not store Notion push events separately. It stores connections in `notion_connections`, but a successful push is only visible in backend logs unless you add an event table.
+Current schema does not store every product event separately. Private saves can be counted in `encrypted_artifacts`; Notion connections can be counted in `notion_connections`; successful Notion pushes and UI interactions still need an `events` table or structured event logging.
 
 ### Vercel Dashboard
 
@@ -200,6 +219,9 @@ Recommended events:
 - `synthesis_started`
 - `synthesis_completed`
 - `synthesis_failed`
+- `private_save_created`
+- `private_save_opened`
+- `private_save_decrypt_failed`
 - `notion_connected`
 - `notion_push_completed`
 - `notion_push_failed`
@@ -262,19 +284,19 @@ limit 50;
 
 ### Week 1: Founder-Led Outreach
 
-Target: 20 direct conversations, 5 real uploads.
+Target: 20 direct conversations, 5 completed syntheses, 3 private saves.
 
 Actions:
 
 - Because there is currently no meaningful traffic, do not wait for organic discovery. Send direct messages and emails first.
 - Reply to every comment on LinkedIn, X, and Substack with a specific question: "Do you have 2-5 customer calls I can help synthesize?"
 - DM warm founder/product/research contacts with a personal ask.
-- Offer a white-glove first synthesis: they send transcripts or call notes, you walk through the result with them.
-- Post one short demo clip showing upload -> synthesis -> Notion.
+- Offer a white-glove first synthesis using their redacted transcript or a synthetic sample first.
+- Post one short demo clip showing upload -> synthesis -> password-protected private save -> reopen.
 
 Message angle:
 
-"I built Gist to turn customer interview transcripts into traceable themes with verified quotes. I am looking for 5 founders or PMs with messy real interviews. I will personally help you run the first synthesis and use your feedback to shape the product."
+"I built Gist to turn customer interview transcripts into traceable themes with verified quotes. It now has private saves encrypted in the browser with a password Gist never stores. I am looking for 5 founders or PMs with messy interviews. We can start with redacted data, and I will personally help you run the first synthesis."
 
 ### Week 2: Community Distribution
 
@@ -341,7 +363,7 @@ Next action:
 2. Run the Supabase SQL checks and record the baseline, even if all numbers are zero.
 3. Enable Vercel Web Analytics if it is not already enabled.
 4. Add UTM-tagged links to future posts and profile links.
-5. Wire event logging for synthesis/notion/copy events.
+5. Wire event logging for synthesis/private-save/notion/copy events.
 6. Personally recruit the first 5 real users instead of waiting for organic traffic.
 
 ## Security/Trust Constraint
@@ -356,9 +378,10 @@ Before broad self-serve acquisition, follow `SECURITY_TRUST_PLAN.md`:
 - Keep `STORE_TRANSCRIPTS=false` in production so raw uploaded transcript bodies are not saved.
 - Keep `ENABLE_SYNTH_CACHE=false` in production so quote-bearing cache files are not written to disk.
 - Keep `STORE_PLAINTEXT_SYNTHESES=false` in production so generated quote-bearing reports are not saved in plaintext.
+- Use encrypted private saves for stored reports. The save password is user-chosen, browser-side only, and must not be stored in Supabase, Railway, Vercel, localStorage, or logs.
 - Run `backend/migrations/2026-05-21_scrub_transcript_content.sql` to remove raw transcript bodies saved by earlier builds.
 - Run `backend/migrations/2026-05-21_scrub_plaintext_syntheses.sql` to remove plaintext synthesis reports saved by earlier builds.
-- Run `backend/migrations/2026-05-21_encrypted_artifacts.sql` before adding browser-encrypted saved reports.
+- Keep `encrypted_artifacts` RLS enabled and project ownership checks in place.
 - Add a public security/privacy page.
 - Add deletion and retention controls.
 - Avoid asking for sensitive company data until the product can explain and enforce its data handling posture.

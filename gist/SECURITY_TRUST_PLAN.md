@@ -16,8 +16,10 @@ What exists today:
 - Raw transcript bodies are not persisted by default (`STORE_TRANSCRIPTS=false`).
 - Quote-bearing cluster/insight cache files are disabled by default for the web app (`ENABLE_SYNTH_CACHE=false`).
 - Plaintext synthesis persistence is disabled by default (`STORE_PLAINTEXT_SYNTHESES=false`).
-- `encrypted_artifacts` migration exists for future browser-encrypted saved reports.
-- Browser-side encrypted save has started: the frontend can encrypt a synthesis result locally with a browser-generated IndexedDB key and insert ciphertext into `encrypted_artifacts`.
+- `encrypted_artifacts` exists for browser-encrypted saved reports.
+- Browser-side private saves are implemented: the frontend encrypts synthesis output locally with a user-chosen password and stores ciphertext/KDF metadata only.
+- The private-save password is not stored in Supabase, Railway, Vercel, localStorage, sessionStorage, or logs.
+- The encrypted saves page decrypts selected reports in the browser when the user enters the correct password.
 - Historical raw transcript rows can be scrubbed with `backend/migrations/2026-05-21_scrub_transcript_content.sql`.
 - Historical plaintext synthesis rows can be scrubbed with `backend/migrations/2026-05-21_scrub_plaintext_syntheses.sql`.
 - Notion OAuth uses a single-use state nonce.
@@ -37,7 +39,7 @@ What is still a trust gap:
 
 - Historical synthesis markdown may exist in plaintext until the scrub migration is run.
 - If `STORE_PLAINTEXT_SYNTHESES=true` is ever enabled, synthesis markdown may contain verbatim quotes from transcripts and will be readable by the developer/operator.
-- Notion access tokens are stored plaintext in `notion_connections.access_token`.
+- New Notion access tokens can be encrypted at application level when `NOTION_TOKEN_ENCRYPTION_KEY` is configured; existing plaintext tokens should be rotated or reconnected after enabling token encryption.
 - Audio/video bytes are processed in-memory and sent to Groq or OpenAI for transcription.
 - Transcript text and derived themes are sent to Anthropic for synthesis.
 - There is no public privacy/security page yet.
@@ -107,7 +109,8 @@ In Supabase dashboard:
 11. Rotate keys after any accidental exposure or suspicious activity.
 12. Run `backend/migrations/2026-05-21_scrub_transcript_content.sql` once to remove historical raw transcript bodies.
 13. Run `backend/migrations/2026-05-21_scrub_plaintext_syntheses.sql` once to remove historical plaintext saved syntheses.
-14. Run `backend/migrations/2026-05-21_encrypted_artifacts.sql` before implementing encrypted saves.
+14. Confirm `encrypted_artifacts` exists and RLS uses both user ownership and project ownership checks.
+15. Run `backend/migrations/2026-05-22_encrypted_artifacts_project_ownership.sql` if the production table was created before the stricter policy was added.
 
 Useful SQL audit:
 
@@ -194,10 +197,10 @@ Look for:
    - delete transcripts
    - disconnect Notion
 4. Keep raw transcript retention disabled in production with `STORE_TRANSCRIPTS=false`.
-5. Encrypt Notion tokens at application level before storing in Supabase.
+5. Configure `NOTION_TOKEN_ENCRYPTION_KEY` in Railway so new Notion tokens are encrypted at application level before storing in Supabase.
 6. Keep plaintext synthesis persistence disabled with `STORE_PLAINTEXT_SYNTHESES=false`.
-7. Implement client-side encrypted storage from `E2EE_STORAGE_PLAN.md` for saved syntheses.
-7. Add structured logging that never logs transcript text, synthesis output, file bytes, or tokens.
+7. Keep client-side encrypted storage from `E2EE_STORAGE_PLAN.md` as the only stored-report path.
+8. Add structured logging that never logs transcript text, synthesis output, file bytes, passwords, or tokens.
 
 ### P1 Trust Improvements
 

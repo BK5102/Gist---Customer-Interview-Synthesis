@@ -1,5 +1,7 @@
 # Client-Side Encrypted Storage Plan
 
+Updated snapshot: 2026-05-22. The app has moved from the earlier local-only IndexedDB key prototype to a password-based private save flow. The user chooses a password for each saved synthesis; encryption and decryption happen in the browser; the password is not saved or sent to Gist.
+
 ## Security Requirement
 
 When sensitive customer interview data or derived synthesis output is stored, the developer/operator must not be able to read it.
@@ -25,19 +27,21 @@ With those settings:
 
 ## Implementation Status
 
-Started:
+Implemented:
 
-- `frontend/lib/encryption.ts` encrypts strings in the browser with a non-extractable AES-GCM key stored in IndexedDB.
-- The synthesis result page section on `frontend/app/page.tsx` has a "Save encrypted" form.
-- No passphrase is requested in Phase 1.
-- The app inserts only ciphertext, IV, salt, KDF metadata, and non-sensitive row metadata into `encrypted_artifacts`.
+- `frontend/lib/encryption.ts` encrypts/decrypts strings in the browser using Web Crypto.
+- The synthesis result section in `frontend/app/page.tsx` requires a save title, a password, and password confirmation before saving privately.
+- The password must be at least 12 characters.
+- The password is never stored in localStorage, sessionStorage, Supabase, Railway, Vercel, or logs.
+- The app inserts only ciphertext, IV, salt, KDF metadata, algorithm metadata, title, project id, artifact type, and ownership metadata into `encrypted_artifacts`.
+- `frontend/app/encrypted/page.tsx` lists encrypted saves and decrypts selected saves in the browser when the user enters the correct password.
+- `encrypted_artifacts` RLS is tightened so users can manage only their own artifacts and artifacts under projects they own.
 
 Still next:
 
-- Encrypted artifact list page.
-- Decrypt/read flow.
 - Delete encrypted artifact.
-- Export/import recovery for the browser-held key.
+- Better UX around forgotten passwords and clear irrecoverability copy.
+- Optional per-project password pattern after observing beta feedback.
 
 ## What Client-Side Encryption Would Store
 
@@ -76,33 +80,42 @@ RLS:
 For saving:
 
 1. User receives synthesis markdown in browser.
-2. Browser creates or reuses a non-extractable local AES-GCM key in IndexedDB.
-3. Browser creates a random IV.
-4. Browser encrypts markdown locally with Web Crypto.
-5. Browser sends only ciphertext, IV, key metadata, and non-sensitive metadata to Supabase/API.
+2. User enters a save title and password.
+3. Browser derives an AES-GCM key from the password using PBKDF2-SHA256 with a random salt.
+4. Browser creates a random IV.
+5. Browser encrypts markdown locally with Web Crypto.
+6. Browser clears password React state after the save attempt.
+7. Browser sends only ciphertext, IV, salt, KDF metadata, algorithm metadata, title, project id, artifact type, and ownership metadata to Supabase.
 
 For reading:
 
 1. User opens saved encrypted synthesis.
 2. Browser fetches ciphertext.
-3. Browser loads the local AES-GCM key from IndexedDB.
-4. Browser decrypts locally and renders markdown.
+3. User enters the password used for that save.
+4. Browser derives the key from that password and the stored salt.
+5. Browser decrypts locally and renders markdown.
+6. Browser clears password React state after the restore attempt.
 
 ## UX Choices
 
-Chosen Phase 1: Browser-generated local key
+Chosen current flow: Password per private save
 
-- Browser generates a non-extractable AES-GCM key.
-- The key is stored locally in IndexedDB.
-- Save flow has no passphrase prompt.
-- Gist/Supabase stores ciphertext only.
-- If browser storage is cleared or the user switches devices, saved encrypted content is unavailable until export/import recovery is added.
+- User chooses a password for each saved synthesis.
+- The password is not stored and is not sent to the backend.
+- The stored artifact is portable across browsers/devices if the user remembers the password.
+- If the user forgets the password, Gist cannot recover the saved report.
+- This is simpler to trust than storing the key and lock together.
 
-Option A: Passphrase per account
+Rejected previous Phase 1: Browser-generated local key
 
-- User remembers a passphrase.
-- If they forget it, saved encrypted content is unrecoverable.
-- Best for trust and simplest to explain.
+- It was easier UX, but clearing browser storage or switching devices could permanently lock the user out.
+- It also made users ask why they could still open saves without entering a secret.
+
+Option A: Passphrase per account/project
+
+- Could reduce repeated password prompts.
+- Needs careful UX and migration logic.
+- Consider only after observing beta usage.
 
 Option B: Generated browser key
 
@@ -117,7 +130,7 @@ Option C: Account password-derived key
 
 ## Product Copy
 
-"Private saved syntheses are encrypted in your browser before storage. Gist stores ciphertext only. If you clear browser storage or switch devices before exporting a recovery key, we cannot recover saved encrypted content."
+"Private saved syntheses are encrypted in your browser with a password you choose. Gist stores ciphertext only and never stores or receives your password. If you forget the password for a private save, Gist cannot recover it."
 
 ## Limitations To State Honestly
 
@@ -134,12 +147,12 @@ Option C: Account password-derived key
    - `ENABLE_SYNTH_CACHE=false`
    - `STORE_PLAINTEXT_SYNTHESES=false`
 2. Add `encrypted_artifacts` table and RLS.
-3. Add frontend Web Crypto helpers: (started)
+3. Add frontend Web Crypto helpers: (done)
    - derive key
    - encrypt markdown
    - decrypt markdown
    - encode/decode base64
-4. Add "Save encrypted" UI after synthesis. (started)
-5. Add encrypted synthesis list/detail pages.
+4. Add "Save privately" UI after synthesis. (done)
+5. Add encrypted synthesis list/detail page. (done)
 6. Add delete controls.
-7. Add export/import recovery key.
+7. Add event logging for save/open/decrypt failure.
