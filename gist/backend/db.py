@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, TypeVar
 
 import httpx
+from cryptography.fernet import Fernet, InvalidToken
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
@@ -16,6 +17,50 @@ BACKEND_DIR = Path(__file__).resolve().parent
 load_dotenv(BACKEND_DIR / ".env", override=True)
 
 _supabase: Client | None = None
+NOTION_TOKEN_PREFIX = "fernet:v1:"
+
+
+def _is_production() -> bool:
+    env_values = [
+        os.environ.get("APP_ENV", ""),
+        os.environ.get("ENVIRONMENT", ""),
+        os.environ.get("RAILWAY_ENVIRONMENT", ""),
+        os.environ.get("RAILWAY_ENVIRONMENT_NAME", ""),
+    ]
+    return any(v.strip().lower() in {"prod", "production"} for v in env_values)
+
+
+def _notion_token_fernet() -> Fernet | None:
+    key = os.environ.get("NOTION_TOKEN_ENCRYPTION_KEY", "").strip()
+    if not key:
+        if _is_production():
+            raise RuntimeError("NOTION_TOKEN_ENCRYPTION_KEY must be set in production")
+        return None
+    try:
+        return Fernet(key.encode("utf-8"))
+    except Exception as e:
+        raise RuntimeError("NOTION_TOKEN_ENCRYPTION_KEY is not a valid Fernet key") from e
+
+
+def _encrypt_notion_token(access_token: str) -> str:
+    fernet = _notion_token_fernet()
+    if fernet is None:
+        return access_token
+    encrypted = fernet.encrypt(access_token.encode("utf-8")).decode("utf-8")
+    return f"{NOTION_TOKEN_PREFIX}{encrypted}"
+
+
+def _decrypt_notion_token(stored_token: str) -> str:
+    if not stored_token.startswith(NOTION_TOKEN_PREFIX):
+        return stored_token
+    fernet = _notion_token_fernet()
+    if fernet is None:
+        raise RuntimeError("NOTION_TOKEN_ENCRYPTION_KEY is required for this token")
+    token = stored_token.removeprefix(NOTION_TOKEN_PREFIX)
+    try:
+        return fernet.decrypt(token.encode("utf-8")).decode("utf-8")
+    except InvalidToken as e:
+        raise RuntimeError("Stored Notion token could not be decrypted") from e
 
 
 def _db() -> Client:
@@ -231,7 +276,11 @@ def get_notion_connection(user_id: str) -> dict[str, Any] | None:
         .eq("user_id", user_id)
         .execute()
     )
-    return resp.data[0] if resp.data else None
+    if not resp.data:
+        return None
+    row = resp.data[0]
+    row["access_token"] = _decrypt_notion_token(row["access_token"])
+    return row
 
 
 @_with_db_retry
@@ -244,7 +293,7 @@ def save_notion_connection(
     """Upsert a Notion connection for the user."""
     payload = {
         "user_id": user_id,
-        "access_token": access_token,
+        "access_token": _encrypt_notion_token(access_token),
         "workspace_id": workspace_id,
         "workspace_name": workspace_name,
     }

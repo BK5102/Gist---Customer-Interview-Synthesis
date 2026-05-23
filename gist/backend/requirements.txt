@@ -11,3 +11,4 @@ imageio-ffmpeg  # ships a static ffmpeg binary so chunking works without a syste
 supabase
 pyjwt[crypto]
 httpx
+cryptography

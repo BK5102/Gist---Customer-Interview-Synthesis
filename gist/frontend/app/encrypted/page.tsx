@@ -179,8 +179,7 @@ export default function EncryptedSavesPage() {
                   Enter password
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-                  This password decrypts the save in your browser. It is not
-                  sent to the backend or stored in Supabase.
+                  Use the password you chose when saving this report.
                 </p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <input

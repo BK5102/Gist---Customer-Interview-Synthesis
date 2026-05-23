@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 async function Navbar() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -23,7 +23,7 @@ async function Navbar() {
     >
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
         <Link
-          href="/"
+          href={user ? "/?landing=1" : "/"}
           className="group flex items-center gap-2 text-lg font-semibold tracking-tight"
         >
           {/* Gradient G logomark */}
@@ -42,6 +42,9 @@ async function Navbar() {
         <div className="flex items-center gap-1 text-sm">
           {user ? (
             <>
+              <Link href="/" className="btn-ghost">
+                Home
+              </Link>
               <Link href="/projects" className="btn-ghost">
                 Projects
               </Link>
@@ -84,7 +87,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

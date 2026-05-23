@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -11,6 +11,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const supabase = createClient();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlError = params.get("error");
+    const message = params.get("message");
+    if (urlError === "auth_callback_failed") {
+      setError("That sign-in link could not be completed. Please try again.");
+    } else if (message) {
+      setError(message);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +82,15 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="label">Password</label>
+              <div className="flex items-center justify-between gap-3">
+                <label className="label">Password</label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-brand-700 transition-colors hover:text-brand-800"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 required

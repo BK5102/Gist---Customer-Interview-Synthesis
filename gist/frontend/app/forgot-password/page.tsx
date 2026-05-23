@@ -4,26 +4,22 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-export default function SignupPage() {
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
   const supabase = createClient();
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
     setLoading(true);
 
-    const emailRedirectTo = `${window.location.origin}/auth/callback?next=/projects`;
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo },
+    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
     });
 
     setLoading(false);
@@ -33,13 +29,7 @@ export default function SignupPage() {
       return;
     }
 
-    if (data.session) {
-      window.location.href = "/projects";
-    } else {
-      setMessage(
-        "Check your email for a confirmation link. If you don't see it, check spam.",
-      );
-    }
+    setMessage("Check your email for a password reset link.");
   };
 
   return (
@@ -58,14 +48,14 @@ export default function SignupPage() {
               <span className="text-base font-bold">G</span>
             </span>
             <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-              Create your account
+              Reset your password
             </h1>
             <p className="mt-1 text-sm text-neutral-600">
-              Keep your interview syntheses in one place.
+              Enter your account email and we will send a secure reset link.
             </p>
           </div>
 
-          <form onSubmit={handleSignup} className="mt-8 space-y-4">
+          <form onSubmit={handleReset} className="mt-8 space-y-4">
             <div>
               <label className="label">Email</label>
               <input
@@ -77,19 +67,6 @@ export default function SignupPage() {
                 className="input mt-1.5"
                 autoComplete="email"
                 autoFocus
-              />
-            </div>
-            <div>
-              <label className="label">Password</label>
-              <input
-                type="password"
-                required
-                minLength={12}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 12 characters"
-                className="input mt-1.5"
-                autoComplete="new-password"
               />
             </div>
 
@@ -109,12 +86,12 @@ export default function SignupPage() {
               disabled={loading}
               className="btn-primary w-full"
             >
-              {loading ? "Creating account…" : "Create account"}
+              {loading ? "Sending..." : "Send reset link"}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-neutral-600">
-            Already have an account?{" "}
+            Remembered it?{" "}
             <Link
               href="/login"
               className="font-medium text-brand-700 transition-colors hover:text-brand-800"

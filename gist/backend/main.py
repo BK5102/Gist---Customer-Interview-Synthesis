@@ -1,6 +1,8 @@
 # FastAPI entry point — POST /synthesize, GET /jobs/{job_id}, GET /health
 import os
+import time
 import uuid
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Any
 
@@ -31,16 +33,24 @@ from transcribe.whisper import transcribe_bytes
 BACKEND_DIR = Path(__file__).resolve().parent
 load_dotenv(BACKEND_DIR / ".env", override=True)
 
-MAX_FILES_PER_REQUEST = 20
+MAX_FILES_PER_REQUEST = int(os.environ.get("MAX_FILES_PER_REQUEST", "10"))
+MAX_TOTAL_UPLOAD_BYTES = int(os.environ.get("MAX_TOTAL_UPLOAD_MB", "100")) * 1024 * 1024
+MAX_SYNTH_JOBS_PER_WINDOW = int(os.environ.get("MAX_SYNTH_JOBS_PER_WINDOW", "5"))
+SYNTH_RATE_WINDOW_SECONDS = int(os.environ.get("SYNTH_RATE_WINDOW_SECONDS", "600"))
+MAX_ACTIVE_JOBS_PER_USER = int(os.environ.get("MAX_ACTIVE_JOBS_PER_USER", "2"))
+JOB_RETENTION_SECONDS = int(os.environ.get("JOB_RETENTION_SECONDS", "3600"))
 
 # Per-type size caps. Text transcripts are tiny; audio is bounded by
-# Whisper's 25 MB API limit (chunking lands in phase-1 day 5).
+# Whisper's upstream limits and our own memory budget.
 TEXT_EXTENSIONS = {".txt"}
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".mp4", ".webm", ".mpeg", ".mpga"}
 ALLOWED_EXTENSIONS = TEXT_EXTENSIONS | AUDIO_EXTENSIONS
 
 MAX_TEXT_BYTES = 2 * 1024 * 1024  # 2 MB
-MAX_AUDIO_BYTES = WHISPER_AUDIO_BYTES  # 200 MB; chunker handles >25 MB
+MAX_AUDIO_BYTES = min(
+    WHISPER_AUDIO_BYTES,
+    int(os.environ.get("MAX_AUDIO_UPLOAD_MB", "50")) * 1024 * 1024,
+)
 STORE_TRANSCRIPTS = os.environ.get("STORE_TRANSCRIPTS", "false").lower() == "true"
 ENABLE_SYNTH_CACHE = os.environ.get("ENABLE_SYNTH_CACHE", "false").lower() == "true"
 STORE_PLAINTEXT_SYNTHESES = (
@@ -49,7 +59,10 @@ STORE_PLAINTEXT_SYNTHESES = (
 
 # Comma-separated list of allowed CORS origins. Defaults to local dev.
 # Production: set CORS_ORIGINS=https://your-vercel-domain.vercel.app
-_cors_env = os.environ.get("CORS_ORIGINS", "http://localhost:3000")
+_cors_env = os.environ.get(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000",
+)
 CORS_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
 
 app = FastAPI(title="Gist — Interview Synthesis API", version="0.1.0")
@@ -80,10 +93,70 @@ async def add_security_headers(request, call_next):
 # Single-process uvicorn is fine for v0; multi-worker setups would need a
 # shared store (Redis) anyway.
 JOBS: dict[str, dict[str, Any]] = {}
+SYNTH_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
+ACTIVE_JOB_STATUSES = {"queued", "transcribing", "extracting", "clustering", "insights"}
+
+
+def _is_production() -> bool:
+    env_values = [
+        os.environ.get("APP_ENV", ""),
+        os.environ.get("ENVIRONMENT", ""),
+        os.environ.get("RAILWAY_ENVIRONMENT", ""),
+        os.environ.get("RAILWAY_ENVIRONMENT_NAME", ""),
+    ]
+    return any(v.strip().lower() in {"prod", "production"} for v in env_values)
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _prune_jobs() -> None:
+    cutoff = time.time() - JOB_RETENTION_SECONDS
+    stale = [
+        job_id
+        for job_id, job in JOBS.items()
+        if job.get("updated_at", job.get("created_at", 0)) < cutoff
+        and job.get("status") not in ACTIVE_JOB_STATUSES
+    ]
+    for job_id in stale:
+        JOBS.pop(job_id, None)
+
+
+def _active_jobs_for_user(user_id: str) -> int:
+    return sum(
+        1
+        for job in JOBS.values()
+        if job.get("user_id") == user_id and job.get("status") in ACTIVE_JOB_STATUSES
+    )
+
+
+def _enforce_synthesis_limits(user_id: str) -> None:
+    _prune_jobs()
+    now = time.time()
+    window_start = now - SYNTH_RATE_WINDOW_SECONDS
+    attempts = SYNTH_RATE_LIMITS[user_id]
+    while attempts and attempts[0] < window_start:
+        attempts.popleft()
+    if len(attempts) >= MAX_SYNTH_JOBS_PER_WINDOW:
+        raise HTTPException(
+            429,
+            "Too many synthesis requests. Please wait a few minutes and try again.",
+        )
+    if _active_jobs_for_user(user_id) >= MAX_ACTIVE_JOBS_PER_USER:
+        raise HTTPException(
+            429,
+            "You already have synthesis jobs running. Wait for one to finish before starting another.",
+        )
+    attempts.append(now)
 
 
 def _set_job(job_id: str, **fields: Any) -> None:
     """Atomically merge fields into a job's state."""
+    fields["updated_at"] = time.time()
     JOBS[job_id].update(fields)
 
 
@@ -168,6 +241,7 @@ async def synthesize(
     Returns 202 Accepted with a job_id immediately; the client polls
     GET /jobs/{job_id} for progress and the final result.
     """
+    _enforce_synthesis_limits(user_id)
     if not files:
         raise HTTPException(400, "No files provided")
     if len(files) > MAX_FILES_PER_REQUEST:
@@ -201,6 +275,7 @@ async def synthesize(
     # Read + validate every file synchronously so 4xx errors return on POST,
     # not in a background job the client would have to discover via polling.
     prepared: list[dict[str, Any]] = []
+    total_upload_bytes = 0
     for idx, f in enumerate(files):
         ext = Path(f.filename or "").suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
@@ -211,6 +286,14 @@ async def synthesize(
             )
 
         content = await f.read()
+        total_upload_bytes += len(content)
+        if total_upload_bytes > MAX_TOTAL_UPLOAD_BYTES:
+            raise HTTPException(
+                413,
+                "Upload is too large for one synthesis request "
+                f"({total_upload_bytes / 1_048_576:.1f} MB > "
+                f"{MAX_TOTAL_UPLOAD_BYTES / 1_048_576:.0f} MB cap).",
+            )
         if len(content) == 0:
             raise HTTPException(400, f"Empty file: {f.filename}")
 
@@ -261,10 +344,13 @@ async def synthesize(
         resolved_project_id = project_id or ""
 
     job_id = uuid.uuid4().hex[:12]
+    now = time.time()
     JOBS[job_id] = {
         "job_id": job_id,
         "user_id": user_id,
         "project_id": resolved_project_id,
+        "created_at": now,
+        "updated_at": now,
         "status": "queued",
         "current": None,
         "total": None,
@@ -550,6 +636,18 @@ def notion_auth(user_id: str = Depends(require_auth)) -> dict[str, Any]:
             "Notion integration not configured. Set NOTION_CLIENT_ID + "
             "NOTION_CLIENT_SECRET (OAuth) or NOTION_INTERNAL_TOKEN "
             "(internal integration) in backend/.env.",
+        )
+    if (
+        notion_internal_configured()
+        and not notion_oauth_configured()
+        and _is_production()
+        and not _env_flag("ALLOW_NOTION_INTERNAL_TOKEN_IN_PROD")
+    ):
+        raise HTTPException(
+            503,
+            "Notion internal-token mode is disabled in production. Configure "
+            "NOTION_CLIENT_ID, NOTION_CLIENT_SECRET, and NOTION_REDIRECT_URI "
+            "for per-user OAuth.",
         )
 
     # Prefer OAuth when both are configured — it's the right thing for

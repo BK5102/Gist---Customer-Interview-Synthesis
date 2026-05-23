@@ -38,9 +38,6 @@ export default function ProjectsPage() {
       const data = (await res.json()) as Project[];
       setProjects(data);
     } catch {
-      // Backend unreachable — fall through to the empty state instead of
-      // surfacing a red banner. The "No projects yet" card already nudges
-      // the user toward the right action.
       setProjects([]);
     } finally {
       setLoading(false);
@@ -86,15 +83,19 @@ export default function ProjectsPage() {
   }
 
   return (
-    <main className="page">
-      <header className="mb-8 flex items-center justify-between">
+    <main className="page-wide">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="eyebrow">Workspace</span>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
             Projects
           </h1>
+          <p className="mt-1 max-w-xl text-sm text-neutral-600">
+            Keep each research round separate. Use the row actions to start a
+            new synthesis or open encrypted saves for that project.
+          </p>
         </div>
-        <Link href="/" className="btn-primary">
+        <Link href="/?upload=1" className="btn-primary">
           New synthesis
         </Link>
       </header>
@@ -104,7 +105,7 @@ export default function ProjectsPage() {
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="Project name — e.g. Q2 customer discovery"
+          placeholder="Project name - e.g. Q2 customer discovery"
           className="input flex-1"
         />
         <button
@@ -112,7 +113,7 @@ export default function ProjectsPage() {
           disabled={creating || !newName.trim()}
           className="btn-secondary"
         >
-          {creating ? "Creating…" : "Create project"}
+          {creating ? "Creating..." : "Create project"}
         </button>
       </form>
 
@@ -125,12 +126,8 @@ export default function ProjectsPage() {
             No projects yet
           </h2>
           <p className="mt-1 text-sm text-neutral-600">
-            A project groups transcripts and syntheses together. Make one per
-            research round, customer segment, or product area.
-          </p>
-          <p className="mt-4 text-xs text-neutral-500">
-            Name a project above and click <strong>Create project</strong> to
-            get started.
+            Create one project per research round, customer segment, or product
+            area.
           </p>
         </div>
       )}
@@ -146,22 +143,32 @@ export default function ProjectsPage() {
                 animationFillMode: "backwards",
               }}
             >
-              <Link
-                href={`/projects/${proj.id}`}
-                className="card card-hover block p-5 group"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-neutral-900 transition-colors group-hover:text-brand-700">
-                    {proj.name}
-                  </h2>
-                  <span className="text-xs text-neutral-400 transition-transform group-hover:translate-x-0.5">
-                    →
-                  </span>
+              <div className="card card-hover p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-sm font-semibold text-neutral-900">
+                      {proj.name}
+                    </h2>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      Created {new Date(proj.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`/?project=${proj.id}`}
+                      className="btn-primary px-3 py-1.5 text-xs"
+                    >
+                      New synthesis
+                    </Link>
+                    <Link
+                      href={`/encrypted?project=${proj.id}`}
+                      className="btn-secondary px-3 py-1.5 text-xs"
+                    >
+                      Private saves
+                    </Link>
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-neutral-500">
-                  Created {new Date(proj.created_at).toLocaleDateString()}
-                </p>
-              </Link>
+              </div>
             </li>
           ))}
         </ul>

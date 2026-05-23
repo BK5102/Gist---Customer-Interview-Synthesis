@@ -1,31 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-export default function SignupPage() {
-  const [email, setEmail] = useState("");
+export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const [checkingSession, setCheckingSession] = useState(true);
   const supabase = createClient();
 
-  const handleSignup = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        setError("Open this page from the password reset email link.");
+      }
+      setCheckingSession(false);
+    };
+
+    checkSession();
+  }, [supabase.auth]);
+
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
+
+    if (password.length < 12) {
+      setError("Use at least 12 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
-
-    const emailRedirectTo = `${window.location.origin}/auth/callback?next=/projects`;
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo },
-    });
-
+    const { error } = await supabase.auth.updateUser({ password });
+    setPassword("");
+    setConfirmPassword("");
     setLoading(false);
 
     if (error) {
@@ -33,13 +52,7 @@ export default function SignupPage() {
       return;
     }
 
-    if (data.session) {
-      window.location.href = "/projects";
-    } else {
-      setMessage(
-        "Check your email for a confirmation link. If you don't see it, check spam.",
-      );
-    }
+    setMessage("Password updated. You can log in with the new password.");
   };
 
   return (
@@ -58,29 +71,16 @@ export default function SignupPage() {
               <span className="text-base font-bold">G</span>
             </span>
             <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-              Create your account
+              Choose a new password
             </h1>
             <p className="mt-1 text-sm text-neutral-600">
-              Keep your interview syntheses in one place.
+              Use a password you will not reuse anywhere else.
             </p>
           </div>
 
-          <form onSubmit={handleSignup} className="mt-8 space-y-4">
+          <form onSubmit={handleUpdate} className="mt-8 space-y-4">
             <div>
-              <label className="label">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                className="input mt-1.5"
-                autoComplete="email"
-                autoFocus
-              />
-            </div>
-            <div>
-              <label className="label">Password</label>
+              <label className="label">New password</label>
               <input
                 type="password"
                 required
@@ -90,6 +90,21 @@ export default function SignupPage() {
                 placeholder="At least 12 characters"
                 className="input mt-1.5"
                 autoComplete="new-password"
+                disabled={checkingSession}
+              />
+            </div>
+            <div>
+              <label className="label">Confirm password</label>
+              <input
+                type="password"
+                required
+                minLength={12}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat new password"
+                className="input mt-1.5"
+                autoComplete="new-password"
+                disabled={checkingSession}
               />
             </div>
 
@@ -106,20 +121,19 @@ export default function SignupPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={checkingSession || loading}
               className="btn-primary w-full"
             >
-              {loading ? "Creating account…" : "Create account"}
+              {loading ? "Updating..." : "Update password"}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-neutral-600">
-            Already have an account?{" "}
             <Link
               href="/login"
               className="font-medium text-brand-700 transition-colors hover:text-brand-800"
             >
-              Log in
+              Back to login
             </Link>
           </p>
         </div>

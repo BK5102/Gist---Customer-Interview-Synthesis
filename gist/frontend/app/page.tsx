@@ -155,11 +155,84 @@ const stemOf = (name: string) => {
   return ext ? name.slice(0, -ext.length) : name;
 };
 
+function SignedInHome() {
+  return (
+    <main className="page-wide">
+      <header className="mb-8">
+        <span className="eyebrow">Workspace</span>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          Customer research workspace
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600">
+          Run a synthesis, save it privately with your own password, and come
+          back to project-specific reports without storing plaintext in Gist.
+        </p>
+      </header>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <Link href="/?upload=1" className="card card-hover p-5">
+          <p className="text-sm font-semibold text-neutral-900">
+            New synthesis
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+            Upload transcripts or audio, generate a report, then choose whether
+            to save it privately.
+          </p>
+        </Link>
+        <Link href="/projects" className="card card-hover p-5">
+          <p className="text-sm font-semibold text-neutral-900">Projects</p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+            Organize research rounds and start project-specific private
+            syntheses.
+          </p>
+        </Link>
+        <Link href="/encrypted" className="card card-hover p-5">
+          <p className="text-sm font-semibold text-neutral-900">
+            Private saves
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+            Open encrypted reports with the password you chose. Gist never
+            stores that password.
+          </p>
+        </Link>
+      </section>
+
+      <section className="mt-8 rounded-2xl border border-brand-200 bg-brand-50/50 p-6">
+        <h2 className="text-sm font-semibold text-neutral-900">
+          Private-save flow
+        </h2>
+        <div className="mt-4 grid gap-3 text-xs text-neutral-700 sm:grid-cols-3">
+          <div>
+            <p className="font-semibold text-neutral-900">1. Synthesize</p>
+            <p className="mt-1 leading-relaxed">
+              Generate the report in your active browser session.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-neutral-900">2. Set password</p>
+            <p className="mt-1 leading-relaxed">
+              Choose a password for that save. It is not stored by Gist.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-neutral-900">3. Open privately</p>
+            <p className="mt-1 leading-relaxed">
+              Use the same password to decrypt the save in the browser.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export default function Home() {
   // Optional ?project=<uuid> identifies the project context. Production does
   // not persist plaintext synthesis output by default.
   const searchParams = useSearchParams();
   const projectId = searchParams?.get("project") ?? null;
+  const uploadMode = searchParams?.get("upload") === "1";
+  const landingMode = searchParams?.get("landing") === "1";
 
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -522,7 +595,7 @@ export default function Home() {
     );
   }
 
-  if (!user) {
+  if (!user || landingMode) {
     return (
       <div className="relative overflow-hidden">
         {/* Soft radial gradient backdrop */}
@@ -583,8 +656,11 @@ export default function Home() {
                          animate-fade-in-up"
               style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}
             >
-              <Link href="/signup" className="btn-primary px-6 py-3 text-base">
-                Get started — free
+              <Link
+                href={user ? "/" : "/signup"}
+                className="btn-primary px-6 py-3 text-base"
+              >
+                {user ? "Open workspace" : "Get started — free"}
                 <svg
                   className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                   viewBox="0 0 20 20"
@@ -597,8 +673,11 @@ export default function Home() {
                   />
                 </svg>
               </Link>
-              <Link href="/login" className="btn-secondary px-6 py-3 text-base">
-                Log in
+              <Link
+                href={user ? "/?upload=1" : "/login"}
+                className="btn-secondary px-6 py-3 text-base"
+              >
+                {user ? "New synthesis" : "Log in"}
               </Link>
             </div>
 
@@ -690,10 +769,16 @@ export default function Home() {
     );
   }
 
+  if (!projectId && !uploadMode && files.length === 0 && !isLoading && !result) {
+    return <SignedInHome />;
+  }
+
   return (
     <main className="page">
       <header className="mb-8">
-        <span className="eyebrow">Upload</span>
+        <span className="eyebrow">
+          {projectId ? "Project synthesis" : "New synthesis"}
+        </span>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           New synthesis
         </h1>
