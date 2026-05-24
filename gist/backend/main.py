@@ -94,7 +94,11 @@ async def add_security_headers(request, call_next):
 # shared store (Redis) anyway.
 JOBS: dict[str, dict[str, Any]] = {}
 SYNTH_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
+NOTION_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
 ACTIVE_JOB_STATUSES = {"queued", "transcribing", "extracting", "clustering", "insights"}
+
+MAX_NOTION_CALLS_PER_WINDOW = int(os.environ.get("MAX_NOTION_CALLS_PER_WINDOW", "20"))
+NOTION_RATE_WINDOW_SECONDS = int(os.environ.get("NOTION_RATE_WINDOW_SECONDS", "60"))
 
 
 def _is_production() -> bool:
@@ -151,6 +155,17 @@ def _enforce_synthesis_limits(user_id: str) -> None:
             429,
             "You already have synthesis jobs running. Wait for one to finish before starting another.",
         )
+    attempts.append(now)
+
+
+def _enforce_notion_limits(user_id: str) -> None:
+    now = time.time()
+    window_start = now - NOTION_RATE_WINDOW_SECONDS
+    attempts = NOTION_RATE_LIMITS[user_id]
+    while attempts and attempts[0] < window_start:
+        attempts.popleft()
+    if len(attempts) >= MAX_NOTION_CALLS_PER_WINDOW:
+        raise HTTPException(429, "Too many Notion requests. Please wait a minute and try again.")
     attempts.append(now)
 
 
@@ -568,7 +583,7 @@ def get_project_detail(
     proj = get_project(user_id, project_id)
     if not proj:
         raise HTTPException(404, "Project not found")
-    proj["syntheses"] = get_syntheses_for_project(project_id)
+    proj["syntheses"] = get_syntheses_for_project(user_id, project_id)
     return proj
 
 
@@ -739,6 +754,7 @@ def notion_callback(
 
 @app.get("/notion/databases")
 def list_notion_databases(user_id: str = Depends(require_auth)) -> list[dict[str, Any]]:
+    _enforce_notion_limits(user_id)
     conn = get_notion_connection(user_id)
     if not conn:
         raise HTTPException(401, "Notion not connected")
@@ -766,6 +782,7 @@ def push_to_notion(
     body: PushToNotionRequest,
     user_id: str = Depends(require_auth),
 ) -> dict[str, str]:
+    _enforce_notion_limits(user_id)
     conn = get_notion_connection(user_id)
     if not conn:
         raise HTTPException(401, "Notion not connected")

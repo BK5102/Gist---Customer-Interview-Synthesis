@@ -181,13 +181,14 @@ def save_transcript(
 
 
 @_with_db_retry
-def get_transcripts_for_project(project_id: str) -> list[dict[str, Any]]:
-    """List transcripts for a project, in creation order."""
+def get_transcripts_for_project(user_id: str, project_id: str) -> list[dict[str, Any]]:
+    """List transcripts for a project, scoped to the requesting user."""
     resp = (
         _db()
         .table("transcripts")
-        .select("*")
+        .select("*, projects!inner(user_id)")
         .eq("project_id", project_id)
+        .eq("projects.user_id", user_id)
         .order("created_at")
         .execute()
     )
@@ -251,13 +252,14 @@ def get_synthesis(user_id: str, synthesis_id: str) -> dict[str, Any] | None:
 
 
 @_with_db_retry
-def get_syntheses_for_project(project_id: str) -> list[dict[str, Any]]:
-    """List syntheses for a project."""
+def get_syntheses_for_project(user_id: str, project_id: str) -> list[dict[str, Any]]:
+    """List syntheses for a project, scoped to the requesting user."""
     resp = (
         _db()
         .table("syntheses")
-        .select("*")
+        .select("*, projects!inner(user_id)")
         .eq("project_id", project_id)
+        .eq("projects.user_id", user_id)
         .order("created_at", desc=True)
         .execute()
     )
