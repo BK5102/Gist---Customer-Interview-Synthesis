@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -134,6 +135,12 @@ export default function SettingsPage() {
 
   return (
     <main className="page">
+      <Breadcrumb
+        items={[
+          { label: "Workspace", href: "/" },
+          { label: "Settings" },
+        ]}
+      />
       <header className="mb-8">
         <p className="eyebrow">Account</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">Settings</h1>

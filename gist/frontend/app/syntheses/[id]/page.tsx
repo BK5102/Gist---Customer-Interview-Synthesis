@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/client";
+import { Breadcrumb } from "@/components/Breadcrumb";
+
+function looksLikeJson(s: string): boolean {
+  const t = s.trim();
+  if (!t.startsWith("{") && !t.startsWith("[")) return false;
+  try { JSON.parse(t); return true; } catch { return false; }
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -151,14 +158,15 @@ export default function SynthesisDetailPage() {
 
   return (
     <main className="page">
-      <Link
-        href={`/projects/${synth.project_id}`}
-        className="inline-flex items-center gap-1 text-xs text-neutral-500 transition-colors hover:text-brand-700"
-      >
-        ← Project
-      </Link>
+      <Breadcrumb
+        items={[
+          { label: "Workspace", href: "/" },
+          { label: "Projects", href: "/projects" },
+          { label: "Synthesis" },
+        ]}
+      />
 
-      <header className="mt-3 mb-6">
+      <header className="mb-6">
         <p className="eyebrow">Synthesis</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           Interview Synthesis
@@ -242,7 +250,21 @@ export default function SynthesisDetailPage() {
 
       <article className="card p-8">
         <div className="prose prose-neutral prose-brand max-w-none">
-          <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>
+          {!synth.markdown_output ? (
+            <p className="text-sm text-neutral-500">
+              No synthesis content was stored for this record.
+            </p>
+          ) : looksLikeJson(synth.markdown_output) ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="font-medium">Synthesis result could not be rendered.</p>
+              <p className="mt-1 text-xs">
+                The stored content appears to be in an unexpected format.
+                Please contact support or re-run the synthesis.
+              </p>
+            </div>
+          ) : (
+            <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>
+          )}
         </div>
       </article>
     </main>

@@ -8,6 +8,7 @@ import {
   type PasswordEncryptedArtifactRecord,
 } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 type EncryptedArtifact = PasswordEncryptedArtifactRecord & {
   id: string;
@@ -123,8 +124,14 @@ export default function EncryptedSavesPage() {
 
   return (
     <main className="page">
+      <Breadcrumb
+        items={[
+          { label: "Workspace", href: "/" },
+          { label: "Private Saves" },
+        ]}
+      />
       <header className="mb-8">
-        <p className="eyebrow">Private storage</p>
+        <p className="eyebrow">Browser-encrypted storage</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           Private saves
         </h1>

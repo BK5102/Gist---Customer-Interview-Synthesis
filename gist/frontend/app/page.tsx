@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { encryptStringWithPassword } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MAX_TEXT_BYTES = 2 * 1024 * 1024; // keep in sync with backend
@@ -134,6 +135,20 @@ const stemOf = (name: string) => {
   const ext = extOf(name);
   return ext ? name.slice(0, -ext.length) : name;
 };
+
+// Returns true when the string is parseable JSON (object or array) rather than
+// markdown. Catches the edge case where the backend accidentally surfaces a
+// raw JSON payload in the markdown field.
+function looksLikeJson(s: string): boolean {
+  const t = s.trim();
+  if (!t.startsWith("{") && !t.startsWith("[")) return false;
+  try {
+    JSON.parse(t);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function SignedInHome() {
   return (
@@ -275,7 +290,19 @@ export default function Home() {
       const res = await fetch(`${API_URL}/jobs/${jobId}`, { headers });
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || `Backend returned ${res.status}`);
+        let detail = `Backend returned ${res.status}`;
+        try {
+          const parsed = JSON.parse(text);
+          detail =
+            typeof parsed.detail === "string"
+              ? parsed.detail
+              : Array.isArray(parsed.detail)
+                ? parsed.detail.map((d: any) => d.msg ?? JSON.stringify(d)).join("; ")
+                : text || detail;
+        } catch {
+          if (text) detail = text;
+        }
+        throw new Error(detail);
       }
       const next = (await res.json()) as JobStatus;
       setJob(next);
@@ -592,6 +619,11 @@ export default function Home() {
             browser-side encryption.
           </p>
 
+          <p className="mt-4 text-sm font-medium text-neutral-500">
+            Built for founders and product/UX researchers doing customer
+            discovery — not enterprise teams with dedicated research ops.
+          </p>
+
           <div className="mt-8 flex gap-3">
             <Link
               href={user ? "/" : "/signup"}
@@ -702,11 +734,14 @@ export default function Home() {
 
   return (
     <main className="page">
+      <Breadcrumb
+        items={[
+          { label: "Workspace", href: "/" },
+          { label: projectId ? "Project synthesis" : "New synthesis" },
+        ]}
+      />
       <header className="mb-8">
-        <p className="eyebrow">
-          {projectId ? "Project synthesis" : "New synthesis"}
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight">
           New synthesis
         </h1>
         <p className="mt-1 text-sm text-neutral-600">
@@ -896,9 +931,32 @@ export default function Home() {
 
       {isLoading && job && (
         <div className="card mt-6 p-6 animate-fade-in">
-          <p className="text-sm font-semibold text-neutral-900">
-            {stageLabel(job)}
-          </p>
+          <div className="flex items-center gap-2">
+            <svg
+              className="h-4 w-4 animate-spin text-brand-700"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeOpacity="0.2"
+                strokeWidth="3"
+              />
+              <path
+                d="M12 2a10 10 0 0110 10"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
+            <p className="text-sm font-semibold text-neutral-900">
+              {stageLabel(job)}
+            </p>
+          </div>
+
           <ol className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
             {(
               ["transcribing", "extracting", "clustering", "insights"] as const
@@ -940,10 +998,16 @@ export default function Home() {
               );
             })}
           </ol>
-          <p className="mt-4 text-xs text-neutral-400">
-            Polling /jobs/{job.job_id.slice(0, 8)} every {POLL_MS / 1000}s · Audio
-            adds ~1 min per 5 min of recording.
-          </p>
+
+          <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+            <p className="text-xs font-medium text-neutral-700">
+              Keep this tab open — results will appear here automatically.
+            </p>
+            <p className="mt-0.5 text-xs text-neutral-500">
+              This takes a few minutes. Text files are near-instant; audio adds
+              roughly 1 min of processing per 5 min of recording.
+            </p>
+          </div>
         </div>
       )}
 
@@ -966,7 +1030,21 @@ export default function Home() {
             </button>
           </div>
           <article className="prose prose-neutral prose-brand max-w-none">
-            <ReactMarkdown>{result.markdown}</ReactMarkdown>
+            {!result.markdown ? (
+              <p className="text-sm text-neutral-500">
+                No synthesis content was returned. Please try again.
+              </p>
+            ) : looksLikeJson(result.markdown) ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <p className="font-medium">Synthesis result could not be rendered.</p>
+                <p className="mt-1 text-xs">
+                  The server returned an unexpected response format. Try
+                  re-running the synthesis — this is usually a one-off issue.
+                </p>
+              </div>
+            ) : (
+              <ReactMarkdown>{result.markdown}</ReactMarkdown>
+            )}
           </article>
 
           <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">

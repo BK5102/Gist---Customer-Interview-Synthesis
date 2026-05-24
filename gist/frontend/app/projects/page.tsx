@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -84,9 +85,15 @@ export default function ProjectsPage() {
 
   return (
     <main className="page-wide">
+      <Breadcrumb
+        items={[
+          { label: "Workspace", href: "/" },
+          { label: "Projects" },
+        ]}
+      />
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Workspace</p>
+          <p className="eyebrow">Research rounds</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
             Projects
           </h1>

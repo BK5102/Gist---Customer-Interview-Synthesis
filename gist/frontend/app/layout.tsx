@@ -85,7 +85,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className="min-h-screen text-neutral-900 antialiased">
         <Navbar />
-        <main className="relative">{children}</main>
+        <div className="relative">{children}</div>
         {!user && <Analytics />}
       </body>
     </html>

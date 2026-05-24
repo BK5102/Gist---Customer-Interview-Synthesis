@@ -7,25 +7,63 @@ from synth.cluster import cluster_themes_cached, run_extraction_on_folder
 from synth.insights import generate_insights_cached
 
 
+def _safe_str(value: object, fallback: str = "") -> str:
+    """Coerce a value to a plain string safe for embedding in markdown.
+
+    The LLM occasionally returns JSON-formatted strings in fields that the
+    schema defines as plain strings. When detected, we attempt to extract a
+    readable string from the parsed structure. Non-string scalars are
+    stringified directly.
+    """
+    if isinstance(value, str):
+        t = value.strip()
+        if t.startswith(("{", "[")):
+            try:
+                parsed = json.loads(t)
+                if isinstance(parsed, dict):
+                    for key in ("text", "summary", "content", "description",
+                                "headline", "explanation", "value"):
+                        if isinstance(parsed.get(key), str) and parsed[key].strip():
+                            return parsed[key].strip()
+                    # Fall back to joining all string leaf values
+                    parts = [str(v) for v in parsed.values() if isinstance(v, str) and v.strip()]
+                    return " ".join(parts) if parts else fallback
+                if isinstance(parsed, list):
+                    parts = [str(i) for i in parsed if isinstance(i, str) and str(i).strip()]
+                    return " ".join(parts) if parts else fallback
+            except json.JSONDecodeError:
+                pass
+        return t or fallback
+    if isinstance(value, dict):
+        for key in ("text", "summary", "content", "description",
+                    "headline", "explanation", "value"):
+            if isinstance(value.get(key), str) and value[key].strip():
+                return value[key].strip()
+        return fallback
+    if value is None:
+        return fallback
+    return str(value).strip() or fallback
+
+
 def _format_insight(insight) -> str:
     # The schema asks for {headline, explanation} but the model sometimes
     # returns a bare string. Accept either shape.
     if isinstance(insight, str):
-        return insight.strip()
+        return _safe_str(insight)
     if not isinstance(insight, dict):
         return ""
-    headline = str(insight.get("headline", "")).strip()
-    explanation = str(insight.get("explanation", "")).strip()
+    headline = _safe_str(insight.get("headline", ""))
+    explanation = _safe_str(insight.get("explanation", ""))
     if headline and explanation:
         return f"**{headline}**\n\n{explanation}"
     return headline or explanation
 
 
 def _format_cluster(cluster: dict) -> str:
-    name = cluster.get("cluster_name", "Unnamed cluster")
-    category = cluster.get("category", "uncategorized")
+    name = _safe_str(cluster.get("cluster_name"), "Unnamed cluster")
+    category = _safe_str(cluster.get("category"), "uncategorized")
     participants = cluster.get("participants", [])
-    summary = cluster.get("cluster_summary", "").strip()
+    summary = _safe_str(cluster.get("cluster_summary", ""))
     quotes = cluster.get("supporting_quotes", [])
 
     participants_str = ", ".join(participants) if participants else "none"
@@ -36,8 +74,9 @@ def _format_cluster(cluster: dict) -> str:
     )
 
     quote_lines = [
-        f"- **{q.get('participant_id', '?')}:** \u201c{q.get('quote', '').strip()}\u201d"
+        f"- **{_safe_str(q.get('participant_id'), '?')}:** \u201c{_safe_str(q.get('quote', ''))}\u201d"
         for q in quotes
+        if isinstance(q, dict)
     ]
     quotes_block = "\n".join(quote_lines) if quote_lines else "_No quotes._"
 
