@@ -86,8 +86,8 @@ export default function ProjectsPage() {
     <main className="page-wide">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="eyebrow">Workspace</span>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          <p className="eyebrow">Workspace</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
             Projects
           </h1>
           <p className="mt-1 max-w-xl text-sm text-neutral-600">
@@ -118,8 +118,8 @@ export default function ProjectsPage() {
       </form>
 
       {projects && projects.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-brand-300 bg-brand-gradient-soft p-12 text-center">
-          <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-brand-gradient text-white shadow-glow animate-float">
+        <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-12 text-center">
+          <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-zinc-900 text-white">
             <span className="text-xl">+</span>
           </div>
           <h2 className="mt-4 text-lg font-semibold text-neutral-800">
@@ -134,15 +134,8 @@ export default function ProjectsPage() {
 
       {projects && projects.length > 0 && (
         <ul className="space-y-3">
-          {projects.map((proj, i) => (
-            <li
-              key={proj.id}
-              className="animate-fade-in-up"
-              style={{
-                animationDelay: `${i * 0.05}s`,
-                animationFillMode: "backwards",
-              }}
-            >
+          {projects.map((proj) => (
+            <li key={proj.id}>
               <div className="card card-hover p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>

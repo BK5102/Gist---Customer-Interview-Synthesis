@@ -159,8 +159,8 @@ export default function SynthesisDetailPage() {
       </Link>
 
       <header className="mt-3 mb-6">
-        <span className="eyebrow">Synthesis</span>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+        <p className="eyebrow">Synthesis</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           Interview Synthesis
         </h1>
         <p className="mt-1 text-xs text-neutral-500">

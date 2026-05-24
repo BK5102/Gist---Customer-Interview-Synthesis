@@ -33,74 +33,65 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="relative overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-hero-radial"
-      />
-      <main className="mx-auto max-w-md px-6 py-16 sm:py-24 animate-fade-in">
-        <div className="card p-8">
-          <div className="text-center">
-            <span
-              className="inline-grid h-10 w-10 place-items-center rounded-xl
-                         bg-brand-gradient text-white shadow-glow"
-            >
-              <span className="text-base font-bold">G</span>
-            </span>
-            <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-              Reset your password
-            </h1>
-            <p className="mt-1 text-sm text-neutral-600">
-              Enter your account email and we will send a secure reset link.
-            </p>
-          </div>
-
-          <form onSubmit={handleReset} className="mt-8 space-y-4">
-            <div>
-              <label className="label">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                className="input mt-1.5"
-                autoComplete="email"
-                autoFocus
-              />
-            </div>
-
-            {error && (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
-                {error}
-              </p>
-            )}
-            {message && (
-              <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
-                {message}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? "Sending..." : "Send reset link"}
-            </button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-neutral-600">
-            Remembered it?{" "}
-            <Link
-              href="/login"
-              className="font-medium text-brand-700 transition-colors hover:text-brand-800"
-            >
-              Log in
-            </Link>
+    <main className="mx-auto max-w-md px-6 py-16 sm:py-24">
+      <div className="card p-8">
+        <div className="text-center">
+          <span className="inline-grid h-10 w-10 place-items-center rounded-xl bg-zinc-900 text-white">
+            <span className="text-base font-bold">G</span>
+          </span>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+            Reset your password
+          </h1>
+          <p className="mt-1 text-sm text-neutral-600">
+            Enter your account email and we will send a secure reset link.
           </p>
         </div>
-      </main>
-    </div>
+
+        <form onSubmit={handleReset} className="mt-8 space-y-4">
+          <div>
+            <label className="label">Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              className="input mt-1.5"
+              autoComplete="email"
+              autoFocus
+            />
+          </div>
+
+          {error && (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+              {error}
+            </p>
+          )}
+          {message && (
+            <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
+              {message}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full"
+          >
+            {loading ? "Sending..." : "Send reset link"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-neutral-600">
+          Remembered it?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-brand-700 transition-colors hover:text-brand-800"
+          >
+            Log in
+          </Link>
+        </p>
+      </div>
+    </main>
   );
 }

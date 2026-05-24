@@ -135,8 +135,8 @@ export default function SettingsPage() {
   return (
     <main className="page">
       <header className="mb-8">
-        <span className="eyebrow">Account</span>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Settings</h1>
+        <p className="eyebrow">Account</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Settings</h1>
       </header>
 
       <section className="card p-6">
@@ -144,7 +144,7 @@ export default function SettingsPage() {
           Account
         </h2>
         <div className="mt-3 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-gradient text-sm font-semibold text-white shadow-soft">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-zinc-900 text-sm font-semibold text-white">
             {user?.email?.[0]?.toUpperCase() ?? "?"}
           </span>
           <p className="text-sm text-neutral-800">
@@ -159,7 +159,6 @@ export default function SettingsPage() {
         </h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            {/* Notion icon: simple geometric N */}
             <span className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-200 bg-white font-bold text-neutral-700">
               N
             </span>

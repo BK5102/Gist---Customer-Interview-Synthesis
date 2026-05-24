@@ -17,27 +17,16 @@ async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <nav
-      className="sticky top-0 z-40 border-b border-neutral-200/60 bg-white/70
-                 backdrop-blur-xl backdrop-saturate-150 transition-all"
-    >
+    <nav className="sticky top-0 z-40 border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
         <Link
           href={user ? "/?landing=1" : "/"}
-          className="group flex items-center gap-2 text-lg font-semibold tracking-tight"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight"
         >
-          {/* Gradient G logomark */}
-          <span
-            className="grid h-7 w-7 place-items-center rounded-md
-                       bg-brand-gradient text-white shadow-soft
-                       transition-transform duration-300 ease-out-expo
-                       group-hover:rotate-3 group-hover:scale-105"
-          >
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-zinc-900 text-white">
             <span className="text-sm font-bold leading-none">G</span>
           </span>
-          <span className="bg-gradient-to-r from-neutral-900 to-brand-700 bg-clip-text text-transparent">
-            Gist
-          </span>
+          <span className="text-neutral-900">Gist</span>
         </Link>
         <div className="flex items-center gap-1 text-sm">
           {user ? (
