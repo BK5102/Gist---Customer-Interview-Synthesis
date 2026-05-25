@@ -91,20 +91,15 @@ export default function ProjectsPage() {
           { label: "Projects" },
         ]}
       />
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">Research rounds</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            Projects
-          </h1>
-          <p className="mt-1 max-w-xl text-sm text-neutral-600">
-            Keep each research round separate. Use the row actions to start a
-            new synthesis or open encrypted saves for that project.
-          </p>
-        </div>
-        <Link href="/?upload=1" className="btn-primary">
-          New synthesis
-        </Link>
+      <header className="mb-8">
+        <p className="eyebrow">Research rounds</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          Projects
+        </h1>
+        <p className="mt-1 max-w-xl text-sm text-neutral-600">
+          Keep each research round in its own project. Create a project below,
+          then run a synthesis from within it.
+        </p>
       </header>
 
       <form onSubmit={createProject} className="mb-8 flex gap-2">

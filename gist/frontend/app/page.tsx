@@ -159,25 +159,17 @@ function SignedInHome() {
           Your workspace
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600">
-          Run a synthesis, organize work by project, or return to a report
-          you saved — decrypted with the password you chose at save time.
+          All synthesis work happens inside a project. Create a project, upload
+          interviews, and save the report with a password you choose.
         </p>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <Link href="/?upload=1" className="card card-hover p-5">
-          <p className="text-sm font-semibold text-neutral-900">
-            New synthesis
-          </p>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-            Upload transcripts or audio files and run a synthesis. Save the
-            report with a password when it's done, or skip it.
-          </p>
-        </Link>
+      <section className="grid gap-4 md:grid-cols-2">
         <Link href="/projects" className="card card-hover p-5">
           <p className="text-sm font-semibold text-neutral-900">Projects</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-            Group related syntheses by research round or topic.
+            Create a project and run syntheses within it. Each project keeps
+            one research round in one place.
           </p>
         </Link>
         <Link href="/encrypted" className="card card-hover p-5">
@@ -192,29 +184,26 @@ function SignedInHome() {
       </section>
 
       <section className="mt-8 rounded-xl border border-neutral-200 bg-neutral-50 p-6">
-        <h2 className="text-sm font-semibold text-neutral-900">
-          How private saves work
-        </h2>
+        <h2 className="text-sm font-semibold text-neutral-900">How it works</h2>
         <div className="mt-4 grid gap-3 text-xs text-neutral-700 sm:grid-cols-3">
           <div>
-            <p className="font-semibold text-neutral-900">1. Run the synthesis</p>
+            <p className="font-semibold text-neutral-900">1. Create a project</p>
             <p className="mt-1 leading-relaxed">
-              Keep this tab open while it runs. The report appears here when
-              it's done.
+              Group interviews by research round, customer segment, or topic.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-neutral-900">2. Set a password</p>
+            <p className="font-semibold text-neutral-900">2. Run a synthesis</p>
             <p className="mt-1 leading-relaxed">
-              Pick a password for this save. It's not stored anywhere — if
-              you forget it, the report can't be recovered.
+              Upload transcripts or audio within the project and keep the tab
+              open while it runs.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-neutral-900">3. Return later</p>
+            <p className="font-semibold text-neutral-900">3. Save privately</p>
             <p className="mt-1 leading-relaxed">
-              Come back and enter your password to decrypt the report in the
-              browser.
+              Encrypt the report with a password you choose. It's not stored
+              anywhere — only you can open it.
             </p>
           </div>
         </div>
@@ -635,10 +624,10 @@ export default function Home() {
               {user ? "Open workspace" : "Get started"}
             </Link>
             <Link
-              href={user ? "/?upload=1" : "/login"}
+              href={user ? "/projects" : "/login"}
               className="btn-secondary px-6 py-3"
             >
-              {user ? "New synthesis" : "Log in"}
+              {user ? "Go to projects" : "Log in"}
             </Link>
           </div>
         </section>
@@ -717,23 +706,25 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Minimal CTA */}
-        <section className="mt-16 border-t border-neutral-200 py-16">
-          <p className="text-neutral-600">
-            Works with transcripts you already have, audio files you haven't
-            had time to review, or both.
-          </p>
-          <Link href="/signup" className="btn-primary mt-4 px-6 py-3">
-            Create an account
-          </Link>
-        </section>
+        {/* Minimal CTA — only shown to signed-out visitors */}
+        {!user && (
+          <section className="mt-16 border-t border-neutral-200 py-16">
+            <p className="text-neutral-600">
+              Works with transcripts you already have, audio files you haven't
+              had time to review, or both.
+            </p>
+            <Link href="/signup" className="btn-primary mt-4 px-6 py-3">
+              Create an account
+            </Link>
+          </section>
+        )}
       </main>
     );
   }
 
   /* ── Signed-in workspace hub ── */
 
-  if (!projectId && !uploadMode && files.length === 0 && !isLoading && !result) {
+  if (!projectId && files.length === 0 && !isLoading && !result) {
     return <SignedInHome />;
   }
 
@@ -744,7 +735,8 @@ export default function Home() {
       <Breadcrumb
         items={[
           { label: "Workspace", href: "/" },
-          { label: projectId ? "Project synthesis" : "New synthesis" },
+          { label: "Projects", href: "/projects" },
+          { label: "Synthesis" },
         ]}
       />
       <header className="mb-8">
