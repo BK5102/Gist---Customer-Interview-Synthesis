@@ -156,11 +156,11 @@ function SignedInHome() {
       <header className="mb-8">
         <p className="eyebrow">Workspace</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          Customer research workspace
+          Your workspace
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600">
-          Run a synthesis, save it privately with your own password, and come
-          back to project-specific reports without storing plaintext in Gist.
+          Run a synthesis, organize work by project, or return to a report
+          you saved — decrypted with the password you chose at save time.
         </p>
       </header>
 
@@ -170,14 +170,14 @@ function SignedInHome() {
             New synthesis
           </p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-            Upload transcripts or audio, generate a report, then choose whether
-            to save it privately.
+            Upload transcripts or audio files and run a synthesis. Save the
+            report with a password when it's done, or skip it.
           </p>
         </Link>
         <Link href="/projects" className="card card-hover p-5">
           <p className="text-sm font-semibold text-neutral-900">Projects</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-            Organize research rounds and start project-specific syntheses.
+            Group related syntheses by research round or topic.
           </p>
         </Link>
         <Link href="/encrypted" className="card card-hover p-5">
@@ -185,33 +185,36 @@ function SignedInHome() {
             Private saves
           </p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-            Open encrypted reports with the password you chose. Gist never
-            stores that password.
+            Return to a saved report. Decrypt it with the password you set
+            when you saved it.
           </p>
         </Link>
       </section>
 
       <section className="mt-8 rounded-xl border border-neutral-200 bg-neutral-50 p-6">
         <h2 className="text-sm font-semibold text-neutral-900">
-          Private-save flow
+          How private saves work
         </h2>
         <div className="mt-4 grid gap-3 text-xs text-neutral-700 sm:grid-cols-3">
           <div>
-            <p className="font-semibold text-neutral-900">1. Synthesize</p>
+            <p className="font-semibold text-neutral-900">1. Run the synthesis</p>
             <p className="mt-1 leading-relaxed">
-              Generate the report in your active browser session.
+              Keep this tab open while it runs. The report appears here when
+              it's done.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-neutral-900">2. Set password</p>
+            <p className="font-semibold text-neutral-900">2. Set a password</p>
             <p className="mt-1 leading-relaxed">
-              Choose a password for that save. It is not stored by Gist.
+              Pick a password for this save. It's not stored anywhere — if
+              you forget it, the report can't be recovered.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-neutral-900">3. Open privately</p>
+            <p className="font-semibold text-neutral-900">3. Return later</p>
             <p className="mt-1 leading-relaxed">
-              Use the same password to decrypt the save in the browser.
+              Come back and enter your password to decrypt the report in the
+              browser.
             </p>
           </div>
         </div>
@@ -609,19 +612,19 @@ export default function Home() {
         {/* Hero — left-aligned, no decorative elements */}
         <section className="py-16 sm:py-24">
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
-            Synthesize customer interviews.{" "}
-            <span className="text-brand-700">Trace every quote.</span>
+            Read ten interviews at once.{" "}
+            <span className="text-brand-700">Every finding traced to who said it.</span>
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-neutral-600">
-            Upload transcripts or audio. Get themed insights with verified
-            quotes — not AI paraphrases. Save reports privately with
-            browser-side encryption.
+            Upload transcripts or drop audio files. Gist clusters themes across
+            all your interviews and pulls direct quotes — not rewrites. A second
+            pass checks every quote against the source before it reaches you.
           </p>
 
           <p className="mt-4 text-sm font-medium text-neutral-500">
-            Built for founders and product/UX researchers doing customer
-            discovery — not enterprise teams with dedicated research ops.
+            For founders and product researchers who run their own interviews.
+            Not designed for enterprise teams with dedicated research ops.
           </p>
 
           <div className="mt-8 flex gap-3">
@@ -642,43 +645,46 @@ export default function Home() {
 
         {/* Value propositions — asymmetric: lead card spans 2 cols */}
         <section className="border-t border-neutral-200 pt-16">
-          <p className="eyebrow">What Gist does</p>
+          <p className="eyebrow">What it does</p>
           <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-3">
             <div className="bg-white p-6 sm:col-span-2">
               <h3 className="text-sm font-semibold text-neutral-900">
-                Verified quotes
+                Every quote checked against the transcript
               </h3>
               <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-600">
-                Every theme is anchored to a real quote from your transcripts.
-                Hallucinated paraphrases are dropped automatically by a
-                post-processing verification step — not a prompt hint.
+                After generating themes, Gist runs a second pass that checks
+                each quote against the original text verbatim. Quotes that don't
+                appear in the source are dropped, not rewritten. You get fewer
+                quotes, but the ones you see are real.
               </p>
             </div>
             <div className="bg-white p-6">
               <h3 className="text-sm font-semibold text-neutral-900">
-                Private saves
+                Reports encrypted in your browser
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-                Encrypt reports in your browser with a password only you know.
-                Gist never stores that password.
+                The report is encrypted here before it's stored. The password
+                never leaves your device — Gist can't access your saves.
               </p>
             </div>
             <div className="bg-white p-6">
               <h3 className="text-sm font-semibold text-neutral-900">
-                Audio + text
+                Audio files and text transcripts
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-                Drop .mp3, .wav, .m4a files up to 200 MB or paste a transcript.
-                Whisper handles transcription.
+                Accepts .mp3, .wav, .m4a, and .mp4 up to 200 MB. Audio is
+                transcribed via Whisper, then goes through the same pipeline as
+                a text file.
               </p>
             </div>
             <div className="bg-white p-6 sm:col-span-2">
               <h3 className="text-sm font-semibold text-neutral-900">
-                Push to Notion
+                Send the report to Notion
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-                One click sends the synthesis to a database in your Notion
-                workspace. Connect via OAuth or an internal integration token.
+                Pick a database from your Notion workspace and Gist writes the
+                synthesis there as a new page. The connection uses OAuth — no
+                API keys to copy and paste.
               </p>
             </div>
           </div>
@@ -690,10 +696,10 @@ export default function Home() {
           <div className="mt-8 grid gap-6 sm:grid-cols-4">
             {(
               [
-                ["1", "Upload", "Drop transcripts or audio files"],
-                ["2", "Transcribe", "Whisper turns audio into text"],
-                ["3", "Synthesize", "Themes and insights, with quotes"],
-                ["4", "Export", "Copy markdown or push to Notion"],
+                ["1", "Upload", "Add your .txt, .mp3, or .wav files — up to 20 at once"],
+                ["2", "Transcribe", "Audio is transcribed via Whisper before synthesis runs"],
+                ["3", "Synthesize", "Themes are clustered across all participants, each anchored to a direct quote"],
+                ["4", "Export", "Copy the report as markdown or send it to a Notion database"],
               ] as const
             ).map(([n, title, body]) => (
               <div key={n} className="flex gap-3">
@@ -714,10 +720,11 @@ export default function Home() {
         {/* Minimal CTA */}
         <section className="mt-16 border-t border-neutral-200 py-16">
           <p className="text-neutral-600">
-            Set up takes a minute. Your first synthesis is free.
+            Works with transcripts you already have, audio files you haven't
+            had time to review, or both.
           </p>
           <Link href="/signup" className="btn-primary mt-4 px-6 py-3">
-            Create your account
+            Create an account
           </Link>
         </section>
       </main>
@@ -745,8 +752,8 @@ export default function Home() {
           New synthesis
         </h1>
         <p className="mt-1 text-sm text-neutral-600">
-          Drop transcripts or audio. Get themed synthesis with traceable
-          quotes.
+          Add one or more transcripts or audio files. Gist clusters themes
+          across all of them and pulls a verbatim quote from each.
         </p>
       </header>
 
@@ -1052,15 +1059,15 @@ export default function Home() {
               Save privately
             </p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-              Choose a password for this save. Encryption happens in this
-              browser and the password is never stored or sent to Gist.
+              The report is encrypted in your browser before being stored. The
+              password stays on your device — Gist never sees it.
             </p>
             <div className="mt-3 grid gap-3">
               <input
                 type="text"
                 value={privateSaveTitle}
                 onChange={(e) => setPrivateSaveTitle(e.target.value)}
-                placeholder="Save title - e.g. Pricing interviews"
+                placeholder="Title — e.g. Pricing interviews, May 2026"
                 className="input"
               />
               <div className="grid gap-3 sm:grid-cols-2">
