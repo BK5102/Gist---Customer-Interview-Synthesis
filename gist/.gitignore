@@ -56,8 +56,6 @@ desktop.ini
 *.swp
 *.swo
 
-# Local-only Codex memory
-PROMPT.md
 
 # Logs
 *.log
