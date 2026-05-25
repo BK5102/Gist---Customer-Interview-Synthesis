@@ -9,7 +9,7 @@ from typing import Any
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from auth.supabase_client import require_auth
 from db import (
@@ -95,10 +95,13 @@ async def add_security_headers(request, call_next):
 JOBS: dict[str, dict[str, Any]] = {}
 SYNTH_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
 NOTION_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
+PROJECT_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
 ACTIVE_JOB_STATUSES = {"queued", "transcribing", "extracting", "clustering", "insights"}
 
 MAX_NOTION_CALLS_PER_WINDOW = int(os.environ.get("MAX_NOTION_CALLS_PER_WINDOW", "20"))
 NOTION_RATE_WINDOW_SECONDS = int(os.environ.get("NOTION_RATE_WINDOW_SECONDS", "60"))
+MAX_PROJECTS_PER_WINDOW = int(os.environ.get("MAX_PROJECTS_PER_WINDOW", "10"))
+PROJECT_RATE_WINDOW_SECONDS = int(os.environ.get("PROJECT_RATE_WINDOW_SECONDS", "600"))
 
 
 def _is_production() -> bool:
@@ -155,6 +158,17 @@ def _enforce_synthesis_limits(user_id: str) -> None:
             429,
             "You already have synthesis jobs running. Wait for one to finish before starting another.",
         )
+    attempts.append(now)
+
+
+def _enforce_project_limits(user_id: str) -> None:
+    now = time.time()
+    window_start = now - PROJECT_RATE_WINDOW_SECONDS
+    attempts = PROJECT_RATE_LIMITS[user_id]
+    while attempts and attempts[0] < window_start:
+        attempts.popleft()
+    if len(attempts) >= MAX_PROJECTS_PER_WINDOW:
+        raise HTTPException(429, "Too many project creation requests. Please wait a few minutes and try again.")
     attempts.append(now)
 
 
@@ -553,7 +567,7 @@ def _run_pipeline(
 
 # ─── projects API ───────────────────────────────────────────────────────────
 class CreateProjectRequest(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=200)
 
 
 @app.get("/projects")
@@ -570,6 +584,7 @@ def create_project_endpoint(
 ) -> dict[str, Any]:
     if not db_available():
         raise HTTPException(503, "Database not configured")
+    _enforce_project_limits(user_id)
     return create_project(user_id, body.name)
 
 
