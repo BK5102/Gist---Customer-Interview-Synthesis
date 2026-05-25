@@ -998,13 +998,15 @@ export default function Home() {
             })}
           </ol>
 
-          <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5">
-            <p className="text-xs font-medium text-neutral-700">
-              Keep this tab open — results will appear here automatically.
+          <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
+            <p className="text-xs font-semibold text-neutral-800">
+              You can switch to another tab — just don't close this one.
             </p>
-            <p className="mt-0.5 text-xs text-neutral-500">
-              This takes a few minutes. Text files are near-instant; audio adds
-              roughly 1 min of processing per 5 min of recording.
+            <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+              The synthesis runs in the background. Results will load here
+              automatically when it's done. Text files usually finish in under
+              a minute; audio takes roughly 1 minute of processing per 5
+              minutes of recording.
             </p>
           </div>
         </div>
