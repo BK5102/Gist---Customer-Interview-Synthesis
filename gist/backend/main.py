@@ -355,20 +355,19 @@ async def synthesize(
             }
         )
 
-    # Resolve or create project.
+    # Resolve project — project_id is required when the DB is available.
     if db_available():
-        if project_id:
-            proj = get_project(user_id, project_id)
-            if not proj:
-                raise HTTPException(
-                    404, f"Project {project_id} not found or access denied"
-                )
-            resolved_project_id = project_id
-        else:
-            first_name = prepared[0]["filename"]
-            proj_name = f"Synthesis {first_name}"
-            proj = create_project(user_id, proj_name)
-            resolved_project_id = proj["id"]
+        if not project_id:
+            raise HTTPException(
+                400,
+                "project_id is required. Create a project first at /projects.",
+            )
+        proj = get_project(user_id, project_id)
+        if not proj:
+            raise HTTPException(
+                404, f"Project {project_id} not found or access denied"
+            )
+        resolved_project_id = project_id
     else:
         resolved_project_id = project_id or ""
 

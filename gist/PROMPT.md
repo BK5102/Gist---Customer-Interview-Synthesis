@@ -24,7 +24,7 @@ output. Built for solo founders doing customer discovery.
 - Backend API: https://gist-backend-production-ab73.up.railway.app
 - GitHub: https://github.com/BK5102/Gist---Customer-Interview-Synthesis
 
-**Latest pushed commit:** `a175406` (`ux: clarify tab-open requirement during synthesis`)
+**Latest pushed commit:** (local — projects page synthesis list + project-name bug fix)
 
 ---
 
@@ -161,7 +161,8 @@ Same three as `frontend/.env.local` but with
 | Design reset | Replaced vibe-coded design (violet gradients, floating orbs, glass-blur, staggered animations) with editorial/precise direction: near-black buttons, deep teal accent, border-defined surfaces, left-aligned hero, direct copy | ✅ |
 | UX improvements | Breadcrumbs on all inner pages, "keep tab open" synthesis messaging, "built for founders" landing copy, defensive JSON rendering | ✅ |
 | Security hardening | IDOR fixes in db.py, per-user rate limiting on synthesis/Notion/project-create endpoints, RLS tightened to SELECT-only on all four tables, project name length validation | ✅ |
-| UX rework | Project-first flow enforced (synthesis always requires a project), workspace hub redesigned (2-col, no standalone New synthesis), copy rewrite across page.tsx, tab-open messaging clarified | ✅ Current |
+| UX rework | Project-first flow enforced (synthesis always requires a project), workspace hub redesigned (2-col, no standalone New synthesis), copy rewrite across page.tsx, tab-open messaging clarified | ✅ |
+| Projects page v2 | Each project card now lists its synthesis runs (date-labeled, linked to `/syntheses/{id}`) and a one-liner pointing to Private saves. Backend: removed auto-create fallback that named projects after synthesis filenames — `project_id` is now required by `/synthesize` when DB is available. | ✅ Current |
 | Phase 4 | Real users, iterate on feedback | ⏳ Open |
 
 ---
@@ -279,6 +280,8 @@ npm run dev
 19. **Per-user rate limiting via in-memory sliding window** — `defaultdict(deque)` per endpoint category. Synthesis: 5/10min, max 2 concurrent. Notion proxy: 20/60s. Project creation: 10/10min. All configurable via env vars.
 20. **RLS is SELECT-only on backend-owned tables** — `syntheses`, `transcripts`, `projects`, and `notion_connections` use `FOR SELECT` policies. The backend service-role key handles all writes; client JWTs can only read their own rows. `encrypted_artifacts` retains `FOR ALL` with `WITH CHECK` because the browser writes directly to Supabase.
 21. **Project-first synthesis flow** — synthesis always requires a `?project=<id>` context. Visiting `/?upload=1` without a project falls through to the workspace hub. The standalone "New synthesis" entry point has been removed. Flow: Projects → pick or create project → New synthesis (per-project row action).
+22. **Projects page synthesis list** — each project card fetches its syntheses in parallel via `GET /projects/{id}` and displays them as clickable date-labeled rows linking to `/syntheses/{id}`. A one-liner at the bottom of each card directs users to Private saves for encrypted reports. `syntheses` are only shown when `STORE_PLAINTEXT_SYNTHESES=true`; the Private saves hint always shows.
+23. **Project auto-naming removed** — `/synthesize` now returns 400 if `project_id` is missing when the DB is available, instead of auto-creating a project named `"Synthesis {filename}"`. This was the root cause of some projects showing synthesis filenames as their names.
 
 ---
 
@@ -363,6 +366,7 @@ Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (harden
 31. **Project-first flow enforced + workspace redesigned** — synthesis now always requires a project; `?upload=1` without project falls through to hub; workspace hub redesigned (2-col, removed New synthesis card, how-it-works updated to project → synthesis → save flow); landing Create account CTA hidden for signed-in users; secondary hero button changed to "Go to projects"; freestanding New synthesis button removed from projects page header. Committed `145b37d`.
 32. **Tab-open synthesis messaging** — clarified that user can switch tabs, just not close this one. Lead with permission, pair with constraint. Committed `a175406`.
 33. **PROMPT.md updated and committed to repo** — removed from `.gitignore`, updated to reflect all changes from sessions 28-32.
+34. **Projects page synthesis list + project-name bug** — projects page now fetches and displays synthesis runs per project (date-labeled, linked to `/syntheses/{id}`), with a one-liner pointing to Private saves. Backend: removed auto-create fallback (`"Synthesis {filename}"` project names) — `/synthesize` now returns 400 if no `project_id` when DB is available.
 
 ---
 

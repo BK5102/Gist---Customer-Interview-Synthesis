@@ -7,10 +7,17 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+type Synthesis = {
+  id: string;
+  created_at: string;
+  transcript_ids: string[] | null;
+};
+
 type Project = {
   id: string;
   name: string;
   created_at: string;
+  syntheses?: Synthesis[];
 };
 
 export default function ProjectsPage() {
@@ -37,7 +44,23 @@ export default function ProjectsPage() {
         return;
       }
       const data = (await res.json()) as Project[];
-      setProjects(data);
+
+      // Fetch syntheses for all projects in parallel
+      const withSyntheses = await Promise.all(
+        data.map(async (proj) => {
+          try {
+            const dr = await fetch(`${API_URL}/projects/${proj.id}`, {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (!dr.ok) return { ...proj, syntheses: [] };
+            const detail = await dr.json();
+            return { ...proj, syntheses: (detail.syntheses ?? []) as Synthesis[] };
+          } catch {
+            return { ...proj, syntheses: [] };
+          }
+        })
+      );
+      setProjects(withSyntheses);
     } catch {
       setProjects([]);
     } finally {
@@ -138,7 +161,7 @@ export default function ProjectsPage() {
         <ul className="space-y-3">
           {projects.map((proj) => (
             <li key={proj.id}>
-              <div className="card card-hover p-5">
+              <div className="card p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h2 className="text-sm font-semibold text-neutral-900">
@@ -162,6 +185,49 @@ export default function ProjectsPage() {
                       Private saves
                     </Link>
                   </div>
+                </div>
+
+                <div className="mt-4 border-t border-neutral-100 pt-4">
+                  {proj.syntheses && proj.syntheses.length > 0 ? (
+                    <>
+                      <p className="mb-2 text-xs font-medium text-neutral-500">
+                        Syntheses
+                      </p>
+                      <ul className="space-y-0.5">
+                        {proj.syntheses.map((synth) => (
+                          <li key={synth.id}>
+                            <Link
+                              href={`/syntheses/${synth.id}`}
+                              className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs text-neutral-700 transition-colors hover:bg-neutral-50"
+                            >
+                              <span>
+                                {new Date(synth.created_at).toLocaleDateString(
+                                  "en-US",
+                                  { month: "short", day: "numeric", year: "numeric" }
+                                )}{" "}
+                                synthesis
+                              </span>
+                              <span className="text-neutral-400">
+                                {synth.transcript_ids?.length ?? 0} transcript
+                                {(synth.transcript_ids?.length ?? 0) === 1 ? "" : "s"}{" "}
+                                →
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                  <p className="mt-2 text-xs text-neutral-500">
+                    Password-encrypted synthesis reports are in{" "}
+                    <Link
+                      href={`/encrypted?project=${proj.id}`}
+                      className="text-brand-700 underline underline-offset-2"
+                    >
+                      Private saves
+                    </Link>
+                    .
+                  </p>
                 </div>
               </div>
             </li>
