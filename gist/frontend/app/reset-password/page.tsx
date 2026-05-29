@@ -32,8 +32,16 @@ export default function ResetPasswordPage() {
     setError(null);
     setMessage(null);
 
-    if (password.length < 12) {
-      setError("Use at least 12 characters.");
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must include at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setError("Password must include at least one lowercase letter.");
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setError("Password must include at least one special character.");
       return;
     }
     if (password !== confirmPassword) {
@@ -76,10 +84,9 @@ export default function ResetPasswordPage() {
             <input
               type="password"
               required
-              minLength={12}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 12 characters"
+              placeholder="Uppercase, lowercase, special character"
               className="input mt-1.5"
               autoComplete="new-password"
               disabled={checkingSession}
@@ -90,7 +97,6 @@ export default function ResetPasswordPage() {
             <input
               type="password"
               required
-              minLength={12}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repeat new password"

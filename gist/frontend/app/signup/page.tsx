@@ -13,10 +13,21 @@ export default function SignupPage() {
 
   const supabase = createClient();
 
+  const validatePassword = (pw: string): string | null => {
+    if (!/[A-Z]/.test(pw)) return "Password must include at least one uppercase letter.";
+    if (!/[a-z]/.test(pw)) return "Password must include at least one lowercase letter.";
+    if (!/[^A-Za-z0-9]/.test(pw)) return "Password must include at least one special character.";
+    return null;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
+
+    const pwError = validatePassword(password);
+    if (pwError) { setError(pwError); return; }
+
     setLoading(true);
 
     const emailRedirectTo = `${window.location.origin}/auth/callback?next=/projects`;
@@ -76,10 +87,9 @@ export default function SignupPage() {
             <input
               type="password"
               required
-              minLength={12}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 12 characters"
+              placeholder="Uppercase, lowercase, special character"
               className="input mt-1.5"
               autoComplete="new-password"
             />

@@ -519,8 +519,16 @@ export default function Home() {
     const title =
       privateSaveTitle.trim() ||
       `Synthesis - ${new Date().toLocaleDateString()}`;
-    if (password.length < 12) {
-      setSaveError("Use a password with at least 12 characters.");
+    if (!/[A-Z]/.test(password)) {
+      setSaveError("Password must include at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setSaveError("Password must include at least one lowercase letter.");
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setSaveError("Password must include at least one special character.");
       return;
     }
     if (password !== privateSavePasswordConfirm) {
@@ -1089,7 +1097,9 @@ export default function Home() {
                 onClick={saveEncrypted}
                 disabled={
                   isSavingEncrypted ||
-                  privateSavePassword.length < 12 ||
+                  !/[A-Z]/.test(privateSavePassword) ||
+                  !/[a-z]/.test(privateSavePassword) ||
+                  !/[^A-Za-z0-9]/.test(privateSavePassword) ||
                   privateSavePassword !== privateSavePasswordConfirm
                 }
                 className="btn-primary text-xs"
