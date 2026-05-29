@@ -5,6 +5,7 @@ export const PASSWORD_RULES: { label: string; test: (pw: string) => boolean }[] 
   { label: "Uppercase letter", test: (pw) => /[A-Z]/.test(pw) },
   { label: "Lowercase letter", test: (pw) => /[a-z]/.test(pw) },
   { label: "Special character", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
+  { label: "Number",            test: (pw) => /[0-9]/.test(pw) },
 ];
 
 export function validatePassword(pw: string): string | null {
@@ -14,6 +15,8 @@ export function validatePassword(pw: string): string | null {
     return "Password must include at least one lowercase letter.";
   if (!/[^A-Za-z0-9]/.test(pw))
     return "Password must include at least one special character.";
+  if (!/[0-9]/.test(pw))
+    return "Password must include at least one number.";
   return null;
 }
 

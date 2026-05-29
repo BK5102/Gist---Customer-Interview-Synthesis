@@ -586,14 +586,11 @@ export default function Home() {
   const estMinutes = totalEstimateMinutes(files);
   const hasAudio = audioFiles.length > 0;
 
-  const strength: 0 | 1 | 2 | 3 | 4 = (() => {
-    if (!privateSavePassword) return 0;
-    const passed = PASSWORD_RULES.filter((r) => r.test(privateSavePassword)).length;
-    if (passed <= 1) return 1;
-    if (passed === 2) return 2;
-    if (passed === 3 && privateSavePassword.length < 12) return 3;
-    return 4;
-  })();
+  const strength = (
+    !privateSavePassword
+      ? 0
+      : PASSWORD_RULES.filter((r) => r.test(privateSavePassword)).length
+  ) as 0 | 1 | 2 | 3 | 4;
 
   if (authLoading) {
     return (
