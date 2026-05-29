@@ -5,7 +5,7 @@ Claude Code session along with the repo and resume work without losing
 context.
 
 > If this file disagrees with the actual repo state, trust the repo.
-> Treat this as a snapshot from 2026-05-24.
+> Treat this as a snapshot from 2026-05-28.
 > Going forward, keep this file up to date whenever meaningful product,
 > architecture, deployment, security, or growth changes are made. Bhavana
 > wants to use this file to recreate Gist or a similar app in the future.
@@ -24,7 +24,7 @@ output. Built for solo founders doing customer discovery.
 - Backend API: https://gist-backend-production-ab73.up.railway.app
 - GitHub: https://github.com/BK5102/Gist---Customer-Interview-Synthesis
 
-**Latest pushed commit:** (local — projects page synthesis list + project-name bug fix)
+**Latest pushed commit:** `f2dd946` — security hardening audit (10 fixes)
 
 ---
 
@@ -109,6 +109,8 @@ SUPABASE_URL=https://<ref>.supabase.co     # bare URL — NO /rest/v1/ suffix
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SUPABASE_JWT_SECRET=<86-char legacy secret>
 NOTION_INTERNAL_TOKEN=ntn_...              # OR NOTION_CLIENT_ID + NOTION_CLIENT_SECRET + NOTION_REDIRECT_URI
+NOTION_TOKEN_ENCRYPTION_KEY=...           # REQUIRED in prod — Fernet key for encrypting Notion tokens at rest
+                                          # Generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 CORS_ORIGINS=http://localhost:3000         # local-only default
 STORE_TRANSCRIPTS=false                    # prod default
 ENABLE_SYNTH_CACHE=false                   # prod default
@@ -162,7 +164,8 @@ Same three as `frontend/.env.local` but with
 | UX improvements | Breadcrumbs on all inner pages, "keep tab open" synthesis messaging, "built for founders" landing copy, defensive JSON rendering | ✅ |
 | Security hardening | IDOR fixes in db.py, per-user rate limiting on synthesis/Notion/project-create endpoints, RLS tightened to SELECT-only on all four tables, project name length validation | ✅ |
 | UX rework | Project-first flow enforced (synthesis always requires a project), workspace hub redesigned (2-col, no standalone New synthesis), copy rewrite across page.tsx, tab-open messaging clarified | ✅ |
-| Projects page v2 | Each project card now lists its synthesis runs (date-labeled, linked to `/syntheses/{id}`) and a one-liner pointing to Private saves. Backend: removed auto-create fallback that named projects after synthesis filenames — `project_id` is now required by `/synthesize` when DB is available. | ✅ Current |
+| Projects page v2 | Each project card now lists its synthesis runs (date-labeled, linked to `/syntheses/{id}`) and a one-liner pointing to Private saves. Backend: removed auto-create fallback that named projects after synthesis filenames — `project_id` is now required by `/synthesize` when DB is available. | ✅ |
+| Security audit | Full OWASP audit + 10 fixes: exception internals no longer reach clients; NOTION_TOKEN_ENCRYPTION_KEY documented; FastAPI docs disabled in prod; HSTS added; CORS tightened; auth callback `next` param validated; PBKDF2 raised to 600K iterations; Notion OAuth cancel redirects to UI; N+1 project fetches replaced with single request; job pruning on every poll. | ✅ Current |
 | Phase 4 | Real users, iterate on feedback | ⏳ Open |
 
 ---
@@ -280,8 +283,15 @@ npm run dev
 19. **Per-user rate limiting via in-memory sliding window** — `defaultdict(deque)` per endpoint category. Synthesis: 5/10min, max 2 concurrent. Notion proxy: 20/60s. Project creation: 10/10min. All configurable via env vars.
 20. **RLS is SELECT-only on backend-owned tables** — `syntheses`, `transcripts`, `projects`, and `notion_connections` use `FOR SELECT` policies. The backend service-role key handles all writes; client JWTs can only read their own rows. `encrypted_artifacts` retains `FOR ALL` with `WITH CHECK` because the browser writes directly to Supabase.
 21. **Project-first synthesis flow** — synthesis always requires a `?project=<id>` context. Visiting `/?upload=1` without a project falls through to the workspace hub. The standalone "New synthesis" entry point has been removed. Flow: Projects → pick or create project → New synthesis (per-project row action).
-22. **Projects page synthesis list** — each project card fetches its syntheses in parallel via `GET /projects/{id}` and displays them as clickable date-labeled rows linking to `/syntheses/{id}`. A one-liner at the bottom of each card directs users to Private saves for encrypted reports. `syntheses` are only shown when `STORE_PLAINTEXT_SYNTHESES=true`; the Private saves hint always shows.
+22. **Projects page synthesis list** — each project card loads syntheses via `GET /projects?include_syntheses=true` (single request) and displays them as clickable date-labeled rows linking to `/syntheses/{id}`. A one-liner at the bottom of each card directs users to Private saves for encrypted reports.
 23. **Project auto-naming removed** — `/synthesize` now returns 400 if `project_id` is missing when the DB is available, instead of auto-creating a project named `"Synthesis {filename}"`. This was the root cause of some projects showing synthesis filenames as their names.
+24. **PBKDF2 iterations at 600K** — NIST SP 800-132 (2023) minimum for SHA-256. Old saves decrypt correctly because each record stores its own `iterations` value; new saves get 600K. The password that protects research data is never stored anywhere.
+25. **N+1 projects/syntheses fetch eliminated** — `GET /projects?include_syntheses=true` returns all projects with their syntheses in one round trip. The backend loops the same `get_syntheses_for_project` calls; no new query.
+26. **Job pruning on every `GET /jobs/{id}` poll** — `_prune_jobs()` runs on each poll, not only when a new synthesis is submitted. Prevents stale jobs accumulating in memory between synthesis sessions.
+27. **CORS locked to explicit headers** — `allow_headers` is `["Authorization", "Content-Type"]` (not `"*"`); `allow_methods` includes `DELETE` for the Notion disconnect route.
+28. **FastAPI docs disabled in production** — `/docs`, `/redoc`, `/openapi.json` are `None` when `APP_ENV=production` or `RAILWAY_ENVIRONMENT=production`. Available in dev.
+29. **Auth error internals hidden from clients** — pipeline crash exceptions are logged server-side (`logging.getLogger("gist").exception(...)`) and return a generic `"An unexpected error occurred"` message to the polling client. Auth module exceptions return `"Authentication failed"` without the httpx/jwt error string.
+30. **Auth callback `next` param restricted to relative paths** — `next` must match `/[^/].*` or be `/` exactly; `//evil.com` or absolute URLs are silently replaced with `/`.
 
 ---
 
@@ -301,20 +311,27 @@ Security is part of the product, not just infrastructure.
 - Raw transcripts not persisted by default (`STORE_TRANSCRIPTS=false`).
 - Synthesis cache disabled by default (`ENABLE_SYNTH_CACHE=false`).
 - Plaintext synthesis persistence disabled by default (`STORE_PLAINTEXT_SYNTHESES=false`).
-- Browser-side AES-GCM encrypted private saves: password never leaves the device.
+- Browser-side AES-GCM-256 encrypted private saves; PBKDF2-SHA256 at 600K iterations; password never leaves the device.
 - Notion OAuth uses single-use CSRF nonces (`oauth_states` table).
-- Notion access tokens encrypted at rest with Fernet when `NOTION_TOKEN_ENCRYPTION_KEY` is set.
-- CORS restricted to configured origins.
-- Baseline security headers on both backend and frontend.
+- Notion access tokens encrypted at rest with Fernet when `NOTION_TOKEN_ENCRYPTION_KEY` is set. Key is documented in `.env.example`.
+- CORS restricted to configured origins; explicit `allow_headers` list.
+- HSTS (`max-age=63072000; includeSubDomains`) added in production.
+- FastAPI docs disabled in production (`/docs`, `/redoc`, `/openapi.json` return 404).
+- Exception internals never reach clients — logged server-side only.
+- Auth callback `next` param validated to relative paths only.
+- Frontend CSP set in `next.config.mjs` (includes `'unsafe-inline'` — nonce-based tightening is a future item).
 
 **Trust gaps remaining:**
 
 - No public `/security` or `/privacy` page.
 - No deletion/retention controls for projects, syntheses, or encrypted artifacts.
 - No event logging wired (analytics `events` table exists but no writes yet).
-- Audio/video sent to Groq or OpenAI for transcription.
-- Transcript text and themes sent to Anthropic.
+- Audio/video sent to Groq or OpenAI for transcription (third-party data processor).
+- Transcript text and themes sent to Anthropic (third-party data processor).
 - In-memory job store resets on backend restart (jobs lost).
+- `NOTION_TOKEN_ENCRYPTION_KEY` not yet set in Railway production — Notion tokens stored plaintext until set. Reconnect required after setting the key.
+- `requirements.txt` dependency versions unpinned — no CVE scanning in CI.
+- No test suite or CI/CD pipeline.
 
 **Raw transcript privacy rule (production must enforce):**
 
@@ -336,6 +353,11 @@ dd380aa  security: rate limit project creation, tighten projects/connections RLS
 85a1669  copy: rewrite page.tsx strings for clarity and specificity
 145b37d  ux: enforce project-first flow, fix signed-in landing CTA
 a175406  ux: clarify tab-open requirement during synthesis
+5d078db  design: spacing, typography, and shadow polish pass
+1ef90dd  ux: add minimum 6-character rule to password requirements
+9b39c03  ux: add number rule to password requirements
+c483194  ux: interactive password UI on private save — checklist, strength bar, match indicator, show/hide
+f2dd946  security: harden auth, headers, CORS, encryption, and error handling  ← HEAD
 ```
 
 Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (hardening + polish).
@@ -367,17 +389,22 @@ Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (harden
 32. **Tab-open synthesis messaging** — clarified that user can switch tabs, just not close this one. Lead with permission, pair with constraint. Committed `a175406`.
 33. **PROMPT.md updated and committed to repo** — removed from `.gitignore`, updated to reflect all changes from sessions 28-32.
 34. **Projects page synthesis list + project-name bug** — projects page now fetches and displays synthesis runs per project (date-labeled, linked to `/syntheses/{id}`), with a one-liner pointing to Private saves. Backend: removed auto-create fallback (`"Synthesis {filename}"` project names) — `/synthesize` now returns 400 if no `project_id` when DB is available.
+35. **Full OWASP security audit + 10 fixes** — ran `/vibe-app-security-audit`. Findings across all 5 audit steps. Fixed in commit `f2dd946`: exception internals hidden from clients (logged server-side), NOTION_TOKEN_ENCRYPTION_KEY documented in .env.example with gen command, FastAPI docs disabled in prod, HSTS added to backend, CORS allow_headers tightened + DELETE added, auth callback `next` param validated to relative paths, PBKDF2 raised to 600K iterations (NIST 2023), Notion OAuth cancel redirects to frontend UI, N+1 projects/syntheses fetch replaced with single `GET /projects?include_syntheses=true`, job pruning on every poll, reflected URL `message` param removed from login page. Remaining: pin requirements.txt, add CI/CD + CVE scanning, nonce-based CSP, test suite.
 
 ---
 
 ## 12. Open / next steps
 
 - **(A) Security/trust hardening — remaining items**
+  - **Generate `NOTION_TOKEN_ENCRYPTION_KEY`, set in Railway, reconnect Notion** — until this is done, Notion OAuth tokens sit in plaintext in Supabase
+  - **Pin `requirements.txt` versions** — use `pip freeze` or `uv lock`; prevents silent CVE regressions on every Railway deploy
+  - **Add GitHub Actions CI** — lint, `pip-audit`, `npm audit --audit-level=high`, build check; skeleton is in the audit report
+  - **Add security test suite** — auth/401 checks, job ownership isolation, file-type validation; skeleton is in the audit report
+  - **Nonce-based CSP** — remove `'unsafe-inline'` from `script-src` via Next.js middleware nonce injection
   - Add `/security` or `/privacy` page with honest data-flow disclosure
   - Add visible beta warning near upload for confidential/regulated data
   - Add delete controls for projects, syntheses, encrypted artifacts, and Notion connection
   - Add event logging for synthesis/private-save/notion/copy actions
-  - Configure `NOTION_TOKEN_ENCRYPTION_KEY` in production; rotate/reconnect old tokens
   - Consider Postgres-backed job store for restart durability
 - **(B) Custom domain** — buy `gist.tld`, point at Vercel via DNS.
 - **(C) Phase 4 real users** — recruit first 5-10 users manually with redacted/synthetic transcripts. Lead with "private-by-default synthesis with traceable quotes."
