@@ -1,4 +1,4 @@
-const DEFAULT_ITERATIONS = 310000;
+const DEFAULT_ITERATIONS = 600000;
 
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";

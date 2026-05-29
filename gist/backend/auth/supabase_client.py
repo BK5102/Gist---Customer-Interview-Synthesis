@@ -139,7 +139,9 @@ def verify_token(token: str) -> dict[str, Any]:
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Auth error: {e}") from e
+        import logging
+        logging.getLogger("gist").exception("Auth verification error")
+        raise HTTPException(status_code=401, detail="Authentication failed") from e
 
 
 async def require_auth(request: Request) -> str:

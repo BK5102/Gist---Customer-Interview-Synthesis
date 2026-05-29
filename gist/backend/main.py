@@ -65,13 +65,20 @@ _cors_env = os.environ.get(
 )
 CORS_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
 
-app = FastAPI(title="Gist — Interview Synthesis API", version="0.1.0")
+_prod = _is_production()
+app = FastAPI(
+    title="Gist — Interview Synthesis API",
+    version="0.1.0",
+    docs_url=None if _prod else "/docs",
+    redoc_url=None if _prod else "/redoc",
+    openapi_url=None if _prod else "/openapi.json",
+)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
@@ -85,6 +92,11 @@ async def add_security_headers(request, call_next):
         "Permissions-Policy",
         "camera=(), microphone=(), geolocation=(), payment=()",
     )
+    if _is_production():
+        response.headers.setdefault(
+            "Strict-Transport-Security",
+            "max-age=63072000; includeSubDomains",
+        )
     return response
 
 
@@ -404,6 +416,7 @@ def get_job(
     job_id: str,
     user_id: str = Depends(require_auth),
 ) -> JobStatusResponse:
+    _prune_jobs()
     job = JOBS.get(job_id)
     if not job:
         raise HTTPException(404, f"Unknown job id: {job_id}")
@@ -557,10 +570,12 @@ def _run_pipeline(
             },
         )
     except Exception as e:  # last-resort: keep job dict consistent
+        import logging
+        logging.getLogger("gist").exception("Pipeline crashed for job %s", job_id)
         _set_job(
             job_id,
             status="error",
-            error=f"Pipeline crashed: {e!r}",
+            error="An unexpected error occurred. Please try again.",
         )
 
 
@@ -570,10 +585,17 @@ class CreateProjectRequest(BaseModel):
 
 
 @app.get("/projects")
-def list_projects(user_id: str = Depends(require_auth)) -> list[dict[str, Any]]:
+def list_projects(
+    user_id: str = Depends(require_auth),
+    include_syntheses: bool = False,
+) -> list[dict[str, Any]]:
     if not db_available():
         raise HTTPException(503, "Database not configured")
-    return get_projects(user_id)
+    projects = get_projects(user_id)
+    if include_syntheses:
+        for proj in projects:
+            proj["syntheses"] = get_syntheses_for_project(user_id, proj["id"])
+    return projects
 
 
 @app.post("/projects", status_code=201)
@@ -727,7 +749,11 @@ def notion_callback(
     error: str | None = None,
 ) -> Any:
     if error:
-        return {"error": error}
+        from fastapi.responses import RedirectResponse as _RR
+        return _RR(
+            f"{_frontend_settings_url()}?notion_error={error}",
+            status_code=302,
+        )
     if not code or not state:
         raise HTTPException(400, "Missing code or state")
 

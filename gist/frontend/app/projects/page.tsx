@@ -36,7 +36,7 @@ export default function ProjectsPage() {
         window.location.href = "/login";
         return;
       }
-      const res = await fetch(`${API_URL}/projects`, {
+      const res = await fetch(`${API_URL}/projects?include_syntheses=true`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (!res.ok) {
@@ -44,23 +44,7 @@ export default function ProjectsPage() {
         return;
       }
       const data = (await res.json()) as Project[];
-
-      // Fetch syntheses for all projects in parallel
-      const withSyntheses = await Promise.all(
-        data.map(async (proj) => {
-          try {
-            const dr = await fetch(`${API_URL}/projects/${proj.id}`, {
-              headers: { Authorization: `Bearer ${session.access_token}` },
-            });
-            if (!dr.ok) return { ...proj, syntheses: [] };
-            const detail = await dr.json();
-            return { ...proj, syntheses: (detail.syntheses ?? []) as Synthesis[] };
-          } catch {
-            return { ...proj, syntheses: [] };
-          }
-        })
-      );
-      setProjects(withSyntheses);
+      setProjects(data);
     } catch {
       setProjects([]);
     } finally {

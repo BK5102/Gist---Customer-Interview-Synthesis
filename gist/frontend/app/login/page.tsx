@@ -15,11 +15,8 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlError = params.get("error");
-    const message = params.get("message");
     if (urlError === "auth_callback_failed") {
       setError("That sign-in link could not be completed. Please try again.");
-    } else if (message) {
-      setError(message);
     }
   }, []);
 
