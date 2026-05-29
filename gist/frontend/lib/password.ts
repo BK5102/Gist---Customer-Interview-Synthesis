@@ -2,13 +2,16 @@ export const PASSWORD_HINT =
   "Must include uppercase, lowercase, and a special character.";
 
 export const PASSWORD_RULES: { label: string; test: (pw: string) => boolean }[] = [
-  { label: "Uppercase letter", test: (pw) => /[A-Z]/.test(pw) },
-  { label: "Lowercase letter", test: (pw) => /[a-z]/.test(pw) },
-  { label: "Special character", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
-  { label: "Number",            test: (pw) => /[0-9]/.test(pw) },
+  { label: "At least 6 characters", test: (pw) => pw.length >= 6 },
+  { label: "Uppercase letter",      test: (pw) => /[A-Z]/.test(pw) },
+  { label: "Lowercase letter",      test: (pw) => /[a-z]/.test(pw) },
+  { label: "Special character",     test: (pw) => /[^A-Za-z0-9]/.test(pw) },
+  { label: "Number",                test: (pw) => /[0-9]/.test(pw) },
 ];
 
 export function validatePassword(pw: string): string | null {
+  if (pw.length < 6)
+    return "Password must be at least 6 characters.";
   if (!/[A-Z]/.test(pw))
     return "Password must include at least one uppercase letter.";
   if (!/[a-z]/.test(pw))
