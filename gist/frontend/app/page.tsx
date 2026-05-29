@@ -113,7 +113,7 @@ const FileStatusBadge = ({ status }: { status: FileProgressItem["status"] }) => 
       );
     case "extracting":
       return (
-        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+        <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-700">
           Extracting…
         </span>
       );
@@ -702,7 +702,7 @@ export default function Home() {
               ] as const
             ).map(([n, title, body]) => (
               <div key={n} className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-medium text-white">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white">
                   {n}
                 </span>
                 <div>
@@ -776,7 +776,7 @@ export default function Home() {
             ${isLoading ? "opacity-50" : ""}
           `}
         >
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-zinc-900 text-white">
+          <div className="grid h-12 w-12 place-items-center rounded-xl bg-neutral-900 text-white">
             <svg
               className="h-5 w-5"
               viewBox="0 0 24 24"
@@ -994,7 +994,7 @@ export default function Home() {
                   <span
                     className={`grid h-4 w-4 place-items-center rounded-full text-[8px] transition-colors ${
                       active
-                        ? "bg-zinc-900 text-white"
+                        ? "bg-neutral-900 text-white"
                         : reached
                           ? "bg-neutral-300 text-neutral-700"
                           : "bg-neutral-200 text-neutral-400"

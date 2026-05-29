@@ -20,13 +20,13 @@ async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-neutral-200 bg-white shadow-sm">
+    <nav className="sticky top-0 z-40 border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
         <Link
           href={user ? "/?landing=1" : "/"}
           className="flex items-center gap-2 text-lg font-semibold tracking-tight"
         >
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-zinc-900 text-white">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-neutral-900 text-white">
             <span className="text-sm font-bold leading-none">G</span>
           </span>
           <span className="text-neutral-900">Gist</span>

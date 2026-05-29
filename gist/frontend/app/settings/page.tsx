@@ -151,7 +151,7 @@ export default function SettingsPage() {
           Account
         </h2>
         <div className="mt-3 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-zinc-900 text-sm font-semibold text-white">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
             {user?.email?.[0]?.toUpperCase() ?? "?"}
           </span>
           <p className="text-sm text-neutral-800">

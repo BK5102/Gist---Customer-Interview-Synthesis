@@ -39,10 +39,10 @@
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg
-           bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white
+           bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white
            transition-colors duration-150
-           hover:bg-zinc-800
-           active:bg-zinc-950
+           hover:bg-neutral-800
+           active:bg-neutral-950
            disabled:cursor-not-allowed disabled:opacity-50;
   }
 
@@ -64,11 +64,11 @@
   }
 
   .card {
-    @apply rounded-xl border border-neutral-200 bg-white shadow-soft;
+    @apply rounded-xl border border-neutral-200 bg-white;
   }
   .card-hover {
-    @apply transition-all duration-150
-           hover:border-neutral-300 hover:shadow-sm;
+    @apply transition-colors duration-150
+           hover:border-neutral-300;
   }
 
   .input {

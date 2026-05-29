@@ -33,17 +33,14 @@ const config: Config = {
           "sans-serif",
         ],
       },
-      boxShadow: {
-        soft: "0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.04)",
-      },
       animation: {
         "fade-in": "fadeIn 0.3s ease-out",
         shimmer: "shimmer 2s linear infinite",
       },
       keyframes: {
         fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },

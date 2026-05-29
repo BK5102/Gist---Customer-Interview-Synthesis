@@ -166,7 +166,7 @@ export default function SynthesisDetailPage() {
         ]}
       />
 
-      <header className="mb-6">
+      <header className="mb-8">
         <p className="eyebrow">Synthesis</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           Interview Synthesis
@@ -232,7 +232,7 @@ export default function SynthesisDetailPage() {
         </p>
       )}
       {pushUrl && (
-        <p className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
           <span className="grid h-5 w-5 place-items-center rounded-full bg-green-600 text-xs text-white">
             ✓
           </span>
@@ -245,7 +245,7 @@ export default function SynthesisDetailPage() {
           >
             Open in Notion ↗
           </a>
-        </p>
+        </div>
       )}
 
       <article className="card p-8">

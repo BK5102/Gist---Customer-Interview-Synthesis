@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
     <main className="mx-auto max-w-md px-6 py-16 sm:py-24">
       <div className="card p-8">
         <div className="text-center">
-          <span className="inline-grid h-10 w-10 place-items-center rounded-xl bg-zinc-900 text-white">
+          <span className="inline-grid h-10 w-10 place-items-center rounded-xl bg-neutral-900 text-white">
             <span className="text-base font-bold">G</span>
           </span>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight">

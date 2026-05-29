@@ -128,7 +128,7 @@ export default function ProjectsPage() {
 
       {projects && projects.length === 0 && (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-12 text-center">
-          <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-zinc-900 text-white">
+          <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-neutral-900 text-white">
             <span className="text-xl">+</span>
           </div>
           <h2 className="mt-4 text-lg font-semibold text-neutral-800">
