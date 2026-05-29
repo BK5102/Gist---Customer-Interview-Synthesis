@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { encryptStringWithPassword } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
-import { PASSWORD_HINT, isValidPassword } from "@/lib/password";
+import { PASSWORD_HINT, isValidPassword, validatePassword } from "@/lib/password";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
