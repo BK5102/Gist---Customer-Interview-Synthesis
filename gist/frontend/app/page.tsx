@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { encryptStringWithPassword } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
-import { PASSWORD_HINT, isValidPassword, validatePassword } from "@/lib/password";
+import { PASSWORD_HINT, isValidPassword } from "@/lib/password";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -1063,7 +1063,7 @@ export default function Home() {
                 placeholder="Title — e.g. Pricing interviews, May 2026"
                 className="input"
               />
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid items-start gap-3 sm:grid-cols-2">
                 <div>
                   <input
                     type="password"
@@ -1072,24 +1072,19 @@ export default function Home() {
                     placeholder="Private password"
                     className="input"
                   />
-                  <p className={`mt-1.5 text-xs ${privateSavePassword && !isValidPassword(privateSavePassword) ? "italic text-red-600" : "text-neutral-500"}`}>
+                  <p className="mt-1.5 text-xs text-neutral-500">
                     {PASSWORD_HINT}
                   </p>
                 </div>
-                <div>
-                  <input
-                    type="password"
-                    value={privateSavePasswordConfirm}
-                    onChange={(e) =>
-                      setPrivateSavePasswordConfirm(e.target.value)
-                    }
-                    placeholder="Confirm password"
-                    className="input"
-                  />
-                  <p className={`mt-1.5 text-xs ${privateSavePasswordConfirm && !isValidPassword(privateSavePasswordConfirm) ? "italic text-red-600" : "text-neutral-500"}`}>
-                    {PASSWORD_HINT}
-                  </p>
-                </div>
+                <input
+                  type="password"
+                  value={privateSavePasswordConfirm}
+                  onChange={(e) =>
+                    setPrivateSavePasswordConfirm(e.target.value)
+                  }
+                  placeholder="Confirm password"
+                  className="input"
+                />
               </div>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
