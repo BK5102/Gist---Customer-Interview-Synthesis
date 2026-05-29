@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Inter } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Gist — Interview Synthesis",
@@ -17,7 +20,7 @@ async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-neutral-200 bg-white">
+    <nav className="sticky top-0 z-40 border-b border-neutral-200 bg-white shadow-sm">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
         <Link
           href={user ? "/?landing=1" : "/"}
@@ -28,7 +31,7 @@ async function Navbar() {
           </span>
           <span className="text-neutral-900">Gist</span>
         </Link>
-        <div className="flex items-center gap-1 text-sm">
+        <div className="flex items-center gap-2 text-sm">
           {user ? (
             <>
               <Link href="/" className="btn-ghost">
@@ -82,7 +85,7 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
 
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body className="min-h-screen text-neutral-900 antialiased">
         <Navbar />
         <div className="relative">{children}</div>

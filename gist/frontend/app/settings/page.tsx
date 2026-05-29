@@ -147,7 +147,7 @@ export default function SettingsPage() {
       </header>
 
       <section className="card p-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+        <h2 className="eyebrow">
           Account
         </h2>
         <div className="mt-3 flex items-center gap-3">
@@ -160,8 +160,8 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="card mt-4 p-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+      <section className="card mt-6 p-6">
+        <h2 className="eyebrow">
           Integrations
         </h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">

@@ -64,16 +64,16 @@
   }
 
   .card {
-    @apply rounded-xl border border-neutral-200 bg-white;
+    @apply rounded-xl border border-neutral-200 bg-white shadow-soft;
   }
   .card-hover {
-    @apply transition-colors duration-150
-           hover:border-neutral-300;
+    @apply transition-all duration-150
+           hover:border-neutral-300 hover:shadow-sm;
   }
 
   .input {
     @apply block w-full rounded-lg border border-neutral-300 bg-white
-           px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400
+           px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400
            transition-colors duration-150
            focus:border-brand-700 focus:outline-none
            focus:ring-2 focus:ring-brand-200
