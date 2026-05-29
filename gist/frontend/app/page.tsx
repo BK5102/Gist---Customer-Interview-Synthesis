@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { encryptStringWithPassword } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
-import { PASSWORD_HINT, isValidPassword, validatePassword } from "@/lib/password";
+import { PASSWORD_RULES, isValidPassword, validatePassword } from "@/lib/password";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -237,6 +237,8 @@ export default function Home() {
   const [privateSavePasswordConfirm, setPrivateSavePasswordConfirm] =
     useState("");
   const [isSavingEncrypted, setIsSavingEncrypted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auth state on mount
@@ -583,6 +585,15 @@ export default function Home() {
   const audioFiles = files.filter((f) => isAudio(f.name));
   const estMinutes = totalEstimateMinutes(files);
   const hasAudio = audioFiles.length > 0;
+
+  const strength: 0 | 1 | 2 | 3 | 4 = (() => {
+    if (!privateSavePassword) return 0;
+    const passed = PASSWORD_RULES.filter((r) => r.test(privateSavePassword)).length;
+    if (passed <= 1) return 1;
+    if (passed === 2) return 2;
+    if (passed === 3 && privateSavePassword.length < 12) return 3;
+    return 4;
+  })();
 
   if (authLoading) {
     return (
@@ -1063,28 +1074,116 @@ export default function Home() {
                 placeholder="Title — e.g. Pricing interviews, May 2026"
                 className="input"
               />
-              <div className="grid items-start gap-3 sm:grid-cols-2">
+              <div className="grid gap-3">
+                {/* Private password */}
                 <div>
-                  <input
-                    type="password"
-                    value={privateSavePassword}
-                    onChange={(e) => setPrivateSavePassword(e.target.value)}
-                    placeholder="Private password"
-                    className="input"
-                  />
-                  <p className="mt-1.5 text-xs text-neutral-500">
-                    {PASSWORD_HINT}
-                  </p>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={privateSavePassword}
+                      onChange={(e) => setPrivateSavePassword(e.target.value)}
+                      placeholder="Private password"
+                      className="input pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      tabIndex={-1}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                    >
+                      {showPassword ? (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  {privateSavePassword && (
+                    <>
+                      <div className="mt-2 flex gap-1">
+                        {[1, 2, 3, 4].map((seg) => (
+                          <div
+                            key={seg}
+                            className={`h-1 flex-1 rounded-full transition-colors duration-150 ${
+                              seg <= strength
+                                ? (["", "bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-green-500"] as const)[strength]
+                                : "bg-neutral-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        {(["", "Weak", "Fair", "Good", "Strong"] as const)[strength]}
+                      </p>
+                      <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                        {PASSWORD_RULES.map((rule) => {
+                          const ok = rule.test(privateSavePassword);
+                          return (
+                            <li
+                              key={rule.label}
+                              className={`flex items-center gap-1.5 text-xs transition-colors duration-100 ${ok ? "text-green-600" : "text-neutral-400"}`}
+                            >
+                              <span className="shrink-0 font-medium">{ok ? "✓" : "✗"}</span>
+                              {rule.label}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  )}
                 </div>
-                <input
-                  type="password"
-                  value={privateSavePasswordConfirm}
-                  onChange={(e) =>
-                    setPrivateSavePasswordConfirm(e.target.value)
-                  }
-                  placeholder="Confirm password"
-                  className="input"
-                />
+
+                {/* Confirm password */}
+                <div>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={privateSavePasswordConfirm}
+                      onChange={(e) => setPrivateSavePasswordConfirm(e.target.value)}
+                      placeholder="Confirm password"
+                      className="input pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((v) => !v)}
+                      tabIndex={-1}
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                    >
+                      {showConfirmPassword ? (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  {privateSavePasswordConfirm && (
+                    <p className={`mt-1.5 text-xs font-medium ${
+                      privateSavePassword === privateSavePasswordConfirm
+                        ? "text-green-600"
+                        : "text-red-500"
+                    }`}>
+                      {privateSavePassword === privateSavePasswordConfirm
+                        ? "Passwords match ✓"
+                        : "Passwords don't match ✗"}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
