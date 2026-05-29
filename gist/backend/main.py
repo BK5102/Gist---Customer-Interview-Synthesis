@@ -65,6 +65,17 @@ _cors_env = os.environ.get(
 )
 CORS_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
 
+
+def _is_production() -> bool:
+    env_values = [
+        os.environ.get("APP_ENV", ""),
+        os.environ.get("ENVIRONMENT", ""),
+        os.environ.get("RAILWAY_ENVIRONMENT", ""),
+        os.environ.get("RAILWAY_ENVIRONMENT_NAME", ""),
+    ]
+    return any(v.strip().lower() in {"prod", "production"} for v in env_values)
+
+
 _prod = _is_production()
 app = FastAPI(
     title="Gist — Interview Synthesis API",
@@ -114,16 +125,6 @@ MAX_NOTION_CALLS_PER_WINDOW = int(os.environ.get("MAX_NOTION_CALLS_PER_WINDOW", 
 NOTION_RATE_WINDOW_SECONDS = int(os.environ.get("NOTION_RATE_WINDOW_SECONDS", "60"))
 MAX_PROJECTS_PER_WINDOW = int(os.environ.get("MAX_PROJECTS_PER_WINDOW", "10"))
 PROJECT_RATE_WINDOW_SECONDS = int(os.environ.get("PROJECT_RATE_WINDOW_SECONDS", "600"))
-
-
-def _is_production() -> bool:
-    env_values = [
-        os.environ.get("APP_ENV", ""),
-        os.environ.get("ENVIRONMENT", ""),
-        os.environ.get("RAILWAY_ENVIRONMENT", ""),
-        os.environ.get("RAILWAY_ENVIRONMENT_NAME", ""),
-    ]
-    return any(v.strip().lower() in {"prod", "production"} for v in env_values)
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
