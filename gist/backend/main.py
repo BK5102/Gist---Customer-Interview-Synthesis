@@ -262,7 +262,7 @@ async def synthesize(
     background_tasks: BackgroundTasks,
     files: list[UploadFile],
     labels: list[str] = Form(default=[]),
-    project_id: str | None = None,
+    project_id: str | None = Form(default=None),
     user_id: str = Depends(require_auth),
 ) -> JobStartResponse:
     """Validate inputs, kick off the synthesis pipeline as a background job.
