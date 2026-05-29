@@ -5,7 +5,7 @@ Claude Code session along with the repo and resume work without losing
 context.
 
 > If this file disagrees with the actual repo state, trust the repo.
-> Treat this as a snapshot from 2026-05-28.
+> Treat this as a snapshot from 2026-05-29.
 > Going forward, keep this file up to date whenever meaningful product,
 > architecture, deployment, security, or growth changes are made. Bhavana
 > wants to use this file to recreate Gist or a similar app in the future.
@@ -24,7 +24,7 @@ output. Built for solo founders doing customer discovery.
 - Backend API: https://gist-backend-production-ab73.up.railway.app
 - GitHub: https://github.com/BK5102/Gist---Customer-Interview-Synthesis
 
-**Latest pushed commit:** `f2dd946` — security hardening audit (10 fixes)
+**Latest pushed commit:** `f45dd82` — design audit (border+shadow, neutral scale, accent discipline, fade animation)
 
 ---
 
@@ -165,7 +165,8 @@ Same three as `frontend/.env.local` but with
 | Security hardening | IDOR fixes in db.py, per-user rate limiting on synthesis/Notion/project-create endpoints, RLS tightened to SELECT-only on all four tables, project name length validation | ✅ |
 | UX rework | Project-first flow enforced (synthesis always requires a project), workspace hub redesigned (2-col, no standalone New synthesis), copy rewrite across page.tsx, tab-open messaging clarified | ✅ |
 | Projects page v2 | Each project card now lists its synthesis runs (date-labeled, linked to `/syntheses/{id}`) and a one-liner pointing to Private saves. Backend: removed auto-create fallback that named projects after synthesis filenames — `project_id` is now required by `/synthesize` when DB is available. | ✅ |
-| Security audit | Full OWASP audit + 10 fixes: exception internals no longer reach clients; NOTION_TOKEN_ENCRYPTION_KEY documented; FastAPI docs disabled in prod; HSTS added; CORS tightened; auth callback `next` param validated; PBKDF2 raised to 600K iterations; Notion OAuth cancel redirects to UI; N+1 project fetches replaced with single request; job pruning on every poll. | ✅ Current |
+| Security audit | Full OWASP audit + 10 fixes: exception internals no longer reach clients; NOTION_TOKEN_ENCRYPTION_KEY documented; FastAPI docs disabled in prod; HSTS added; CORS tightened; auth callback `next` param validated; PBKDF2 raised to 600K iterations; Notion OAuth cancel redirects to UI; N+1 project fetches replaced with single request; job pruning on every poll. | ✅ |
+| Design audit | `/ui-design-prompts` full audit. 6 fixes: removed border+shadow double on cards and navbar; unified `zinc-*` → `neutral-*` across all 11 frontend files; standardized inner page header spacing to `mb-8`; replaced blue-50/blue-700 "Extracting" badge with brand teal; added `translateY` to `fadeIn` keyframe; fixed `<p>` as flex container. | ✅ Current |
 | Phase 4 | Real users, iterate on feedback | ⏳ Open |
 
 ---
@@ -278,7 +279,7 @@ npm run dev
 14. **PROMPT.md is durable rebuild memory** — committed to repo so it survives across machines and sessions
 15. **Password-based private saves** — encryption/decryption happen in the browser (AES-GCM, PBKDF2-SHA256). Password never stored or sent. Forgetting the save password makes the encrypted artifact unrecoverable.
 16. **Signed-in brand navigation** — clicking the `G`/Gist logo sends signed-in users to `/?landing=1`, rendering the landing page with the signed-in navbar.
-17. **Design direction: editorial/precise, not decorative** — near-black primary buttons (`bg-zinc-900`), deep teal accent (`brand-700 = #0f766e`), border-defined surfaces (no shadows, no blur, no gradients), left-aligned hero, direct copy. Design communicates restraint and trust — appropriate for a tool that handles sensitive customer research data.
+17. **Design direction: editorial/precise, not decorative** — near-black primary buttons (`bg-neutral-900`), deep teal accent (`brand-700 = #0f766e`), border-only surfaces (no shadows, no blur, no gradients), left-aligned hero, direct copy. Design communicates restraint and trust — appropriate for a tool that handles sensitive customer research data.
 18. **IDOR defense in db.py** — `get_syntheses_for_project(user_id, project_id)` and `get_transcripts_for_project(user_id, project_id)` both require `user_id` and enforce ownership via a `projects!inner(user_id)` join. Safe to call from any context.
 19. **Per-user rate limiting via in-memory sliding window** — `defaultdict(deque)` per endpoint category. Synthesis: 5/10min, max 2 concurrent. Notion proxy: 20/60s. Project creation: 10/10min. All configurable via env vars.
 20. **RLS is SELECT-only on backend-owned tables** — `syntheses`, `transcripts`, `projects`, and `notion_connections` use `FOR SELECT` policies. The backend service-role key handles all writes; client JWTs can only read their own rows. `encrypted_artifacts` retains `FOR ALL` with `WITH CHECK` because the browser writes directly to Supabase.
@@ -292,6 +293,7 @@ npm run dev
 28. **FastAPI docs disabled in production** — `/docs`, `/redoc`, `/openapi.json` are `None` when `APP_ENV=production` or `RAILWAY_ENVIRONMENT=production`. Available in dev.
 29. **Auth error internals hidden from clients** — pipeline crash exceptions are logged server-side (`logging.getLogger("gist").exception(...)`) and return a generic `"An unexpected error occurred"` message to the polling client. Auth module exceptions return `"Authentication failed"` without the httpx/jwt error string.
 30. **Auth callback `next` param restricted to relative paths** — `next` must match `/[^/].*` or be `/` exactly; `//evil.com` or absolute URLs are silently replaced with `/`.
+31. **Design system rules enforced by audit** — cards use border only (no `shadow-soft`); navbar uses border-bottom only (no `shadow-sm`); single neutral scale (`neutral-*`) throughout — `zinc-*` removed; palette max: neutral + brand-teal + red/green/amber semantic; no blue accent; `fadeIn` includes `translateY(4px→0)` for proper entrance feel.
 
 ---
 
@@ -357,7 +359,9 @@ a175406  ux: clarify tab-open requirement during synthesis
 1ef90dd  ux: add minimum 6-character rule to password requirements
 9b39c03  ux: add number rule to password requirements
 c483194  ux: interactive password UI on private save — checklist, strength bar, match indicator, show/hide
-f2dd946  security: harden auth, headers, CORS, encryption, and error handling  ← HEAD
+f2dd946  security: harden auth, headers, CORS, encryption, and error handling
+80a9341  docs: update PROMPT.md to reflect 2026-05-28 security audit session
+f45dd82  design: full audit — remove border+shadow double, unify to neutral scale, fix accent discipline  ← HEAD
 ```
 
 Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (hardening + polish).
@@ -390,6 +394,8 @@ Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (harden
 33. **PROMPT.md updated and committed to repo** — removed from `.gitignore`, updated to reflect all changes from sessions 28-32.
 34. **Projects page synthesis list + project-name bug** — projects page now fetches and displays synthesis runs per project (date-labeled, linked to `/syntheses/{id}`), with a one-liner pointing to Private saves. Backend: removed auto-create fallback (`"Synthesis {filename}"` project names) — `/synthesize` now returns 400 if no `project_id` when DB is available.
 35. **Full OWASP security audit + 10 fixes** — ran `/vibe-app-security-audit`. Findings across all 5 audit steps. Fixed in commit `f2dd946`: exception internals hidden from clients (logged server-side), NOTION_TOKEN_ENCRYPTION_KEY documented in .env.example with gen command, FastAPI docs disabled in prod, HSTS added to backend, CORS allow_headers tightened + DELETE added, auth callback `next` param validated to relative paths, PBKDF2 raised to 600K iterations (NIST 2023), Notion OAuth cancel redirects to frontend UI, N+1 projects/syntheses fetch replaced with single `GET /projects?include_syntheses=true`, job pruning on every poll, reflected URL `message` param removed from login page. Remaining: pin requirements.txt, add CI/CD + CVE scanning, nonce-based CSP, test suite.
+36. **PROMPT.md updated** post-security-audit (`80a9341`).
+37. **Full design audit** — ran `/ui-design-prompts` → option 1 (AUDIT). 6 fixes in commit `f45dd82`: removed border+shadow double from `.card` and navbar (border only now); unified all `zinc-*` → `neutral-*` across 11 files; standardized synthesis detail header to `mb-8`; replaced blue "Extracting" badge with brand teal (eliminates 5th accent); added `translateY(4px→0)` to `fadeIn` keyframe; fixed `<p>` as flex container in Notion push banner.
 
 ---
 
