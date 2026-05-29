@@ -1073,13 +1073,18 @@ export default function Home() {
                 className="input"
               />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  type="password"
-                  value={privateSavePassword}
-                  onChange={(e) => setPrivateSavePassword(e.target.value)}
-                  placeholder="Private password"
-                  className="input"
-                />
+                <div>
+                  <input
+                    type="password"
+                    value={privateSavePassword}
+                    onChange={(e) => setPrivateSavePassword(e.target.value)}
+                    placeholder="Private password"
+                    className="input"
+                  />
+                  <p className="mt-1.5 text-xs text-neutral-500">
+                    Must include uppercase, lowercase, and a special character.
+                  </p>
+                </div>
                 <input
                   type="password"
                   value={privateSavePasswordConfirm}
