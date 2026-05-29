@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { validatePassword } from "@/lib/password";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -32,18 +33,8 @@ export default function ResetPasswordPage() {
     setError(null);
     setMessage(null);
 
-    if (!/[A-Z]/.test(password)) {
-      setError("Password must include at least one uppercase letter.");
-      return;
-    }
-    if (!/[a-z]/.test(password)) {
-      setError("Password must include at least one lowercase letter.");
-      return;
-    }
-    if (!/[^A-Za-z0-9]/.test(password)) {
-      setError("Password must include at least one special character.");
-      return;
-    }
+    const pwError = validatePassword(password);
+    if (pwError) { setError(pwError); return; }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { encryptStringWithPassword } from "@/lib/encryption";
 import { createClient } from "@/lib/supabase/client";
+import { PASSWORD_HINT, isValidPassword, validatePassword } from "@/lib/password";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -519,18 +520,8 @@ export default function Home() {
     const title =
       privateSaveTitle.trim() ||
       `Synthesis - ${new Date().toLocaleDateString()}`;
-    if (!/[A-Z]/.test(password)) {
-      setSaveError("Password must include at least one uppercase letter.");
-      return;
-    }
-    if (!/[a-z]/.test(password)) {
-      setSaveError("Password must include at least one lowercase letter.");
-      return;
-    }
-    if (!/[^A-Za-z0-9]/.test(password)) {
-      setSaveError("Password must include at least one special character.");
-      return;
-    }
+    const pwError = validatePassword(password);
+    if (pwError) { setSaveError(pwError); return; }
     if (password !== privateSavePasswordConfirm) {
       setSaveError("Passwords do not match.");
       return;
@@ -1081,19 +1072,24 @@ export default function Home() {
                     placeholder="Private password"
                     className="input"
                   />
-                  <p className="mt-1.5 text-xs text-neutral-500">
-                    Must include uppercase, lowercase, and a special character.
+                  <p className={`mt-1.5 text-xs ${privateSavePassword && !isValidPassword(privateSavePassword) ? "italic text-red-600" : "text-neutral-500"}`}>
+                    {PASSWORD_HINT}
                   </p>
                 </div>
-                <input
-                  type="password"
-                  value={privateSavePasswordConfirm}
-                  onChange={(e) =>
-                    setPrivateSavePasswordConfirm(e.target.value)
-                  }
-                  placeholder="Confirm password"
-                  className="input"
-                />
+                <div>
+                  <input
+                    type="password"
+                    value={privateSavePasswordConfirm}
+                    onChange={(e) =>
+                      setPrivateSavePasswordConfirm(e.target.value)
+                    }
+                    placeholder="Confirm password"
+                    className="input"
+                  />
+                  <p className={`mt-1.5 text-xs ${privateSavePasswordConfirm && !isValidPassword(privateSavePasswordConfirm) ? "italic text-red-600" : "text-neutral-500"}`}>
+                    {PASSWORD_HINT}
+                  </p>
+                </div>
               </div>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -1102,9 +1098,7 @@ export default function Home() {
                 onClick={saveEncrypted}
                 disabled={
                   isSavingEncrypted ||
-                  !/[A-Z]/.test(privateSavePassword) ||
-                  !/[a-z]/.test(privateSavePassword) ||
-                  !/[^A-Za-z0-9]/.test(privateSavePassword) ||
+                  !isValidPassword(privateSavePassword) ||
                   privateSavePassword !== privateSavePasswordConfirm
                 }
                 className="btn-primary text-xs"

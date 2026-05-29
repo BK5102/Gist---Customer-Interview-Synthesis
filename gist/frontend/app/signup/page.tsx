@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { validatePassword } from "@/lib/password";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -12,13 +13,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const supabase = createClient();
-
-  const validatePassword = (pw: string): string | null => {
-    if (!/[A-Z]/.test(pw)) return "Password must include at least one uppercase letter.";
-    if (!/[a-z]/.test(pw)) return "Password must include at least one lowercase letter.";
-    if (!/[^A-Za-z0-9]/.test(pw)) return "Password must include at least one special character.";
-    return null;
-  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
