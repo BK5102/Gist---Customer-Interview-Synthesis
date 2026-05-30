@@ -166,7 +166,7 @@ export default function SettingsPage() {
         </h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-200 bg-white font-bold text-neutral-700">
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-white font-bold text-neutral-700">
               N
             </span>
             <div>
@@ -209,7 +209,7 @@ export default function SettingsPage() {
           )}
         </div>
         {error && (
-          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
             {error}
           </p>
         )}

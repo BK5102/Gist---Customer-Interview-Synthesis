@@ -64,11 +64,10 @@
   }
 
   .card {
-    @apply rounded-xl border border-neutral-200 bg-white;
+    @apply rounded-xl bg-white;
   }
   .card-hover {
-    @apply transition-colors duration-150
-           hover:border-neutral-300;
+    @apply transition-colors duration-150;
   }
 
   .input {
@@ -110,7 +109,7 @@
     @apply text-neutral-900;
   }
   .prose-brand h2 {
-    @apply mt-8 border-t border-neutral-200 pt-6;
+    @apply mt-8 pt-6;
   }
   .prose-brand h3 {
     @apply mt-6 text-brand-800;

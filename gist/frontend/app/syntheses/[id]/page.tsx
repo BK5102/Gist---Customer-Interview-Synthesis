@@ -227,12 +227,12 @@ export default function SynthesisDetailPage() {
       </div>
 
       {pushError && (
-        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
           {pushError}
         </p>
       )}
       {pushUrl && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
+        <div className="mb-4 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
           <span className="grid h-5 w-5 place-items-center rounded-full bg-green-600 text-xs text-white">
             ✓
           </span>
@@ -255,7 +255,7 @@ export default function SynthesisDetailPage() {
               No synthesis content was stored for this record.
             </p>
           ) : looksLikeJson(synth.markdown_output) ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
               <p className="font-medium">Synthesis result could not be rendered.</p>
               <p className="mt-1 text-xs">
                 The stored content appears to be in an unexpected format.

@@ -63,12 +63,12 @@ export default function ForgotPasswordPage() {
           </div>
 
           {error && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
               {error}
             </p>
           )}
           {message && (
-            <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
+            <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
               {message}
             </p>
           )}

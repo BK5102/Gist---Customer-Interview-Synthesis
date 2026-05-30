@@ -171,7 +171,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 border-t border-neutral-100 pt-4">
+                <div className="mt-4 pt-4">
                   {proj.syntheses && proj.syntheses.length > 0 ? (
                     <>
                       <p className="mb-2 text-xs font-medium text-neutral-500">

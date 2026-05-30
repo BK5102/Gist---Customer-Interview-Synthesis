@@ -184,7 +184,7 @@ function SignedInHome() {
         </Link>
       </section>
 
-      <section className="mt-8 rounded-xl border border-neutral-200 bg-neutral-50 p-6">
+      <section className="mt-8 rounded-xl bg-neutral-50 p-6">
         <h2 className="text-sm font-semibold text-neutral-900">How it works</h2>
         <div className="mt-4 grid gap-3 text-xs text-neutral-700 sm:grid-cols-3">
           <div>
@@ -643,9 +643,9 @@ export default function Home() {
         </section>
 
         {/* Value propositions — asymmetric: lead card spans 2 cols */}
-        <section className="border-t border-neutral-200 pt-16">
+        <section className="pt-16">
           <p className="eyebrow">What it does</p>
-          <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-3">
+          <div className="mt-8 grid gap-px overflow-hidden rounded-xl bg-neutral-200 sm:grid-cols-3">
             <div className="bg-white p-6 sm:col-span-2">
               <h3 className="text-sm font-semibold text-neutral-900">
                 Every quote checked against the transcript
@@ -690,7 +690,7 @@ export default function Home() {
         </section>
 
         {/* How it works — compact numbered list, not cards */}
-        <section className="mt-16 border-t border-neutral-200 pt-16">
+        <section className="mt-16 pt-16">
           <p className="eyebrow">How it works</p>
           <div className="mt-8 grid gap-6 sm:grid-cols-4">
             {(
@@ -718,7 +718,7 @@ export default function Home() {
 
         {/* Minimal CTA — only shown to signed-out visitors */}
         {!user && (
-          <section className="mt-16 border-t border-neutral-200 py-16">
+          <section className="mt-16 py-16">
             <p className="text-neutral-600">
               Works with transcripts you already have, audio files you haven't
               had time to review, or both.
@@ -830,7 +830,7 @@ export default function Home() {
                 return (
                   <li
                     key={f.name + i}
-                    className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-3 text-sm text-neutral-700 sm:flex-row sm:items-center sm:gap-3"
+                    className="flex flex-col gap-2 rounded-lg bg-white p-3 text-sm text-neutral-700 sm:flex-row sm:items-center sm:gap-3"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                       <span className="truncate font-medium">
@@ -932,7 +932,7 @@ export default function Home() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
             {error}
           </p>
         )}
@@ -1008,7 +1008,7 @@ export default function Home() {
             })}
           </ol>
 
-          <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
+          <div className="mt-4 rounded-lg bg-neutral-50 px-4 py-3">
             <p className="text-xs font-semibold text-neutral-800">
               You can switch to another tab — just don't close this one.
             </p>
@@ -1046,7 +1046,7 @@ export default function Home() {
                 No synthesis content was returned. Please try again.
               </p>
             ) : looksLikeJson(result.markdown) ? (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <div className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 <p className="font-medium">Synthesis result could not be rendered.</p>
                 <p className="mt-1 text-xs">
                   The server returned an unexpected response format. Try
@@ -1058,7 +1058,7 @@ export default function Home() {
             )}
           </article>
 
-          <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+          <div className="mt-6 rounded-xl bg-neutral-50 p-4">
             <p className="text-sm font-semibold text-neutral-900">
               Save privately
             </p>
