@@ -166,9 +166,9 @@ export default function SynthesisDetailPage() {
         ]}
       />
 
-      <header className="mb-8">
+      <header className="motion-section mb-8">
         <p className="eyebrow">Synthesis</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           Interview Synthesis
         </h1>
         <p className="mt-1 text-xs text-neutral-500">
@@ -248,7 +248,7 @@ export default function SynthesisDetailPage() {
         </div>
       )}
 
-      <article className="card p-8">
+      <article className="card motion-card p-8">
         <div className="prose prose-neutral prose-brand max-w-none">
           {!synth.markdown_output ? (
             <p className="text-sm text-neutral-500">

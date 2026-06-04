@@ -98,18 +98,18 @@ export default function ProjectsPage() {
           { label: "Projects" },
         ]}
       />
-      <header className="mb-8">
+      <header className="motion-section mb-8">
         <p className="eyebrow">Research rounds</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           Projects
         </h1>
-        <p className="mt-1 max-w-xl text-sm text-neutral-600">
+        <p className="mt-2 max-w-xl text-base leading-relaxed text-neutral-600">
           Keep each research round in its own project. Create a project below,
           then run a synthesis from within it.
         </p>
       </header>
 
-      <form onSubmit={createProject} className="mb-8 flex gap-2">
+      <form onSubmit={createProject} className="surface-panel mb-8 flex gap-2 p-3">
         <input
           type="text"
           value={newName}
@@ -127,7 +127,7 @@ export default function ProjectsPage() {
       </form>
 
       {projects && projects.length === 0 && (
-        <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-12 text-center">
+        <div className="motion-card rounded-xl border border-dashed border-neutral-300 bg-white/65 p-12 text-center">
           <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-neutral-900 text-white">
             <span className="text-xl">+</span>
           </div>
@@ -145,9 +145,10 @@ export default function ProjectsPage() {
         <ul className="space-y-3">
           {projects.map((proj) => (
             <li key={proj.id}>
-              <div className="card p-5">
+              <div className="card card-hover motion-card p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
+                    <div className="mb-3 h-1.5 w-16 rounded-full bg-brand-600" />
                     <h2 className="text-sm font-semibold text-neutral-900">
                       {proj.name}
                     </h2>
@@ -171,7 +172,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4">
+                <div className="surface-panel mt-4 p-4">
                   {proj.syntheses && proj.syntheses.length > 0 ? (
                     <>
                       <p className="mb-2 text-xs font-medium text-neutral-500">
@@ -182,7 +183,7 @@ export default function ProjectsPage() {
                           <li key={synth.id}>
                             <Link
                               href={`/syntheses/${synth.id}`}
-                              className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs text-neutral-700 transition-colors hover:bg-neutral-50"
+                              className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white"
                             >
                               <span>
                                 {new Date(synth.created_at).toLocaleDateString(

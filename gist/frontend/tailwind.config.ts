@@ -35,6 +35,7 @@ const config: Config = {
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-out",
+        "rise-in": "riseIn 0.7s ease-out both",
         shimmer: "shimmer 2s linear infinite",
       },
       keyframes: {
@@ -45,6 +46,10 @@ const config: Config = {
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
+        },
+        riseIn: {
+          "0%": { opacity: "0", transform: "translateY(18px) scale(0.985)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
       },
     },

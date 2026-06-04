@@ -130,19 +130,19 @@ export default function EncryptedSavesPage() {
           { label: "Private Saves" },
         ]}
       />
-      <header className="mb-8">
+      <header className="motion-section mb-8">
         <p className="eyebrow">Browser-encrypted storage</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           Private saves
         </h1>
-        <p className="mt-1 text-sm text-neutral-600">
+        <p className="mt-2 text-base leading-relaxed text-neutral-600">
           Saved reports are decrypted in this browser with the password you
           chose. Gist never stores that password.
         </p>
       </header>
 
       {artifacts.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center">
+        <section className="motion-card rounded-xl border border-dashed border-neutral-300 bg-white/65 p-10 text-center">
           <h2 className="text-lg font-semibold text-neutral-900">
             No private saves yet
           </h2>
@@ -158,10 +158,11 @@ export default function EncryptedSavesPage() {
                 <button
                   type="button"
                   onClick={() => selectArtifact(artifact)}
-                  className={`card card-hover w-full p-4 text-left ${
+                  className={`card card-hover motion-card w-full p-4 text-left ${
                     selected?.id === artifact.id ? "ring-2 ring-brand-600" : ""
                   }`}
                 >
+                  <div className="mb-3 h-1.5 w-12 rounded-full bg-amber-500" />
                   <p className="text-sm font-semibold text-neutral-900">
                     {artifact.title || "Private synthesis"}
                   </p>
@@ -173,7 +174,7 @@ export default function EncryptedSavesPage() {
             ))}
           </ul>
 
-          <div className="card p-6">
+          <div className="card motion-card p-6">
             {!selected && (
               <p className="text-sm text-neutral-500">
                 Choose a private save to open it.

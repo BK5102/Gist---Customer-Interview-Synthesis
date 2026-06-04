@@ -154,53 +154,64 @@ function looksLikeJson(s: string): boolean {
 function SignedInHome() {
   return (
     <main className="page-wide">
-      <header className="mb-8">
+      <header className="motion-section mb-8">
         <p className="eyebrow">Workspace</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           Your workspace
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600">
+        <p className="mt-2 max-w-2xl text-base leading-relaxed text-neutral-600">
           All synthesis work happens inside a project. Create a project, upload
           interviews, and save the report with a password you choose.
         </p>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <Link href="/projects" className="card card-hover p-5">
-          <p className="text-sm font-semibold text-neutral-900">Projects</p>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+        <Link href="/projects" className="card card-hover motion-card p-6">
+          <div className="mb-4 h-1.5 w-16 rounded-full bg-brand-600" />
+          <p className="text-base font-semibold text-neutral-900">Projects</p>
+          <p className="mt-2 text-sm leading-relaxed text-neutral-600">
             Create a project and run syntheses within it. Each project keeps
             one research round in one place.
           </p>
+          <p className="mt-5 text-sm font-semibold text-brand-800">
+            Open projects
+          </p>
         </Link>
-        <Link href="/encrypted" className="card card-hover p-5">
-          <p className="text-sm font-semibold text-neutral-900">
+        <Link href="/encrypted" className="card card-hover motion-card p-6 [animation-delay:90ms]">
+          <div className="mb-4 h-1.5 w-16 rounded-full bg-amber-500" />
+          <p className="text-base font-semibold text-neutral-900">
             Private saves
           </p>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+          <p className="mt-2 text-sm leading-relaxed text-neutral-600">
             Return to a saved report. Decrypt it with the password you set
             when you saved it.
+          </p>
+          <p className="mt-5 text-sm font-semibold text-brand-800">
+            Open saves
           </p>
         </Link>
       </section>
 
-      <section className="mt-8 rounded-xl bg-neutral-50 p-6">
-        <h2 className="text-sm font-semibold text-neutral-900">How it works</h2>
-        <div className="mt-4 grid gap-3 text-xs text-neutral-700 sm:grid-cols-3">
-          <div>
+      <section className="surface-panel mt-8 p-6 motion-section">
+        <div className="flex items-center gap-3">
+          <div className="stage-rail h-1.5 flex-1 rounded-full" />
+          <h2 className="text-sm font-semibold text-neutral-900">How it works</h2>
+        </div>
+        <div className="mt-5 grid gap-3 text-sm text-neutral-700 sm:grid-cols-3">
+          <div className="flow-step">
             <p className="font-semibold text-neutral-900">1. Create a project</p>
             <p className="mt-1 leading-relaxed">
               Group interviews by research round, customer segment, or topic.
             </p>
           </div>
-          <div>
+          <div className="flow-step">
             <p className="font-semibold text-neutral-900">2. Run a synthesis</p>
             <p className="mt-1 leading-relaxed">
               Upload transcripts or audio within the project and keep the tab
               open while it runs.
             </p>
           </div>
-          <div>
+          <div className="flow-step">
             <p className="font-semibold text-neutral-900">3. Save privately</p>
             <p className="mt-1 leading-relaxed">
               Encrypt the report with a password you choose. It's not stored
@@ -608,11 +619,12 @@ export default function Home() {
   if (!user || landingMode) {
     return (
       <main className="page-wide">
-        {/* Hero — left-aligned, no decorative elements */}
-        <section className="py-16 sm:py-24">
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
+        <section className="grid min-h-[calc(100vh-96px)] items-center gap-10 py-14 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="motion-section">
+          <p className="eyebrow">Private-by-default interview synthesis</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
             Read ten interviews at once.{" "}
-            <span className="text-brand-700">Every finding traced to who said it.</span>
+            <span className="text-gradient">Every finding traced to who said it.</span>
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-neutral-600">
@@ -626,7 +638,7 @@ export default function Home() {
             Not designed for enterprise teams with dedicated research ops.
           </p>
 
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href={user ? "/" : "/signup"}
               className="btn-primary px-6 py-3"
@@ -640,14 +652,58 @@ export default function Home() {
               {user ? "Go to projects" : "Log in"}
             </Link>
           </div>
+          </div>
+
+          <div className="motion-card [animation-delay:120ms]">
+            <div className="card relative overflow-hidden p-5">
+              <div className="stage-rail absolute inset-x-0 top-0 h-1" />
+              <div className="grid gap-3">
+                <div className="rounded-lg bg-brand-50/80 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-brand-800">
+                    Strongest signal
+                  </p>
+                  <p className="mt-2 text-xl font-semibold leading-snug text-neutral-900">
+                    Customers are hacking together their own research workflow.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-lg bg-amber-50/80 p-4">
+                    <p className="text-xs font-semibold text-amber-800">
+                      4 participants
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+                      "I lose the thread after the third call."
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-rose-50/80 p-4">
+                    <p className="text-xs font-semibold text-rose-800">
+                      Contradiction
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+                      Teams want detail, but avoid long research reports.
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-lg bg-neutral-50 p-4">
+                  <div className="mb-3 flex items-center justify-between text-xs font-semibold text-neutral-500">
+                    <span>Quote verification</span>
+                    <span>3 dropped</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-neutral-200">
+                    <div className="stage-rail h-full w-4/5 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        {/* Value propositions — asymmetric: lead card spans 2 cols */}
-        <section className="pt-16">
+        <section className="motion-section py-16">
           <p className="eyebrow">What it does</p>
-          <div className="mt-8 grid gap-px overflow-hidden rounded-xl bg-neutral-200 sm:grid-cols-3">
-            <div className="bg-white p-6 sm:col-span-2">
-              <h3 className="text-sm font-semibold text-neutral-900">
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="card card-hover p-6 sm:col-span-2">
+              <div className="mb-5 h-1.5 w-20 rounded-full bg-brand-600" />
+              <h3 className="text-base font-semibold text-neutral-900">
                 Every quote checked against the transcript
               </h3>
               <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-600">
@@ -657,8 +713,9 @@ export default function Home() {
                 quotes, but the ones you see are real.
               </p>
             </div>
-            <div className="bg-white p-6">
-              <h3 className="text-sm font-semibold text-neutral-900">
+            <div className="card card-hover p-6">
+              <div className="mb-5 h-1.5 w-16 rounded-full bg-amber-500" />
+              <h3 className="text-base font-semibold text-neutral-900">
                 Reports encrypted in your browser
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
@@ -666,8 +723,9 @@ export default function Home() {
                 never leaves your device — Gist can't access your saves.
               </p>
             </div>
-            <div className="bg-white p-6">
-              <h3 className="text-sm font-semibold text-neutral-900">
+            <div className="card card-hover p-6">
+              <div className="mb-5 h-1.5 w-16 rounded-full bg-rose-500" />
+              <h3 className="text-base font-semibold text-neutral-900">
                 Audio files and text transcripts
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
@@ -676,8 +734,9 @@ export default function Home() {
                 a text file.
               </p>
             </div>
-            <div className="bg-white p-6 sm:col-span-2">
-              <h3 className="text-sm font-semibold text-neutral-900">
+            <div className="card card-hover p-6 sm:col-span-2">
+              <div className="mb-5 h-1.5 w-20 rounded-full bg-neutral-900" />
+              <h3 className="text-base font-semibold text-neutral-900">
                 Send the report to Notion
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
@@ -689,10 +748,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How it works — compact numbered list, not cards */}
-        <section className="mt-16 pt-16">
+        <section className="motion-section py-16">
           <p className="eyebrow">How it works</p>
-          <div className="mt-8 grid gap-6 sm:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:grid-cols-4">
             {(
               [
                 ["1", "Upload", "Add your .txt, .mp3, or .wav files — up to 20 at once"],
@@ -701,12 +759,12 @@ export default function Home() {
                 ["4", "Export", "Copy the report as markdown or send it to a Notion database"],
               ] as const
             ).map(([n, title, body]) => (
-              <div key={n} className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white">
+              <div key={n} className="flow-step">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white">
                   {n}
                 </span>
-                <div>
-                  <p className="text-sm font-semibold text-neutral-900">
+                <div className="mt-4">
+                  <p className="text-base font-semibold text-neutral-900">
                     {title}
                   </p>
                   <p className="mt-1 text-sm text-neutral-600">{body}</p>
@@ -718,14 +776,16 @@ export default function Home() {
 
         {/* Minimal CTA — only shown to signed-out visitors */}
         {!user && (
-          <section className="mt-16 py-16">
-            <p className="text-neutral-600">
+          <section className="motion-section py-16">
+            <div className="surface-panel p-6">
+            <p className="text-base text-neutral-700">
               Works with transcripts you already have, audio files you haven't
               had time to review, or both.
             </p>
             <Link href="/signup" className="btn-primary mt-4 px-6 py-3">
               Create an account
             </Link>
+            </div>
           </section>
         )}
       </main>
@@ -749,17 +809,17 @@ export default function Home() {
           { label: "Synthesis" },
         ]}
       />
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <header className="motion-section mb-8">
+        <h1 className="text-3xl font-semibold tracking-tight">
           New synthesis
         </h1>
-        <p className="mt-1 text-sm text-neutral-600">
+        <p className="mt-2 text-base leading-relaxed text-neutral-600">
           Add one or more transcripts or audio files. Gist clusters themes
           across all of them and pulls a verbatim quote from each.
         </p>
       </header>
 
-      <section className="card p-6">
+      <section className="card motion-card p-6">
         {/* Drag-and-drop zone */}
         <div
           onDragOver={onDragOver}
@@ -767,16 +827,16 @@ export default function Home() {
           onDrop={onDrop}
           className={`
             flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 text-center
-            transition-colors duration-150
+            transition-all duration-300 ease-out
             ${
               isDragging
-                ? "border-brand-700 bg-brand-50"
-                : "border-neutral-300 bg-neutral-50/50 hover:border-neutral-400"
+                ? "scale-[1.01] border-brand-700 bg-brand-50"
+                : "border-neutral-300 bg-white/50 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50/40"
             }
             ${isLoading ? "opacity-50" : ""}
           `}
         >
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-neutral-900 text-white">
+          <div className="grid h-12 w-12 place-items-center rounded-xl bg-neutral-900 text-white transition-transform duration-300 group-hover:scale-105">
             <svg
               className="h-5 w-5"
               viewBox="0 0 24 24"
@@ -830,7 +890,7 @@ export default function Home() {
                 return (
                   <li
                     key={f.name + i}
-                    className="flex flex-col gap-2 rounded-lg bg-white p-3 text-sm text-neutral-700 sm:flex-row sm:items-center sm:gap-3"
+                    className="flex flex-col gap-2 rounded-lg bg-white/75 p-3 text-sm text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white sm:flex-row sm:items-center sm:gap-3"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                       <span className="truncate font-medium">
@@ -867,7 +927,7 @@ export default function Home() {
             </ul>
 
             {hasAudio && (
-              <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+              <p className="surface-panel px-3 py-2 text-xs text-neutral-700">
                 Estimated time: ~{estMinutes} min
                 {estMinutes === 1 ? "" : "s"} for {audioFiles.length} audio
                 file
@@ -939,7 +999,7 @@ export default function Home() {
       </section>
 
       {isLoading && job && (
-        <div className="card mt-6 p-6 animate-fade-in">
+        <div className="card mt-6 p-6 animate-rise-in">
           <div className="flex items-center gap-2">
             <svg
               className="h-4 w-4 animate-spin text-brand-700"
@@ -1008,7 +1068,7 @@ export default function Home() {
             })}
           </ol>
 
-          <div className="mt-4 rounded-lg bg-neutral-50 px-4 py-3">
+          <div className="surface-panel mt-4 px-4 py-3">
             <p className="text-xs font-semibold text-neutral-800">
               You can switch to another tab — just don't close this one.
             </p>
@@ -1023,7 +1083,7 @@ export default function Home() {
       )}
 
       {result && !result.synthesis_id && (
-        <section className="card mt-6 p-6 animate-fade-in">
+        <section className="card mt-6 p-6 animate-rise-in">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="eyebrow">
               {result.participant_count} participants ·{" "}
@@ -1058,7 +1118,7 @@ export default function Home() {
             )}
           </article>
 
-          <div className="mt-6 rounded-xl bg-neutral-50 p-4">
+          <div className="surface-panel mt-6 p-4">
             <p className="text-sm font-semibold text-neutral-900">
               Save privately
             </p>
