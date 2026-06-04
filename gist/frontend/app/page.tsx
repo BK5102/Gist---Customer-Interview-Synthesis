@@ -151,6 +151,32 @@ function looksLikeJson(s: string): boolean {
   }
 }
 
+function ResearchOrbit() {
+  const text = "quote backed research signal ";
+  const chars = text.split("");
+
+  return (
+    <div className="research-orbit" aria-hidden="true">
+      <div className="research-orbit-ring" />
+      <div className="research-orbit-text">
+        {chars.map((char, index) => (
+          <span
+            key={`${char}-${index}`}
+            style={{
+              transform: `rotate(${(360 / chars.length) * index}deg) translateY(-7.4ch)`,
+            }}
+          >
+            {char}
+          </span>
+        ))}
+      </div>
+      <div className="research-orbit-core">
+        <span className="text-2xl font-bold leading-none">G</span>
+      </div>
+    </div>
+  );
+}
+
 function SignedInHome() {
   return (
     <main className="page-wide">
@@ -621,17 +647,22 @@ export default function Home() {
       <main className="page-wide">
         <section className="grid min-h-[calc(100vh-96px)] items-center gap-10 py-14 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="motion-section">
-          <p className="eyebrow">Private-by-default interview synthesis</p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
-            Read ten interviews at once.{" "}
-            <span className="text-gradient">Every finding traced to who said it.</span>
-          </h1>
+            <div className="kinetic-marquee mb-6 max-w-xl">
+              <span className="kinetic-marquee-track">
+                trace quotes • cluster themes • protect reports • synthesize interviews • trace quotes • cluster themes • protect reports • synthesize interviews •
+              </span>
+            </div>
+            <p className="eyebrow">Private-by-default interview synthesis</p>
+            <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
+              Read ten interviews at once.{" "}
+              <span className="text-gradient">Every finding traced to who said it.</span>
+            </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-neutral-600">
-            Upload transcripts or drop audio files. Gist clusters themes across
-            all your interviews and pulls direct quotes — not rewrites. A second
-            pass checks every quote against the source before it reaches you.
-          </p>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-neutral-600">
+              Upload transcripts or drop audio files. Gist clusters themes across
+              all your interviews and pulls direct quotes — not rewrites. A second
+              pass checks every quote against the source before it reaches you.
+            </p>
 
           <p className="mt-4 text-sm font-medium text-neutral-500">
             For founders and product researchers who run their own interviews.
@@ -654,11 +685,14 @@ export default function Home() {
           </div>
           </div>
 
-          <div className="motion-card [animation-delay:120ms]">
-            <div className="card relative overflow-hidden p-5">
+          <div className="depth-scene motion-card [animation-delay:120ms]">
+            <div className="depth-stack card relative overflow-hidden p-5">
               <div className="stage-rail absolute inset-x-0 top-0 h-1" />
+              <div className="mb-5">
+                <ResearchOrbit />
+              </div>
               <div className="grid gap-3">
-                <div className="rounded-lg bg-brand-50/80 p-4">
+                <div className="float-card rounded-lg bg-brand-50/80 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wider text-brand-800">
                     Strongest signal
                   </p>
@@ -667,7 +701,7 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-lg bg-amber-50/80 p-4">
+                  <div className="float-card rounded-lg bg-amber-50/80 p-4">
                     <p className="text-xs font-semibold text-amber-800">
                       4 participants
                     </p>
@@ -675,7 +709,7 @@ export default function Home() {
                       "I lose the thread after the third call."
                     </p>
                   </div>
-                  <div className="rounded-lg bg-rose-50/80 p-4">
+                  <div className="float-card rounded-lg bg-rose-50/80 p-4">
                     <p className="text-xs font-semibold text-rose-800">
                       Contradiction
                     </p>

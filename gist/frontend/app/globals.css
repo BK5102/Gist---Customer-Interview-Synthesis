@@ -148,6 +148,90 @@
     background-size: 220% 100%;
     animation: railFlow 6s ease-in-out infinite;
   }
+
+  .kinetic-marquee {
+    @apply overflow-hidden whitespace-nowrap rounded-full bg-white/65 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-500;
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  .kinetic-marquee-track {
+    display: inline-block;
+    min-width: 200%;
+    animation: marqueeDrift 24s linear infinite;
+  }
+
+  .research-orbit {
+    @apply relative mx-auto grid h-40 w-40 place-items-center rounded-full bg-white/80;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 28px 70px rgba(15, 118, 110, 0.16);
+  }
+
+  .research-orbit-ring {
+    @apply absolute inset-0 rounded-full border border-brand-700/20;
+    animation: orbitSpin 22s linear infinite;
+  }
+
+  .research-orbit-ring::before,
+  .research-orbit-ring::after {
+    content: "";
+    position: absolute;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: #0f766e;
+    box-shadow: 0 0 0 0.45rem rgba(15, 118, 110, 0.1);
+  }
+
+  .research-orbit-ring::before {
+    top: 1.15rem;
+    right: 2.1rem;
+  }
+
+  .research-orbit-ring::after {
+    bottom: 1.35rem;
+    left: 2rem;
+    background: #f59e0b;
+    box-shadow: 0 0 0 0.45rem rgba(245, 158, 11, 0.12);
+  }
+
+  .research-orbit-text {
+    @apply absolute inset-0 text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-neutral-500;
+    animation: orbitSpinReverse 34s linear infinite;
+  }
+
+  .research-orbit-text span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform-origin: 0 0;
+  }
+
+  .research-orbit-core {
+    @apply grid h-20 w-20 place-items-center rounded-2xl bg-neutral-900 text-white;
+    box-shadow: 0 18px 42px rgba(28, 25, 23, 0.22);
+  }
+
+  .depth-scene {
+    perspective: 1000px;
+  }
+
+  .depth-stack {
+    transform-style: preserve-3d;
+    animation: depthBreathe 8s ease-in-out infinite;
+  }
+
+  .float-card {
+    animation: floatDrift 7s ease-in-out infinite;
+  }
+
+  .float-card:nth-child(2) {
+    animation-delay: 0.75s;
+  }
+
+  .float-card:nth-child(3) {
+    animation-delay: 1.3s;
+  }
 }
 
 /* ─── prose styling for synthesis markdown ───────────────────────── */
@@ -210,6 +294,47 @@
   }
   50% {
     background-position: 100% 50%;
+  }
+}
+
+@keyframes marqueeDrift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes orbitSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbitSpinReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes depthBreathe {
+  0%,
+  100% {
+    transform: rotateX(0deg) rotateY(0deg) translateZ(0);
+  }
+  50% {
+    transform: rotateX(1.5deg) rotateY(-2.5deg) translateZ(8px);
+  }
+}
+
+@keyframes floatDrift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 16px);
   }
 }
 
