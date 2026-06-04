@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Analytics } from "@vercel/analytics/next";
+import { LogoutButton } from "@/components/LogoutButton";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -46,11 +47,7 @@ async function Navbar() {
               <span className="ml-2 hidden text-xs text-neutral-400 sm:inline">
                 {user.email}
               </span>
-              <form action="/logout" method="post" className="ml-1">
-                <button type="submit" className="btn-ghost">
-                  Log out
-                </button>
-              </form>
+              <LogoutButton />
             </>
           ) : (
             <>
@@ -71,6 +68,34 @@ async function Navbar() {
   );
 }
 
+function SiteFooter() {
+  return (
+    <footer className="relative z-10 mx-auto w-full max-w-5xl px-6 pb-10 pt-12 text-center">
+      <div className="surface-panel mx-auto max-w-3xl p-6">
+        <p className="text-lg font-semibold text-neutral-900">
+          Gist turns messy customer conversations into quote-backed research
+          clarity.
+        </p>
+        <p className="mt-2 text-base leading-relaxed text-neutral-600">
+          Upload transcripts or audio, find the themes that matter, and save
+          reports privately with a password only you know.
+        </p>
+        <div className="mt-5 flex flex-wrap justify-center gap-4 text-sm font-medium text-brand-800">
+          <Link href="/projects" className="transition-colors hover:text-brand-950">
+            Projects
+          </Link>
+          <Link href="/encrypted" className="transition-colors hover:text-brand-950">
+            Private saves
+          </Link>
+          <Link href="/settings" className="transition-colors hover:text-brand-950">
+            Settings
+          </Link>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 export default async function RootLayout({
   children,
 }: {
@@ -84,8 +109,15 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen text-neutral-900 antialiased">
+        <div className="ambient-3d-field" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
         <Navbar />
-        <div className="relative">{children}</div>
+        <div className="relative z-10">{children}</div>
+        <SiteFooter />
         {!user && <Analytics />}
       </body>
     </html>

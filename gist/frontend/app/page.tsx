@@ -180,15 +180,27 @@ function ResearchOrbit() {
 function SignedInHome() {
   return (
     <main className="page-wide">
-      <header className="motion-section mb-8">
+      <header className="motion-section mb-8 grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+        <div>
         <p className="eyebrow">Workspace</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-          Your workspace
+        <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
+          Turn customer interviews into decisions you can trust.
         </h1>
-        <p className="mt-2 max-w-2xl text-base leading-relaxed text-neutral-600">
-          All synthesis work happens inside a project. Create a project, upload
-          interviews, and save the report with a password you choose.
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
+          Start with a project, synthesize your calls, then save the report
+          privately. Everything here is organized around that flow.
         </p>
+        </div>
+        <div className="surface-panel p-5">
+          <p className="text-sm font-semibold text-neutral-900">Next best step</p>
+          <p className="mt-1 text-sm leading-relaxed text-neutral-600">
+            Open Projects to create a research round or continue from a saved
+            one.
+          </p>
+          <Link href="/projects" className="btn-primary mt-4 w-full">
+            Go to projects
+          </Link>
+        </div>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2">
@@ -660,13 +672,12 @@ export default function Home() {
 
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-neutral-600">
               Upload transcripts or drop audio files. Gist clusters themes across
-              all your interviews and pulls direct quotes — not rewrites. A second
+              all your interviews and pulls direct quotes, not rewrites. A second
               pass checks every quote against the source before it reaches you.
             </p>
 
-          <p className="mt-4 text-sm font-medium text-neutral-500">
-            For founders and product researchers who run their own interviews.
-            Not designed for enterprise teams with dedicated research ops.
+          <p className="mt-5 max-w-xl text-xl font-semibold leading-snug text-neutral-800">
+            For founders and product teams turning calls into clear next steps.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
