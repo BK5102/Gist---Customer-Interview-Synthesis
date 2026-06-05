@@ -180,16 +180,16 @@ function ResearchOrbit() {
 function SignedInHome() {
   return (
     <main className="page-wide">
-      <header className="motion-section mb-8 grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+      <header className="motion-section mb-6 grid gap-5 lg:grid-cols-[1fr_360px] lg:items-end">
         <div>
-        <p className="eyebrow">Workspace</p>
-        <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
-          Turn customer interviews into decisions you can trust.
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
-          Start with a project, synthesize your calls, then save the report
-          privately. Everything here is organized around that flow.
-        </p>
+          <p className="eyebrow">Workspace</p>
+          <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
+            Turn customer interviews into decisions you can trust.
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
+            Start with a project, synthesize your calls, then save the report
+            privately. Everything here is organized around that flow.
+          </p>
         </div>
         <div className="surface-panel p-5">
           <p className="text-sm font-semibold text-neutral-900">Next best step</p>
@@ -230,7 +230,7 @@ function SignedInHome() {
         </Link>
       </section>
 
-      <section className="surface-panel mt-8 p-6 motion-section">
+      <section className="surface-panel mt-6 p-6 motion-section">
         <div className="flex items-center gap-3">
           <div className="stage-rail h-1.5 flex-1 rounded-full" />
           <h2 className="text-sm font-semibold text-neutral-900">How it works</h2>
@@ -657,7 +657,7 @@ export default function Home() {
   if (!user || landingMode) {
     return (
       <main className="page-wide">
-        <section className="grid min-h-[calc(100vh-96px)] items-center gap-10 py-14 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="grid min-h-[calc(100vh-148px)] items-center gap-8 py-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="motion-section">
             <div className="kinetic-marquee mb-6 max-w-xl">
               <span className="kinetic-marquee-track">
@@ -743,7 +743,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="motion-section py-16">
+        <section className="motion-section py-10">
           <p className="eyebrow">What it does</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="card card-hover p-6 sm:col-span-2">
@@ -793,7 +793,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="motion-section py-16">
+        <section className="motion-section py-10">
           <p className="eyebrow">How it works</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-4">
             {(
@@ -821,7 +821,7 @@ export default function Home() {
 
         {/* Minimal CTA — only shown to signed-out visitors */}
         {!user && (
-          <section className="motion-section py-16">
+          <section className="motion-section py-10">
             <div className="surface-panel p-6">
             <p className="text-base text-neutral-700">
               Works with transcripts you already have, audio files you haven't
@@ -854,7 +854,7 @@ export default function Home() {
           { label: "Synthesis" },
         ]}
       />
-      <header className="motion-section mb-8">
+      <header className="motion-section mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">
           New synthesis
         </h1>
@@ -925,7 +925,7 @@ export default function Home() {
         </div>
 
         {files.length > 0 && (
-          <div className="mt-6 space-y-3">
+          <div className="fade-panel mt-6 space-y-3">
             <p className="eyebrow">Files ({files.length})</p>
             <ul className="space-y-2">
               {files.map((f, i) => {

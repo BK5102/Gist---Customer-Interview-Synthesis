@@ -130,7 +130,7 @@ export default function EncryptedSavesPage() {
           { label: "Private Saves" },
         ]}
       />
-      <header className="motion-section mb-8">
+      <header className="motion-section mb-6">
         <p className="eyebrow">Browser-encrypted storage</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           Private saves
@@ -142,8 +142,11 @@ export default function EncryptedSavesPage() {
       </header>
 
       {artifacts.length === 0 ? (
-        <section className="motion-card rounded-xl border border-dashed border-neutral-300 bg-white/65 p-10 text-center">
-          <h2 className="text-lg font-semibold text-neutral-900">
+        <section className="fade-panel rounded-xl border border-dashed border-neutral-300 bg-white/65 p-10 text-center">
+          <div className="state-visual">
+            <span className="text-xl font-semibold">L</span>
+          </div>
+          <h2 className="mt-4 text-lg font-semibold text-neutral-900">
             No private saves yet
           </h2>
           <p className="mt-1 text-sm text-neutral-600">
@@ -151,7 +154,7 @@ export default function EncryptedSavesPage() {
           </p>
         </section>
       ) : (
-        <section className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        <section className="fade-panel grid gap-6 lg:grid-cols-[320px_1fr]">
           <ul className="space-y-2">
             {artifacts.map((artifact) => (
               <li key={artifact.id}>

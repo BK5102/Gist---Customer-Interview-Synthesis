@@ -47,9 +47,9 @@
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg
            bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white
-           transition-all duration-200 ease-out
-           hover:-translate-y-0.5 hover:bg-neutral-800
-           active:bg-neutral-950
+           transition-all duration-300 ease-out
+           hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-brand-800
+           active:translate-y-0 active:scale-[0.99] active:bg-neutral-950
            disabled:cursor-not-allowed disabled:opacity-50;
     box-shadow: 0 12px 26px rgba(28, 25, 23, 0.16);
   }
@@ -73,6 +73,7 @@
 
   .card {
     @apply rounded-xl bg-white/90;
+    animation: cardLoad 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
     box-shadow: 0 24px 70px rgba(28, 25, 23, 0.08);
   }
   .card-hover {
@@ -107,10 +108,10 @@
   }
 
   .page {
-    @apply mx-auto w-full max-w-3xl px-6 py-12;
+    @apply mx-auto w-full max-w-3xl px-6 py-10;
   }
   .page-wide {
-    @apply mx-auto w-full max-w-6xl px-6 py-12;
+    @apply mx-auto w-full max-w-6xl px-6 py-10;
   }
 
   .motion-section {
@@ -287,6 +288,26 @@
     animation-delay: 2.4s;
   }
 
+  .nav-glyph {
+    @apply grid h-5 w-5 shrink-0 place-items-center rounded-md bg-neutral-100 text-neutral-500 transition-all duration-200;
+  }
+
+  .btn-ghost:hover .nav-glyph {
+    @apply bg-brand-50 text-brand-800;
+    transform: rotate(-4deg) scale(1.06);
+  }
+
+  .state-visual {
+    @apply mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white/80 text-neutral-900;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 18px 48px rgba(15, 118, 110, 0.12);
+  }
+
+  .fade-panel {
+    animation: fadePanel 0.45s ease-out both;
+  }
+
   @media (max-width: 1180px) {
     .ambient-3d-field {
       display: none;
@@ -344,6 +365,28 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cardLoad {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadePanel {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

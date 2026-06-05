@@ -166,7 +166,7 @@ export default function SynthesisDetailPage() {
         ]}
       />
 
-      <header className="motion-section mb-8">
+      <header className="motion-section mb-6">
         <p className="eyebrow">Synthesis</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           Interview Synthesis
@@ -182,7 +182,7 @@ export default function SynthesisDetailPage() {
       </header>
 
       {/* Action bar */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="fade-panel mb-4 flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
           onClick={copyMarkdown}

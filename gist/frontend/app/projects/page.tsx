@@ -98,7 +98,7 @@ export default function ProjectsPage() {
           { label: "Projects" },
         ]}
       />
-      <header className="motion-section mb-8">
+      <header className="motion-section mb-6">
         <p className="eyebrow">Research rounds</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">
           Projects
@@ -109,7 +109,7 @@ export default function ProjectsPage() {
         </p>
       </header>
 
-      <form onSubmit={createProject} className="surface-panel mb-8 flex gap-2 p-3">
+      <form onSubmit={createProject} className="surface-panel mb-6 flex gap-2 p-3">
         <input
           type="text"
           value={newName}
@@ -127,8 +127,8 @@ export default function ProjectsPage() {
       </form>
 
       {projects && projects.length === 0 && (
-        <div className="motion-card rounded-xl border border-dashed border-neutral-300 bg-white/65 p-12 text-center">
-          <div className="mx-auto inline-grid h-12 w-12 place-items-center rounded-xl bg-neutral-900 text-white">
+        <div className="fade-panel rounded-xl border border-dashed border-neutral-300 bg-white/65 p-10 text-center">
+          <div className="state-visual">
             <span className="text-xl">+</span>
           </div>
           <h2 className="mt-4 text-lg font-semibold text-neutral-800">
@@ -142,7 +142,7 @@ export default function ProjectsPage() {
       )}
 
       {projects && projects.length > 0 && (
-        <ul className="space-y-3">
+        <ul className="fade-panel space-y-3">
           {projects.map((proj) => (
             <li key={proj.id}>
               <div className="card card-hover motion-card p-5">

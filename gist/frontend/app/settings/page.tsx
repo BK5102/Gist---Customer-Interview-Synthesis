@@ -141,12 +141,12 @@ export default function SettingsPage() {
           { label: "Settings" },
         ]}
       />
-      <header className="mb-8">
+      <header className="motion-section mb-6">
         <p className="eyebrow">Account</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">Settings</h1>
       </header>
 
-      <section className="card p-6">
+      <section className="card motion-card p-6">
         <h2 className="eyebrow">
           Account
         </h2>
@@ -160,13 +160,13 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="card mt-6 p-6">
+      <section className="card motion-card mt-5 p-6">
         <h2 className="eyebrow">
           Integrations
         </h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-lg bg-white font-bold text-neutral-700">
+            <span className="state-visual h-12 w-12 text-sm font-bold text-neutral-700">
               N
             </span>
             <div>
