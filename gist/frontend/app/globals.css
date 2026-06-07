@@ -24,7 +24,7 @@
   body {
     background:
       linear-gradient(180deg, rgba(240, 253, 250, 0.75), transparent 440px),
-      linear-gradient(90deg, rgba(251, 191, 36, 0.12), transparent 34%),
+      linear-gradient(90deg, rgba(15, 118, 110, 0.08), transparent 34%),
       linear-gradient(135deg, #fffdfa 0%, #fafaf9 52%, #f1f5f4 100%);
     color: var(--ink);
     font-size: 1.0625rem;
@@ -47,10 +47,10 @@
 @layer components {
   .btn-primary {
     @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl
-           bg-neutral-950 px-6 py-3 text-base font-semibold text-white
+           bg-brand-950 px-6 py-3 text-base font-semibold text-white
            transition-all duration-300 ease-out
            hover:-translate-y-1 hover:scale-[1.025] hover:bg-brand-800
-           active:translate-y-0 active:scale-[0.99] active:bg-neutral-950
+           active:translate-y-0 active:scale-[0.99] active:bg-brand-950
            disabled:cursor-not-allowed disabled:opacity-50;
     box-shadow: 0 14px 30px rgba(28, 25, 23, 0.2);
   }
@@ -131,7 +131,7 @@
   }
 
   .text-gradient {
-    background: linear-gradient(90deg, #134e4a, #0f766e 48%, #92400e);
+    background: linear-gradient(90deg, #042f2e, #0f766e 52%, #134e4a);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -148,7 +148,7 @@
   }
 
   .stage-rail {
-    background: linear-gradient(90deg, #0f766e, #f59e0b, #be123c, #0f766e);
+    background: linear-gradient(90deg, #042f2e, #0f766e, #5eead4, #042f2e);
     background-size: 220% 100%;
     animation: railFlow 6s ease-in-out infinite;
   }
@@ -195,8 +195,8 @@
   .research-orbit-ring::after {
     bottom: 1.35rem;
     left: 2rem;
-    background: #f59e0b;
-    box-shadow: 0 0 0 0.45rem rgba(245, 158, 11, 0.12);
+    background: #134e4a;
+    box-shadow: 0 0 0 0.45rem rgba(19, 78, 74, 0.12);
   }
 
   .research-orbit-text {
@@ -212,7 +212,7 @@
   }
 
   .research-orbit-core {
-    @apply grid h-20 w-20 place-items-center rounded-2xl bg-neutral-900 text-white;
+    @apply grid h-20 w-20 place-items-center rounded-2xl bg-brand-950 text-white;
     box-shadow: 0 18px 42px rgba(28, 25, 23, 0.22);
   }
 
@@ -312,8 +312,16 @@
   }
 
   .nav-shell {
-    @apply mx-auto flex w-full max-w-6xl items-center justify-between rounded-2xl bg-white px-5 py-3;
-    box-shadow: 0 18px 55px rgba(28, 25, 23, 0.12);
+    @apply mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-6;
+  }
+
+  .nav-link {
+    @apply inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-brand-50 hover:text-brand-950 sm:px-2.5;
+  }
+
+  .nav-cta {
+    @apply inline-flex h-9 shrink-0 items-center justify-center rounded-lg bg-brand-950 px-4 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-800 active:scale-[0.98];
+    box-shadow: 0 8px 18px rgba(4, 47, 46, 0.18);
   }
 
   .feature-card {
@@ -332,35 +340,8 @@
   }
 
   .feature-card:hover::after {
-    background: rgba(245, 158, 11, 0.14);
+    background: rgba(15, 118, 110, 0.14);
     transform: translate3d(-1rem, -1rem, 0) scale(1.12);
-  }
-
-  .footer-action {
-    @apply relative overflow-hidden rounded-xl bg-white/10 p-5 text-left text-white transition-all duration-300 ease-out;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-  }
-
-  .footer-action:hover {
-    background: rgba(255, 255, 255, 0.16);
-    transform: translateY(-4px);
-  }
-
-  .footer-action::after {
-    content: "";
-    position: absolute;
-    right: -1.5rem;
-    bottom: -2rem;
-    width: 6rem;
-    height: 6rem;
-    border-radius: 9999px;
-    background: #f59e0b;
-    opacity: 0.9;
-    transition: transform 0.45s ease;
-  }
-
-  .footer-action:hover::after {
-    transform: translate3d(-0.6rem, -0.6rem, 0) scale(1.12);
   }
 
   @media (max-width: 1180px) {

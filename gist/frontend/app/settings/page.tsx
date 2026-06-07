@@ -30,7 +30,7 @@ export default function SettingsPage() {
           return;
         }
 
-        // Cheap connection-status check — single DB read, no Notion API call.
+        // Cheap connection-status check: one DB read and no Notion API call.
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -43,7 +43,7 @@ export default function SettingsPage() {
               setNotion((await res.json()) as NotionStatus);
             }
           } catch {
-            // Backend unreachable — leave notion state as disconnected
+            // Leave Notion disconnected when the backend is unreachable.
             // so the user sees the "Connect Notion" CTA instead of a
             // red banner.
           }
@@ -151,7 +151,7 @@ export default function SettingsPage() {
           Account
         </h2>
         <div className="mt-3 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-sm font-semibold text-white">
             {user?.email?.[0]?.toUpperCase() ?? "?"}
           </span>
           <p className="text-sm text-neutral-800">
@@ -173,8 +173,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-neutral-900">Notion</p>
                 {notion.connected && (
-                  <span className="pill bg-green-50 text-green-700 ring-green-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                  <span className="pill bg-brand-50 text-brand-800 ring-brand-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-700" />
                     Connected
                   </span>
                 )}

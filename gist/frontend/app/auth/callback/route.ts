@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const rawNext = searchParams.get("next") ?? "/";
-  // Accept only relative paths starting with a single slash — no protocol-relative
+  // Accept only relative paths starting with a single slash, never protocol-relative.
   // URLs (//evil.com), absolute URLs, or paths outside this origin.
   const next = /^\/[^/]/.test(rawNext) || rawNext === "/" ? rawNext : "/";
 

@@ -59,7 +59,7 @@ export default function SynthesisDetailPage() {
 
         // Cheap connection check first; only hit Notion's API if connected.
         // Wrapped separately so a Notion-side outage doesn't block the
-        // markdown render — the user can still read the synthesis.
+        // Markdown render failure should not prevent reading the synthesis.
         try {
           const connRes = await fetch(`${API_URL}/notion/connection`, {
             headers: { Authorization: `Bearer ${session.access_token}` },
@@ -79,10 +79,10 @@ export default function SynthesisDetailPage() {
             }
           }
         } catch {
-          /* Notion check failed — degrade gracefully, hide push UI */
+          /* Hide the push UI when the Notion check fails. */
         }
       } catch {
-        /* synthesis fetch failed — leave null so "not found" state shows */
+        /* Leave null after a failed fetch so the not-found state shows. */
       } finally {
         setLoading(false);
       }
@@ -232,8 +232,8 @@ export default function SynthesisDetailPage() {
         </p>
       )}
       {pushUrl && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800 animate-fade-in">
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-green-600 text-xs text-white">
+        <div className="mb-4 flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800 animate-fade-in">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-700 text-xs text-white">
             ✓
           </span>
           Pushed to Notion.{" "}
@@ -255,7 +255,7 @@ export default function SynthesisDetailPage() {
               No synthesis content was stored for this record.
             </p>
           ) : looksLikeJson(synth.markdown_output) ? (
-            <div className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-950">
               <p className="font-medium">Synthesis result could not be rendered.</p>
               <p className="mt-1 text-xs">
                 The stored content appears to be in an unexpected format.

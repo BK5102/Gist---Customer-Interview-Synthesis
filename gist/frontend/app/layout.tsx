@@ -6,7 +6,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gist — Interview Synthesis",
+  title: "Gist | Interview Synthesis",
   description:
     "Turn customer interview transcripts into themed synthesis with traceable quotes.",
 };
@@ -41,35 +41,35 @@ async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <nav className="sticky top-0 z-40 px-3 py-3 backdrop-blur-xl sm:px-6">
+    <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl">
       <div className="nav-shell">
         <Link
           href={user ? "/?landing=1" : "/"}
-          className="group flex items-center gap-3 text-2xl font-bold tracking-tight"
+          className="group flex shrink-0 items-center gap-2.5 text-xl font-bold tracking-tight"
         >
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-neutral-950 text-white transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
-            <span className="text-lg font-bold leading-none">G</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-950 text-white transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
+            <span className="text-sm font-bold leading-none">G</span>
           </span>
           <span className="text-neutral-900">Gist</span>
         </Link>
-        <div className="flex items-center gap-2 overflow-x-auto">
+        <div className="flex min-w-0 items-center gap-1.5">
           {user ? (
             <>
-              <Link href="/" className="btn-ghost">
+              <Link href="/" className="nav-link hidden sm:inline-flex">
                 <NavGlyph kind="home" />
-                Home
+                <span className="hidden lg:inline">Home</span>
               </Link>
-              <Link href="/projects" className="btn-ghost">
+              <Link href="/projects" className="nav-link">
                 <NavGlyph kind="projects" />
-                Projects
+                <span className="hidden lg:inline">Projects</span>
               </Link>
-              <Link href="/encrypted" className="btn-ghost">
+              <Link href="/encrypted" className="nav-link">
                 <NavGlyph kind="saves" />
-                Private saves
+                <span className="hidden lg:inline">Private saves</span>
               </Link>
-              <Link href="/settings" className="btn-ghost">
+              <Link href="/settings" className="nav-link">
                 <NavGlyph kind="settings" />
-                Settings
+                <span className="hidden lg:inline">Settings</span>
               </Link>
               <span className="ml-2 hidden text-sm text-neutral-500 xl:inline">
                 {user.email}
@@ -78,10 +78,10 @@ async function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-secondary">
+              <Link href="/login" className="nav-link px-3.5">
                 Log in
               </Link>
-              <Link href="/signup" className="btn-primary">
+              <Link href="/signup" className="nav-cta">
                 Sign up
               </Link>
             </>
@@ -89,79 +89,6 @@ async function Navbar() {
         </div>
       </div>
     </nav>
-  );
-}
-
-function SiteFooter({ signedIn }: { signedIn: boolean }) {
-  return (
-    <footer className="relative z-10 mt-8 bg-brand-950 text-white">
-      <div className="mx-auto w-full max-w-6xl px-6 py-10 sm:py-12">
-        <div className="grid gap-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-wider text-amber-400">
-              Ready for clearer research?
-            </p>
-            <h2 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight sm:text-5xl">
-              Turn interviews into decisions you can defend.
-            </h2>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-brand-100">
-              Upload transcripts or audio, trace every finding to a real quote,
-              and keep private reports encrypted.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Link
-              href={signedIn ? "/projects" : "/signup"}
-              className="footer-action"
-            >
-              <span className="relative z-10 block text-xl font-bold">
-                {signedIn ? "Open projects" : "Get started"}
-              </span>
-              <span className="relative z-10 mt-2 block max-w-[14rem] text-sm leading-relaxed text-brand-100">
-                {signedIn
-                  ? "Continue a research round or start a new one."
-                  : "Create a workspace and synthesize your first interviews."}
-              </span>
-            </Link>
-            <Link
-              href={signedIn ? "/encrypted" : "/login"}
-              className="footer-action"
-            >
-              <span className="relative z-10 block text-xl font-bold">
-                {signedIn ? "Private saves" : "Log in"}
-              </span>
-              <span className="relative z-10 mt-2 block max-w-[14rem] text-sm leading-relaxed text-brand-100">
-                {signedIn
-                  ? "Return to reports encrypted in your browser."
-                  : "Pick up where you left off in your workspace."}
-              </span>
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-col gap-6 border-t border-white/15 pt-7 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <Link href="/" className="text-5xl font-bold tracking-tight sm:text-7xl">
-              Gist
-            </Link>
-            <p className="mt-2 text-sm text-brand-200">
-              Quote-backed customer interview synthesis.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-3 text-base font-semibold text-brand-100">
-            <Link href="/projects" className="transition-colors hover:text-amber-400">
-              Projects
-            </Link>
-            <Link href="/encrypted" className="transition-colors hover:text-amber-400">
-              Private saves
-            </Link>
-            <Link href="/settings" className="transition-colors hover:text-amber-400">
-              Settings
-            </Link>
-          </div>
-        </div>
-      </div>
-    </footer>
   );
 }
 
@@ -186,7 +113,6 @@ export default async function RootLayout({
         </div>
         <Navbar />
         <div className="relative z-10">{children}</div>
-        <SiteFooter signedIn={Boolean(user)} />
         {!user && <Analytics />}
       </body>
     </html>

@@ -165,7 +165,7 @@ export default function EncryptedSavesPage() {
                     selected?.id === artifact.id ? "ring-2 ring-brand-600" : ""
                   }`}
                 >
-                  <div className="mb-3 h-1.5 w-12 rounded-full bg-amber-500" />
+                  <div className="mb-3 h-1.5 w-12 rounded-full bg-brand-800" />
                   <p className="text-sm font-semibold text-neutral-900">
                     {artifact.title || "Private synthesis"}
                   </p>
@@ -216,7 +216,7 @@ export default function EncryptedSavesPage() {
             )}
 
             {error && (
-              <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <p className="mt-4 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-950">
                 {error}
               </p>
             )}

@@ -107,7 +107,7 @@ const FileStatusBadge = ({ status }: { status: FileProgressItem["status"] }) => 
       );
     case "transcribing":
       return (
-        <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
+        <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-800">
           Transcribing…
         </span>
       );
@@ -119,7 +119,7 @@ const FileStatusBadge = ({ status }: { status: FileProgressItem["status"] }) => 
       );
     case "extracted":
       return (
-        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700">
+        <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-800">
           Done
         </span>
       );
@@ -177,6 +177,45 @@ function ResearchOrbit() {
   );
 }
 
+function LandingFooter() {
+  const signupLinks = ["Projects", "Private saves", "Settings"];
+
+  return (
+    <footer className="relative z-10 mt-6 bg-brand-950 text-white">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-wider text-brand-200">
+            Start with one research round
+          </p>
+          <h2 className="mt-2 max-w-2xl text-2xl font-bold tracking-tight sm:text-3xl">
+            Turn customer conversations into evidence your team can use.
+          </h2>
+          <Link href="/signup" prefetch={false} className="btn-secondary mt-5">
+            Create an account
+          </Link>
+        </div>
+        <div className="flex flex-col gap-4 sm:items-end">
+          <Link href="/" className="text-3xl font-bold tracking-tight">
+            Gist
+          </Link>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-brand-100">
+            {signupLinks.map((label) => (
+              <Link
+                key={label}
+                href="/signup"
+                prefetch={false}
+                className="transition-colors hover:text-white"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 function SignedInHome() {
   return (
     <main className="page-wide">
@@ -216,7 +255,7 @@ function SignedInHome() {
           </p>
         </Link>
         <Link href="/encrypted" className="card card-hover motion-card p-6 [animation-delay:90ms]">
-          <div className="mb-4 h-1.5 w-16 rounded-full bg-amber-500" />
+          <div className="mb-4 h-1.5 w-16 rounded-full bg-brand-800" />
           <p className="text-base font-semibold text-neutral-900">
             Private saves
           </p>
@@ -253,7 +292,7 @@ function SignedInHome() {
             <p className="font-semibold text-neutral-900">3. Save privately</p>
             <p className="mt-1 leading-relaxed">
               Encrypt the report with a password you choose. It's not stored
-              anywhere — only you can open it.
+              anywhere. Only you can open it.
             </p>
           </div>
         </div>
@@ -656,8 +695,9 @@ export default function Home() {
 
   if (!user || landingMode) {
     return (
-      <main className="page-wide">
-        <section className="grid items-center gap-7 pb-8 pt-3 lg:grid-cols-[1.05fr_0.95fr] lg:pb-10">
+      <>
+        <main className="page-wide">
+          <section className="grid items-center gap-7 pb-8 pt-3 lg:grid-cols-[1.05fr_0.95fr] lg:pb-10">
           <div className="motion-section">
             <div className="kinetic-marquee mb-4 max-w-xl">
               <span className="kinetic-marquee-track">
@@ -712,16 +752,16 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="float-card rounded-lg bg-amber-50/80 p-4">
-                    <p className="text-xs font-semibold text-amber-800">
+                  <div className="float-card rounded-lg bg-white p-4">
+                    <p className="text-xs font-semibold text-brand-800">
                       4 participants
                     </p>
                     <p className="mt-2 text-sm leading-relaxed text-neutral-700">
                       "I lose the thread after the third call."
                     </p>
                   </div>
-                  <div className="float-card rounded-lg bg-rose-50/80 p-4">
-                    <p className="text-xs font-semibold text-rose-800">
+                  <div className="float-card rounded-lg bg-brand-50/80 p-4">
+                    <p className="text-xs font-semibold text-brand-950">
                       Contradiction
                     </p>
                     <p className="mt-2 text-sm leading-relaxed text-neutral-700">
@@ -741,9 +781,9 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+          </section>
 
-        <section className="motion-section py-7">
+          <section className="motion-section py-7">
           <p className="eyebrow">What it does</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
             <div className="feature-card bg-brand-50 sm:col-span-2">
@@ -758,18 +798,18 @@ export default function Home() {
                 quotes, but the ones you see are real.
               </p>
             </div>
-            <div className="feature-card bg-amber-50">
-              <div className="mb-5 h-2 w-20 rounded-full bg-amber-500" />
+            <div className="feature-card bg-white">
+              <div className="mb-5 h-2 w-20 rounded-full bg-brand-800" />
               <h3 className="text-xl font-bold text-neutral-950">
                 Reports encrypted in your browser
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700">
                 The report is encrypted here before it's stored. The password
-                never leaves your device — Gist can't access your saves.
+                never leaves your device. Gist can't access your saves.
               </p>
             </div>
-            <div className="feature-card bg-rose-50">
-              <div className="mb-5 h-2 w-20 rounded-full bg-rose-600" />
+            <div className="feature-card bg-brand-50">
+              <div className="mb-5 h-2 w-20 rounded-full bg-brand-950" />
               <h3 className="text-xl font-bold text-neutral-950">
                 Audio files and text transcripts
               </h3>
@@ -779,33 +819,33 @@ export default function Home() {
                 a text file.
               </p>
             </div>
-            <div className="feature-card bg-neutral-100 sm:col-span-2">
-              <div className="mb-5 h-2 w-24 rounded-full bg-neutral-950" />
+            <div className="feature-card bg-white sm:col-span-2">
+              <div className="mb-5 h-2 w-24 rounded-full bg-brand-950" />
               <h3 className="text-xl font-bold text-neutral-950">
                 Send the report to Notion
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700">
                 Pick a database from your Notion workspace and Gist writes the
-                synthesis there as a new page. The connection uses OAuth — no
-                API keys to copy and paste.
+                synthesis there as a new page. The connection uses OAuth, so
+                there are no API keys to copy and paste.
               </p>
             </div>
           </div>
-        </section>
+          </section>
 
-        <section className="motion-section py-7">
+          <section className="motion-section py-7">
           <p className="eyebrow">How it works</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-4">
             {(
               [
-                ["1", "Upload", "Add your .txt, .mp3, or .wav files — up to 20 at once"],
+                ["1", "Upload", "Add your .txt, .mp3, or .wav files, up to 20 at once"],
                 ["2", "Transcribe", "Audio is transcribed via Whisper before synthesis runs"],
                 ["3", "Synthesize", "Themes are clustered across all participants, each anchored to a direct quote"],
                 ["4", "Export", "Copy the report as markdown or send it to a Notion database"],
               ] as const
             ).map(([n, title, body]) => (
               <div key={n} className="flow-step">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-950 text-xs font-medium text-white">
                   {n}
                 </span>
                 <div className="mt-4">
@@ -817,9 +857,10 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </section>
-
-      </main>
+          </section>
+        </main>
+        {!user && <LandingFooter />}
+      </>
     );
   }
 
@@ -867,7 +908,7 @@ export default function Home() {
             ${isLoading ? "opacity-50" : ""}
           `}
         >
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-neutral-900 text-white transition-transform duration-300 group-hover:scale-105">
+          <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-950 text-white transition-transform duration-300 group-hover:scale-105">
             <svg
               className="h-5 w-5"
               viewBox="0 0 24 24"
@@ -1085,7 +1126,7 @@ export default function Home() {
                   <span
                     className={`grid h-4 w-4 place-items-center rounded-full text-[8px] transition-colors ${
                       active
-                        ? "bg-neutral-900 text-white"
+                        ? "bg-brand-950 text-white"
                         : reached
                           ? "bg-neutral-300 text-neutral-700"
                           : "bg-neutral-200 text-neutral-400"
@@ -1101,7 +1142,7 @@ export default function Home() {
 
           <div className="surface-panel mt-4 px-4 py-3">
             <p className="text-xs font-semibold text-neutral-800">
-              You can switch to another tab — just don't close this one.
+              You can switch to another tab. Just don't close this one.
             </p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-500">
               The synthesis runs in the background. Results will load here
@@ -1137,11 +1178,11 @@ export default function Home() {
                 No synthesis content was returned. Please try again.
               </p>
             ) : looksLikeJson(result.markdown) ? (
-              <div className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-950">
                 <p className="font-medium">Synthesis result could not be rendered.</p>
                 <p className="mt-1 text-xs">
                   The server returned an unexpected response format. Try
-                  re-running the synthesis — this is usually a one-off issue.
+                  re-running the synthesis. This is usually a one-off issue.
                 </p>
               </div>
             ) : (
@@ -1155,14 +1196,14 @@ export default function Home() {
             </p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-600">
               The report is encrypted in your browser before being stored. The
-              password stays on your device — Gist never sees it.
+              password stays on your device. Gist never sees it.
             </p>
             <div className="mt-3 grid gap-3">
               <input
                 type="text"
                 value={privateSaveTitle}
                 onChange={(e) => setPrivateSaveTitle(e.target.value)}
-                placeholder="Title — e.g. Pricing interviews, May 2026"
+                placeholder="Title, e.g. Pricing interviews, May 2026"
                 className="input"
               />
               <div className="grid gap-3">
@@ -1205,7 +1246,7 @@ export default function Home() {
                             key={seg}
                             className={`h-1 flex-1 rounded-full transition-colors duration-150 ${
                               seg <= strength
-                                ? (["", "bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-green-500"] as const)[strength]
+                                ? (["", "bg-brand-300", "bg-brand-500", "bg-brand-700", "bg-brand-950"] as const)[strength]
                                 : "bg-neutral-200"
                             }`}
                           />
@@ -1220,7 +1261,7 @@ export default function Home() {
                           return (
                             <li
                               key={rule.label}
-                              className={`flex items-center gap-1.5 text-xs transition-colors duration-100 ${ok ? "text-green-600" : "text-neutral-400"}`}
+                              className={`flex items-center gap-1.5 text-xs transition-colors duration-100 ${ok ? "text-brand-700" : "text-neutral-400"}`}
                             >
                               <span className="shrink-0 font-medium">{ok ? "✓" : "✗"}</span>
                               {rule.label}
@@ -1266,7 +1307,7 @@ export default function Home() {
                   {privateSavePasswordConfirm && (
                     <p className={`mt-1.5 text-xs font-medium ${
                       privateSavePassword === privateSavePasswordConfirm
-                        ? "text-green-600"
+                        ? "text-brand-700"
                         : "text-red-500"
                     }`}>
                       {privateSavePassword === privateSavePasswordConfirm
@@ -1294,7 +1335,7 @@ export default function Home() {
                 Do not save
               </Link>
               {saveStatus && (
-                <span className="text-xs text-green-700">{saveStatus}</span>
+                <span className="text-xs text-brand-800">{saveStatus}</span>
               )}
               {saveError && (
                 <span className="text-xs text-red-700">{saveError}</span>
