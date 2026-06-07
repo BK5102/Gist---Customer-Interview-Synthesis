@@ -187,7 +187,6 @@ function ProductDemo() {
           <p>
             Seven participants described onboarding as the main barrier to
             adopting the workflow.
-            <span className="citation-dot">7</span>
           </p>
           <div className="finding-list">
             <div>
