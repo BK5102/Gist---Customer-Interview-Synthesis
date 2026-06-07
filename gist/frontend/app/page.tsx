@@ -657,30 +657,30 @@ export default function Home() {
   if (!user || landingMode) {
     return (
       <main className="page-wide">
-        <section className="grid min-h-[calc(100vh-148px)] items-center gap-8 py-10 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="grid items-center gap-7 pb-8 pt-3 lg:grid-cols-[1.05fr_0.95fr] lg:pb-10">
           <div className="motion-section">
-            <div className="kinetic-marquee mb-6 max-w-xl">
+            <div className="kinetic-marquee mb-4 max-w-xl">
               <span className="kinetic-marquee-track">
                 trace quotes • cluster themes • protect reports • synthesize interviews • trace quotes • cluster themes • protect reports • synthesize interviews •
               </span>
             </div>
             <p className="eyebrow">Private-by-default interview synthesis</p>
-            <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
+            <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-6xl">
               Read ten interviews at once.{" "}
               <span className="text-gradient">Every finding traced to who said it.</span>
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-neutral-600">
+            <p className="mt-4 max-w-2xl text-xl leading-relaxed text-neutral-700">
               Upload transcripts or drop audio files. Gist clusters themes across
               all your interviews and pulls direct quotes, not rewrites. A second
               pass checks every quote against the source before it reaches you.
             </p>
 
-          <p className="mt-5 max-w-xl text-xl font-semibold leading-snug text-neutral-800">
+          <p className="mt-4 max-w-xl text-xl font-semibold leading-snug text-neutral-900">
             For founders and product teams turning calls into clear next steps.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href={user ? "/" : "/signup"}
               className="btn-primary px-6 py-3"
@@ -743,48 +743,48 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="motion-section py-10">
+        <section className="motion-section py-7">
           <p className="eyebrow">What it does</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className="card card-hover p-6 sm:col-span-2">
-              <div className="mb-5 h-1.5 w-20 rounded-full bg-brand-600" />
-              <h3 className="text-base font-semibold text-neutral-900">
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <div className="feature-card bg-brand-50 sm:col-span-2">
+              <div className="mb-5 h-2 w-24 rounded-full bg-brand-700" />
+              <h3 className="text-xl font-bold text-neutral-950">
                 Every quote checked against the transcript
               </h3>
-              <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-600">
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-700">
                 After generating themes, Gist runs a second pass that checks
                 each quote against the original text verbatim. Quotes that don't
                 appear in the source are dropped, not rewritten. You get fewer
                 quotes, but the ones you see are real.
               </p>
             </div>
-            <div className="card card-hover p-6">
-              <div className="mb-5 h-1.5 w-16 rounded-full bg-amber-500" />
-              <h3 className="text-base font-semibold text-neutral-900">
+            <div className="feature-card bg-amber-50">
+              <div className="mb-5 h-2 w-20 rounded-full bg-amber-500" />
+              <h3 className="text-xl font-bold text-neutral-950">
                 Reports encrypted in your browser
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+              <p className="mt-3 text-base leading-relaxed text-neutral-700">
                 The report is encrypted here before it's stored. The password
                 never leaves your device — Gist can't access your saves.
               </p>
             </div>
-            <div className="card card-hover p-6">
-              <div className="mb-5 h-1.5 w-16 rounded-full bg-rose-500" />
-              <h3 className="text-base font-semibold text-neutral-900">
+            <div className="feature-card bg-rose-50">
+              <div className="mb-5 h-2 w-20 rounded-full bg-rose-600" />
+              <h3 className="text-xl font-bold text-neutral-950">
                 Audio files and text transcripts
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+              <p className="mt-3 text-base leading-relaxed text-neutral-700">
                 Accepts .mp3, .wav, .m4a, and .mp4 up to 200 MB. Audio is
                 transcribed via Whisper, then goes through the same pipeline as
                 a text file.
               </p>
             </div>
-            <div className="card card-hover p-6 sm:col-span-2">
-              <div className="mb-5 h-1.5 w-20 rounded-full bg-neutral-900" />
-              <h3 className="text-base font-semibold text-neutral-900">
+            <div className="feature-card bg-neutral-100 sm:col-span-2">
+              <div className="mb-5 h-2 w-24 rounded-full bg-neutral-950" />
+              <h3 className="text-xl font-bold text-neutral-950">
                 Send the report to Notion
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+              <p className="mt-3 text-base leading-relaxed text-neutral-700">
                 Pick a database from your Notion workspace and Gist writes the
                 synthesis there as a new page. The connection uses OAuth — no
                 API keys to copy and paste.
@@ -793,9 +793,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="motion-section py-10">
+        <section className="motion-section py-7">
           <p className="eyebrow">How it works</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-4">
+          <div className="mt-5 grid gap-4 sm:grid-cols-4">
             {(
               [
                 ["1", "Upload", "Add your .txt, .mp3, or .wav files — up to 20 at once"],
@@ -809,30 +809,16 @@ export default function Home() {
                   {n}
                 </span>
                 <div className="mt-4">
-                  <p className="text-base font-semibold text-neutral-900">
+                  <p className="text-lg font-bold text-neutral-950">
                     {title}
                   </p>
-                  <p className="mt-1 text-sm text-neutral-600">{body}</p>
+                  <p className="mt-2 text-base leading-relaxed text-neutral-700">{body}</p>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Minimal CTA — only shown to signed-out visitors */}
-        {!user && (
-          <section className="motion-section py-10">
-            <div className="surface-panel p-6">
-            <p className="text-base text-neutral-700">
-              Works with transcripts you already have, audio files you haven't
-              had time to review, or both.
-            </p>
-            <Link href="/signup" className="btn-primary mt-4 px-6 py-3">
-              Create an account
-            </Link>
-            </div>
-          </section>
-        )}
       </main>
     );
   }

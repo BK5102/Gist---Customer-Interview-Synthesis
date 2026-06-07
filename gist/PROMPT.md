@@ -458,6 +458,12 @@ git reflog expire --expire=now --all && git gc --aggressive --prune=now
 
 ---
 
+## Latest UI session
+
+44. **TryClean-inspired density and footer pass** - Bhavana asked for larger navigation and buttons, larger type across the product, tighter page spacing, bolder solid color, richer card motion, and a real footer. Adapted the strongest structural ideas from `https://www.tryclean.ai/` without reusing its branding or assets: a larger floating navigation shell with paired outlined/solid actions, denser asymmetric feature cards, and a full-width dark CTA footer with large brand type. Removed the public hero's forced viewport height, tightened landing section gaps, increased shared button/input/label sizing, strengthened teal/amber/charcoal contrast, and moved the final signup CTA into the site footer.
+
+---
+
 ## 14. Files to read first when restarting
 
 1. **`PROMPT.md`** — this file, start here

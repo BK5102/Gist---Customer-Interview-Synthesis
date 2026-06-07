@@ -24,9 +24,10 @@
   body {
     background:
       linear-gradient(180deg, rgba(240, 253, 250, 0.75), transparent 440px),
-      linear-gradient(90deg, rgba(251, 191, 36, 0.08), transparent 34%),
+      linear-gradient(90deg, rgba(251, 191, 36, 0.12), transparent 34%),
       linear-gradient(135deg, #fffdfa 0%, #fafaf9 52%, #f1f5f4 100%);
     color: var(--ink);
+    font-size: 1.0625rem;
   }
 
   ::selection {
@@ -45,30 +46,31 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg
-           bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl
+           bg-neutral-950 px-6 py-3 text-base font-semibold text-white
            transition-all duration-300 ease-out
-           hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-brand-800
+           hover:-translate-y-1 hover:scale-[1.025] hover:bg-brand-800
            active:translate-y-0 active:scale-[0.99] active:bg-neutral-950
            disabled:cursor-not-allowed disabled:opacity-50;
-    box-shadow: 0 12px 26px rgba(28, 25, 23, 0.16);
+    box-shadow: 0 14px 30px rgba(28, 25, 23, 0.2);
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg
-           border border-neutral-300 bg-white/90 px-5 py-2.5
-           text-sm font-medium text-neutral-700
-           transition-all duration-200 ease-out
-           hover:-translate-y-0.5 hover:border-neutral-400 hover:bg-white
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl
+           border-2 border-neutral-300 bg-white px-6 py-3
+           text-base font-semibold text-neutral-800
+           transition-all duration-300 ease-out
+           hover:-translate-y-1 hover:scale-[1.02] hover:border-brand-700 hover:bg-brand-50 hover:text-brand-950
            active:bg-neutral-100
            disabled:cursor-not-allowed disabled:opacity-50;
+    box-shadow: 0 10px 24px rgba(28, 25, 23, 0.08);
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-md
-           px-3 py-1.5 text-sm font-medium text-neutral-600
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg
+           px-4 py-2.5 text-base font-semibold text-neutral-700
            transition-all duration-200 ease-out
-           hover:-translate-y-0.5 hover:bg-neutral-100 hover:text-neutral-900;
+           hover:-translate-y-0.5 hover:bg-brand-50 hover:text-brand-950;
   }
 
   .card {
@@ -87,7 +89,7 @@
 
   .input {
     @apply block w-full rounded-lg border border-neutral-300 bg-white
-           px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400
+           px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400
            transition-colors duration-150
            focus:border-brand-700 focus:outline-none
            focus:ring-2 focus:ring-brand-200
@@ -95,7 +97,7 @@
   }
 
   .label {
-    @apply block text-sm font-medium text-neutral-700;
+    @apply block text-base font-medium text-neutral-700;
   }
 
   .pill {
@@ -104,14 +106,14 @@
   }
 
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-wider text-brand-800;
+    @apply text-sm font-bold uppercase tracking-wider text-brand-800;
   }
 
   .page {
-    @apply mx-auto w-full max-w-3xl px-6 py-10;
+    @apply mx-auto w-full max-w-3xl px-6 py-7 sm:py-8;
   }
   .page-wide {
-    @apply mx-auto w-full max-w-6xl px-6 py-10;
+    @apply mx-auto w-full max-w-6xl px-6 py-7 sm:py-8;
   }
 
   .motion-section {
@@ -136,7 +138,8 @@
   }
 
   .flow-step {
-    @apply relative rounded-xl bg-white/75 p-4 transition-all duration-300 ease-out;
+    @apply relative rounded-xl bg-white p-5 transition-all duration-300 ease-out;
+    box-shadow: 0 18px 48px rgba(28, 25, 23, 0.08);
   }
 
   .flow-step:hover {
@@ -289,7 +292,7 @@
   }
 
   .nav-glyph {
-    @apply grid h-5 w-5 shrink-0 place-items-center rounded-md bg-neutral-100 text-neutral-500 transition-all duration-200;
+    @apply grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600 transition-all duration-200;
   }
 
   .btn-ghost:hover .nav-glyph {
@@ -306,6 +309,58 @@
 
   .fade-panel {
     animation: fadePanel 0.45s ease-out both;
+  }
+
+  .nav-shell {
+    @apply mx-auto flex w-full max-w-6xl items-center justify-between rounded-2xl bg-white px-5 py-3;
+    box-shadow: 0 18px 55px rgba(28, 25, 23, 0.12);
+  }
+
+  .feature-card {
+    @apply card card-hover relative overflow-hidden p-6 sm:p-7;
+  }
+
+  .feature-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -2rem -3.5rem auto;
+    width: 8rem;
+    height: 8rem;
+    border-radius: 9999px;
+    background: rgba(15, 118, 110, 0.08);
+    transition: transform 0.45s ease, background-color 0.45s ease;
+  }
+
+  .feature-card:hover::after {
+    background: rgba(245, 158, 11, 0.14);
+    transform: translate3d(-1rem, -1rem, 0) scale(1.12);
+  }
+
+  .footer-action {
+    @apply relative overflow-hidden rounded-xl bg-white/10 p-5 text-left text-white transition-all duration-300 ease-out;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  }
+
+  .footer-action:hover {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-4px);
+  }
+
+  .footer-action::after {
+    content: "";
+    position: absolute;
+    right: -1.5rem;
+    bottom: -2rem;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 9999px;
+    background: #f59e0b;
+    opacity: 0.9;
+    transition: transform 0.45s ease;
+  }
+
+  .footer-action:hover::after {
+    transform: translate3d(-0.6rem, -0.6rem, 0) scale(1.12);
   }
 
   @media (max-width: 1180px) {
