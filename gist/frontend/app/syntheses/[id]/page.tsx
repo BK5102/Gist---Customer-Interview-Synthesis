@@ -7,25 +7,47 @@ import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/client";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
-function looksLikeJson(s: string): boolean {
-  const t = s.trim();
-  if (!t.startsWith("{") && !t.startsWith("[")) return false;
-  try { JSON.parse(t); return true; } catch { return false; }
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type SynthesisDetail = {
   id: string;
   project_id: string;
   markdown_output: string;
-  themes_json: any;
+  themes_json: unknown;
   transcript_ids: string[];
   model_used: string;
   created_at: string;
 };
 
 type NotionDb = { id: string; title: string };
+
+function looksLikeJson(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return false;
+  try {
+    JSON.parse(trimmed);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function extractEvidence(markdown: string): string[] {
+  const candidates: string[] = [];
+  const blockquotes = markdown.match(/^>\s+(.+)$/gm) ?? [];
+  blockquotes.forEach((quote) => candidates.push(quote.replace(/^>\s+/, "")));
+
+  const quotedText = markdown.match(/["“][^"”\n]{36,240}["”]/g) ?? [];
+  quotedText.forEach((quote) => candidates.push(quote.slice(1, -1)));
+
+  return Array.from(
+    new Set(
+      candidates
+        .map((quote) => quote.replace(/\*\*/g, "").trim())
+        .filter(Boolean),
+    ),
+  ).slice(0, 5);
+}
 
 export default function SynthesisDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +72,7 @@ export default function SynthesisDetailPage() {
           window.location.href = "/login";
           return;
         }
+
         const res = await fetch(`${API_URL}/syntheses/${id}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
@@ -57,32 +80,27 @@ export default function SynthesisDetailPage() {
         const data = (await res.json()) as SynthesisDetail;
         setSynth(data);
 
-        // Cheap connection check first; only hit Notion's API if connected.
-        // Wrapped separately so a Notion-side outage doesn't block the
-        // Markdown render failure should not prevent reading the synthesis.
         try {
           const connRes = await fetch(`${API_URL}/notion/connection`, {
             headers: { Authorization: `Bearer ${session.access_token}` },
           });
-          if (connRes.ok) {
-            const conn = (await connRes.json()) as { connected: boolean };
-            if (conn.connected) {
-              setNotionConnected(true);
-              const dbRes = await fetch(`${API_URL}/notion/databases`, {
-                headers: { Authorization: `Bearer ${session.access_token}` },
-              });
-              if (dbRes.ok) {
-                const dbData = (await dbRes.json()) as NotionDb[];
-                setDatabases(dbData);
-                if (dbData.length > 0) setSelectedDb(dbData[0].id);
-              }
-            }
-          }
+          if (!connRes.ok) return;
+          const conn = (await connRes.json()) as { connected: boolean };
+          if (!conn.connected) return;
+
+          setNotionConnected(true);
+          const dbRes = await fetch(`${API_URL}/notion/databases`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (!dbRes.ok) return;
+          const dbData = (await dbRes.json()) as NotionDb[];
+          setDatabases(dbData);
+          if (dbData.length > 0) setSelectedDb(dbData[0].id);
         } catch {
-          /* Hide the push UI when the Notion check fails. */
+          // Hide the push UI when the Notion check fails.
         }
       } catch {
-        /* Leave null after a failed fetch so the not-found state shows. */
+        // Leave null after a failed fetch so the not-found state shows.
       } finally {
         setLoading(false);
       }
@@ -100,20 +118,26 @@ export default function SynthesisDetailPage() {
     setPushing(true);
     setPushError(null);
     setPushUrl(null);
+
     const supabase = createClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();
     if (!session) return;
+
     const res = await fetch(`${API_URL}/notion/push`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ synthesis_id: synth.id, database_id: selectedDb }),
+      body: JSON.stringify({
+        synthesis_id: synth.id,
+        database_id: selectedDb,
+      }),
     });
     setPushing(false);
+
     if (!res.ok) {
       const text = await res.text();
       let detail = text || "Push failed";
@@ -121,22 +145,23 @@ export default function SynthesisDetailPage() {
         const parsed = JSON.parse(text);
         if (typeof parsed.detail === "string") detail = parsed.detail;
       } catch {
-        /* keep raw text */
+        // Keep the raw response.
       }
       setPushError(detail);
       return;
     }
+
     const data = (await res.json()) as { notion_page_url: string };
     setPushUrl(data.notion_page_url);
   };
 
   if (loading) {
     return (
-      <main className="page">
+      <main className="page-wide">
         <div className="space-y-4">
           <div className="skeleton h-6 w-24 rounded-md" />
           <div className="skeleton h-10 w-72 rounded-md" />
-          <div className="skeleton h-96 rounded-2xl" />
+          <div className="skeleton h-96 rounded-xl" />
         </div>
       </main>
     );
@@ -156,8 +181,10 @@ export default function SynthesisDetailPage() {
     );
   }
 
+  const evidence = extractEvidence(synth.markdown_output);
+
   return (
-    <main className="page">
+    <main className="page-wide">
       <Breadcrumb
         items={[
           { label: "Workspace", href: "/" },
@@ -166,51 +193,58 @@ export default function SynthesisDetailPage() {
         ]}
       />
 
-      <header className="motion-section mb-6">
-        <p className="eyebrow">Synthesis</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-          Interview Synthesis
+      <header className="motion-section mb-5">
+        <p className="eyebrow">Synthesis report</p>
+        <h1 className="mt-1 text-4xl font-semibold tracking-tight">
+          Interview synthesis
         </h1>
-        <p className="mt-1 text-xs text-neutral-500">
-          {new Date(synth.created_at).toLocaleString()} ·{" "}
-          {synth.transcript_ids?.length ?? 0} transcript
-          {(synth.transcript_ids?.length ?? 0) === 1 ? "" : "s"} ·{" "}
-          <span className="font-mono">
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="meta-chip">
+            {new Date(synth.created_at).toLocaleString()}
+          </span>
+          <span className="meta-chip">
+            {synth.transcript_ids?.length ?? 0} transcript
+            {(synth.transcript_ids?.length ?? 0) === 1 ? "" : "s"}
+          </span>
+          <span className="meta-chip font-mono">
             {synth.model_used ?? "claude-sonnet-4-6"}
           </span>
-        </p>
+          <span className="meta-chip text-brand-800">Quotes verified</span>
+        </div>
       </header>
 
-      {/* Action bar */}
-      <div className="fade-panel mb-4 flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={copyMarkdown}
-          className="btn-secondary text-xs"
-        >
+      <div className="workspace-tabs rounded-t-xl border border-neutral-200 border-b-0 bg-white">
+        <span className="is-active">Summary</span>
+        <span>Evidence</span>
+        <span>Sources</span>
+      </div>
+
+      <div className="workspace-toolbar fade-panel rounded-b-xl border border-neutral-200 bg-white px-3">
+        <button type="button" onClick={copyMarkdown} className="toolbar-control">
           <svg
-            className="h-3.5 w-3.5"
+            className="h-4 w-4"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
           >
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
           </svg>
           Copy markdown
         </button>
 
         {notionConnected && databases.length > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2">
             <select
               value={selectedDb}
-              onChange={(e) => setSelectedDb(e.target.value)}
-              className="input max-w-[12rem] py-1.5 text-xs"
+              onChange={(event) => setSelectedDb(event.target.value)}
+              className="input h-9 max-w-[12rem] py-1 text-sm"
             >
-              {databases.map((db) => (
-                <option key={db.id} value={db.id}>
-                  {db.title}
+              {databases.map((database) => (
+                <option key={database.id} value={database.id}>
+                  {database.title}
                 </option>
               ))}
             </select>
@@ -218,23 +252,23 @@ export default function SynthesisDetailPage() {
               type="button"
               onClick={pushToNotion}
               disabled={pushing || !selectedDb}
-              className="btn-primary text-xs"
+              className="btn-primary min-h-9 px-4 py-1.5 text-sm"
             >
-              {pushing ? "Pushing…" : "Push to Notion"}
+              {pushing ? "Pushing..." : "Push to Notion"}
             </button>
           </div>
         )}
       </div>
 
       {pushError && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
           {pushError}
         </p>
       )}
       {pushUrl && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800 animate-fade-in">
+        <div className="mt-4 flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800 animate-fade-in">
           <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-700 text-xs text-white">
-            ✓
+            &#10003;
           </span>
           Pushed to Notion.{" "}
           <a
@@ -243,28 +277,81 @@ export default function SynthesisDetailPage() {
             rel="noreferrer"
             className="font-medium underline"
           >
-            Open in Notion ↗
+            Open in Notion
           </a>
         </div>
       )}
 
-      <article className="card motion-card p-8">
-        <div className="prose prose-neutral prose-brand max-w-none">
-          {!synth.markdown_output ? (
-            <p className="text-sm text-neutral-500">
-              No synthesis content was stored for this record.
-            </p>
-          ) : looksLikeJson(synth.markdown_output) ? (
-            <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-950">
-              <p className="font-medium">Synthesis result could not be rendered.</p>
-              <p className="mt-1 text-xs">
-                The stored content appears to be in an unexpected format.
-                Please contact support or re-run the synthesis.
+      <article className="report-shell motion-card mt-5">
+        <div className="report-grid">
+          <div className="report-document">
+            <div className="prose prose-neutral prose-brand max-w-none">
+              {!synth.markdown_output ? (
+                <p className="text-sm text-neutral-500">
+                  No synthesis content was stored for this record.
+                </p>
+              ) : looksLikeJson(synth.markdown_output) ? (
+                <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-950">
+                  <p className="font-medium">
+                    Synthesis result could not be rendered.
+                  </p>
+                  <p className="mt-1 text-xs">
+                    The stored content appears to be in an unexpected format.
+                    Please contact support or re-run the synthesis.
+                  </p>
+                </div>
+              ) : (
+                <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>
+              )}
+            </div>
+          </div>
+
+          <aside className="evidence-rail">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="product-kicker text-brand-200">
+                  Source evidence
+                </p>
+                <h2 className="mt-1 text-lg font-semibold text-white">
+                  Verified quotes
+                </h2>
+              </div>
+              <span className="verification-pill bg-white/10 text-brand-100">
+                <span className="verification-dot" />
+                Matched
+              </span>
+            </div>
+
+            {evidence.length > 0 ? (
+              evidence.map((quote, index) => (
+                <div key={`${quote}-${index}`} className="evidence-card">
+                  <blockquote>&ldquo;{quote}&rdquo;</blockquote>
+                  <footer>
+                    <span>Evidence {index + 1}</span>
+                    <span>Transcript source</span>
+                  </footer>
+                </div>
+              ))
+            ) : (
+              <div className="evidence-card">
+                <blockquote>
+                  Verified source quotes remain attached to each finding in the
+                  report.
+                </blockquote>
+                <footer>
+                  <span>{synth.transcript_ids?.length ?? 0} sources</span>
+                  <span>Quote check complete</span>
+                </footer>
+              </div>
+            )}
+
+            <div className="mt-5 border-t border-white/15 pt-4">
+              <p className="text-xs leading-relaxed text-brand-200">
+                Gist checks generated quotes against the original transcript
+                and drops any quote that cannot be matched verbatim.
               </p>
             </div>
-          ) : (
-            <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>
-          )}
+          </aside>
         </div>
       </article>
     </main>

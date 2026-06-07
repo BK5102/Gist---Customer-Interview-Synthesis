@@ -123,16 +123,16 @@ export default function EncryptedSavesPage() {
   }
 
   return (
-    <main className="page">
+    <main className="page-wide">
       <Breadcrumb
         items={[
           { label: "Workspace", href: "/" },
           { label: "Private Saves" },
         ]}
       />
-      <header className="motion-section mb-6">
+      <header className="motion-section mb-5">
         <p className="eyebrow">Browser-encrypted storage</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+        <h1 className="mt-1 text-4xl font-semibold tracking-tight">
           Private saves
         </h1>
         <p className="mt-2 text-base leading-relaxed text-neutral-600">
@@ -140,6 +140,12 @@ export default function EncryptedSavesPage() {
           chose. Gist never stores that password.
         </p>
       </header>
+
+      <div className="workspace-tabs mb-5 rounded-xl border border-neutral-200 bg-white">
+        <span>All reports</span>
+        <span className="is-active">Private saves</span>
+        <span>Sources</span>
+      </div>
 
       {artifacts.length === 0 ? (
         <section className="fade-panel rounded-xl border border-dashed border-neutral-300 bg-white/65 p-10 text-center">
@@ -154,22 +160,29 @@ export default function EncryptedSavesPage() {
           </p>
         </section>
       ) : (
-        <section className="fade-panel grid gap-6 lg:grid-cols-[320px_1fr]">
-          <ul className="space-y-2">
+        <section className="report-shell fade-panel grid lg:grid-cols-[300px_1fr]">
+          <ul className="space-y-1 border-b border-neutral-200 bg-neutral-50 p-3 lg:border-b-0 lg:border-r">
             {artifacts.map((artifact) => (
               <li key={artifact.id}>
                 <button
                   type="button"
                   onClick={() => selectArtifact(artifact)}
-                  className={`card card-hover motion-card w-full p-4 text-left ${
-                    selected?.id === artifact.id ? "ring-2 ring-brand-600" : ""
+                  className={`w-full rounded-lg p-4 text-left transition-colors ${
+                    selected?.id === artifact.id
+                      ? "bg-brand-950 text-white"
+                      : "bg-white text-neutral-900 hover:bg-brand-50"
                   }`}
                 >
-                  <div className="mb-3 h-1.5 w-12 rounded-full bg-brand-800" />
-                  <p className="text-sm font-semibold text-neutral-900">
+                  <p className="text-sm font-semibold">
                     {artifact.title || "Private synthesis"}
                   </p>
-                  <p className="mt-1 text-xs text-neutral-500">
+                  <p
+                    className={`mt-1 text-xs ${
+                      selected?.id === artifact.id
+                        ? "text-brand-200"
+                        : "text-neutral-500"
+                    }`}
+                  >
                     {new Date(artifact.created_at).toLocaleString()}
                   </p>
                 </button>
@@ -177,7 +190,7 @@ export default function EncryptedSavesPage() {
             ))}
           </ul>
 
-          <div className="card motion-card p-6">
+          <div className="min-w-0 p-6 sm:p-8">
             {!selected && (
               <p className="text-sm text-neutral-500">
                 Choose a private save to open it.

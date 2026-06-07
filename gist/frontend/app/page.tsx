@@ -151,27 +151,80 @@ function looksLikeJson(s: string): boolean {
   }
 }
 
-function ResearchOrbit() {
-  const text = "quote backed research signal ";
-  const chars = text.split("");
-
+function ProductDemo() {
   return (
-    <div className="research-orbit" aria-hidden="true">
-      <div className="research-orbit-ring" />
-      <div className="research-orbit-text">
-        {chars.map((char, index) => (
-          <span
-            key={`${char}-${index}`}
-            style={{
-              transform: `rotate(${(360 / chars.length) * index}deg) translateY(-7.4ch)`,
-            }}
-          >
-            {char}
-          </span>
-        ))}
+    <div className="product-frame" aria-hidden="true">
+      <div className="product-frame-bar">
+        <span />
+        <span />
+        <span />
+        <p>Q2 customer discovery</p>
       </div>
-      <div className="research-orbit-core">
-        <span className="text-2xl font-bold leading-none">G</span>
+      <div className="product-frame-head">
+        <div>
+          <p className="product-kicker">Research round</p>
+          <h2>Pricing and onboarding</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span className="meta-chip">10 interviews</span>
+            <span className="meta-chip">24 themes</span>
+            <span className="meta-chip">Verified quotes</span>
+          </div>
+        </div>
+        <span className="verification-pill">
+          <span className="verification-dot" />
+          Verification complete
+        </span>
+      </div>
+      <div className="workspace-tabs" role="presentation">
+        <span className="is-active">Summary</span>
+        <span>Evidence</span>
+        <span>Sources</span>
+      </div>
+      <div className="product-split">
+        <div className="product-report">
+          <p className="product-kicker">Strongest signal</p>
+          <h3>Teams understand the value, but setup feels too long.</h3>
+          <p>
+            Seven participants described onboarding as the main barrier to
+            adopting the workflow.
+            <span className="citation-dot">7</span>
+          </p>
+          <div className="finding-list">
+            <div>
+              <span className="finding-index">01</span>
+              <p>
+                Participants want a useful first result before configuring
+                integrations.
+              </p>
+            </div>
+            <div>
+              <span className="finding-index">02</span>
+              <p>
+                Founders prefer a guided default over a blank project setup.
+              </p>
+            </div>
+          </div>
+        </div>
+        <aside className="product-evidence">
+          <div className="flex items-center justify-between">
+            <p className="product-kicker text-brand-100">Evidence</p>
+            <span className="text-xs text-brand-200">7 sources</span>
+          </div>
+          <blockquote>
+            "I need to see the first insight before I spend time setting
+            everything up."
+          </blockquote>
+          <div className="evidence-source">
+            <span>P3</span>
+            <div>
+              <p>Founder interview</p>
+              <small>Transcript matched verbatim</small>
+            </div>
+          </div>
+          <div className="evidence-progress">
+            <span />
+          </div>
+        </aside>
       </div>
     </div>
   );
@@ -241,6 +294,12 @@ function SignedInHome() {
           </Link>
         </div>
       </header>
+
+      <div className="workspace-tabs mb-5 rounded-xl border border-neutral-200 bg-white">
+        <span className="is-active">Workspace</span>
+        <span>Recent analysis</span>
+        <span>Private reports</span>
+      </div>
 
       <section className="grid gap-4 md:grid-cols-2">
         <Link href="/projects" className="card card-hover motion-card p-6">
@@ -737,49 +796,7 @@ export default function Home() {
           </div>
 
           <div className="depth-scene motion-card [animation-delay:120ms]">
-            <div className="depth-stack card relative overflow-hidden p-5">
-              <div className="stage-rail absolute inset-x-0 top-0 h-1" />
-              <div className="mb-5">
-                <ResearchOrbit />
-              </div>
-              <div className="grid gap-3">
-                <div className="float-card rounded-lg bg-brand-50/80 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-brand-800">
-                    Strongest signal
-                  </p>
-                  <p className="mt-2 text-xl font-semibold leading-snug text-neutral-900">
-                    Customers are hacking together their own research workflow.
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="float-card rounded-lg bg-white p-4">
-                    <p className="text-xs font-semibold text-brand-800">
-                      4 participants
-                    </p>
-                    <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                      "I lose the thread after the third call."
-                    </p>
-                  </div>
-                  <div className="float-card rounded-lg bg-brand-50/80 p-4">
-                    <p className="text-xs font-semibold text-brand-950">
-                      Contradiction
-                    </p>
-                    <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                      Teams want detail, but avoid long research reports.
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-lg bg-neutral-50 p-4">
-                  <div className="mb-3 flex items-center justify-between text-xs font-semibold text-neutral-500">
-                    <span>Quote verification</span>
-                    <span>3 dropped</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-neutral-200">
-                    <div className="stage-rail h-full w-4/5 rounded-full" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ProductDemo />
           </div>
           </section>
 
@@ -890,6 +907,12 @@ export default function Home() {
           across all of them and pulls a verbatim quote from each.
         </p>
       </header>
+
+      <div className="workspace-tabs mb-5 rounded-xl border border-neutral-200 bg-white">
+        <span className={!isLoading && !result ? "is-active" : ""}>Files</span>
+        <span className={isLoading ? "is-active" : ""}>Progress</span>
+        <span className={result ? "is-active" : ""}>Report</span>
+      </div>
 
       <section className="card motion-card p-6">
         {/* Drag-and-drop zone */}
