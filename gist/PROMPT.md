@@ -24,7 +24,7 @@ output. Built for solo founders doing customer discovery.
 - Backend API: https://gist-backend-production-ab73.up.railway.app
 - GitHub: https://github.com/BK5102/Gist---Customer-Interview-Synthesis
 
-**Latest pushed commit:** `2185efd` — design: remove all subsection borders site-wide
+**Latest pushed commit:** `4f466ee` — design: remove Next best step panel from workspace header
 
 ---
 
@@ -167,12 +167,14 @@ Same three as `frontend/.env.local` but with
 | Projects page v2 | Each project card now lists its synthesis runs (date-labeled, linked to `/syntheses/{id}`) and a one-liner pointing to Private saves. Backend: removed auto-create fallback that named projects after synthesis filenames — `project_id` is now required by `/synthesize` when DB is available. | ✅ |
 | Security audit | Full OWASP audit + 10 fixes: exception internals no longer reach clients; NOTION_TOKEN_ENCRYPTION_KEY documented; FastAPI docs disabled in prod; HSTS added; CORS tightened; auth callback `next` param validated; PBKDF2 raised to 600K iterations; Notion OAuth cancel redirects to UI; N+1 project fetches replaced with single request; job pruning on every poll. | ✅ |
 | Design audit | `/ui-design-prompts` full audit. 6 fixes: removed border+shadow double on cards and navbar; unified `zinc-*` → `neutral-*` across all 11 frontend files; standardized inner page header spacing to `mb-8`; replaced blue-50/blue-700 "Extracting" badge with brand teal; added `translateY` to `fadeIn` keyframe; fixed `<p>` as flex container. | ✅ |
-| Border removal | Removed all subsection borders across all pages: `.card` border stripped from globals.css (cascades site-wide); section dividers (`border-t`), info panels, file list items, and all colored alert borders (red/green/amber) removed inline per page. Dashed drag-and-drop zones, form input borders, and button borders preserved. | ✅ Current |
-| Visual motion refresh | Current uncommitted session: warmer humanist system font stack, richer background color, subtle card depth, 3D hover motion, animated stage rails, scroll/entrance transitions, first-viewport sample synthesis visual, and more tactile workspace/projects/private-save/upload surfaces. | ✅ Current |
-| Tasteful 3D inspiration pass | Adapted the most valuable motion ideas from `trymindhub.com/about` without copying brand/assets: circular kinetic text, a slow marquee rail, and layered 3D floating cards in the landing hero. | ✅ Current |
-| Workspace clarity + ambient 3D | Current uncommitted session: widened the main page container, used side whitespace for ambient 3D motion, added a centered readable footer, rewrote signed-in workspace hero to clarify the user's next step, tightened landing audience copy, and improved logout feedback/redirect behavior. | ✅ Current |
-| UI spacing + micro-interactions | Current uncommitted session: reduced extra whitespace across frontend routes, added nav icons/state visuals where they help orientation, strengthened primary button hover with scale/color shift, gave cards a gentle load-in animation, and faded empty/data-loaded state transitions. | ✅ Current |
-| Railway Python build fix | Current uncommitted session: added `gist/backend/mise.toml` with `python.github_attestations = false` because Railway/mise 2026.6.0 failed installing `python-3.11.9` when no GitHub artifact attestations were found. | ✅ Current |
+| Border removal | Removed all subsection borders across all pages: `.card` border stripped from globals.css (cascades site-wide); section dividers (`border-t`), info panels, file list items, and all colored alert borders (red/green/amber) removed inline per page. Dashed drag-and-drop zones, form input borders, and button borders preserved. | ✅ |
+| Visual motion refresh | Warmer humanist system font stack, richer background color, subtle card depth, 3D hover motion, animated stage rails, scroll/entrance transitions, first-viewport sample synthesis visual (ProductDemo component), more tactile surfaces. | ✅ |
+| Tasteful 3D inspiration pass | Circular kinetic text, slow marquee rail, layered 3D landing hero cards. ResearchOrbit replaced by ProductDemo (mock browser frame showing synthesis result). | ✅ |
+| Workspace clarity + ambient 3D | Widened page container, ambient 3D side shapes, centered footer, signed-in workspace hero rewrite, tighter landing copy, logout latency fix. | ✅ |
+| UI spacing + micro-interactions | Reduced whitespace, nav icons/state visuals, stronger primary button hover, `cardLoad` animation, `fade-panel` transitions. | ✅ |
+| Railway Python build fix | Added `gist/backend/mise.toml` with `python.github_attestations = false` for Railway/mise 2026.6.0 compatibility. | ✅ |
+| Project descriptions + synthesis linking | `PATCH /projects/{id}` endpoint; `update_project()` in db.py; `projects.description` column (migration `002_add_project_description.sql`); project card Overview tab shows editable description; synthesis list queries `encrypted_artifacts` by `project_id` directly from frontend — shows save titles, not dates from backend `syntheses` table (which is empty by default). | ✅ |
+| Workspace UX cleanup | Private Saves: removed 3-tab nav (single working list), added X close button. Projects page: removed Private saves button per card; functional Overview/Syntheses tabs (`.project-tabs` dark pill style, no borders); removed non-functional top workspace-tabs; added Most recent synthesis header button. Workspace hub: removed Private reports tab, Private saves card, How it works section, Next best step panel; added Recent syntheses list (last 5 from `encrypted_artifacts`). Landing: removed How it works card grid, trimmed hero paragraph. Synthesis title auto-populated from first file stem. | ✅ Current |
 | Phase 4 | Real users, iterate on feedback | ⏳ Open |
 
 ---
@@ -300,6 +302,10 @@ npm run dev
 29. **Auth error internals hidden from clients** — pipeline crash exceptions are logged server-side (`logging.getLogger("gist").exception(...)`) and return a generic `"An unexpected error occurred"` message to the polling client. Auth module exceptions return `"Authentication failed"` without the httpx/jwt error string.
 30. **Auth callback `next` param restricted to relative paths** — `next` must match `/[^/].*` or be `/` exactly; `//evil.com` or absolute URLs are silently replaced with `/`.
 31. **Design system rules enforced by audit** — cards use border only (no `shadow-soft`); navbar uses border-bottom only (no `shadow-sm`); single neutral scale (`neutral-*`) throughout — `zinc-*` removed; palette max: neutral + brand-teal + red/green/amber semantic; no blue accent; `fadeIn` includes `translateY(4px→0)` for proper entrance feel.
+32. **Synthesis list in projects comes from `encrypted_artifacts`, not `syntheses`** — `STORE_PLAINTEXT_SYNTHESES=false` in production, so the backend `syntheses` table is always empty. The projects page fetches `encrypted_artifacts` filtered by `project_id` directly from Supabase on the frontend. This is the only way to show synthesis history without storing plaintext output.
+33. **Project descriptions editable in-line** — `PATCH /projects/{id}` endpoint; `update_project()` in db.py. Requires `projects.description text` column (migration `002_add_project_description.sql`). The frontend patches optimistically and updates local state on success.
+34. **`.project-tabs` vs `.workspace-tabs`** — two separate CSS classes. `.workspace-tabs` is for page-level tab bars (border-y, `span` elements, light active state). `.project-tabs` is for inner card tab navs (no borders, `button` elements, dark pill active state — `bg-brand-950 text-white`). Never mix them.
+35. **`SignedInHome` is a standalone component with its own fetch** — it fetches recent encrypted_artifacts from Supabase directly (no backend call needed). Kept separate from the `Home` function to avoid passing props through the conditional render tree.
 
 ---
 
@@ -368,7 +374,17 @@ c483194  ux: interactive password UI on private save — checklist, strength bar
 f2dd946  security: harden auth, headers, CORS, encryption, and error handling
 80a9341  docs: update PROMPT.md to reflect 2026-05-28 security audit session
 f45dd82  design: full audit — remove border+shadow double, unify to neutral scale, fix accent discipline
-2185efd  design: remove all subsection borders site-wide  ← HEAD
+2185efd  design: remove all subsection borders site-wide
+8a36ae1  design: clarify workspace and logout flow
+e902cbd  design: refine ui spacing and interactions
+e8fd715  deploy: disable mise python attestations
+ea8c92a  design: strengthen navigation cards and footer
+e04658e  design: refine navbar footer and palette
+bc35d2a  design: replace orbit with product demo frame and refine UI polish
+58319b8  design: remove citation dot '7' from product demo card
+db99a3c  feat: project descriptions, synthesis linking, workspace cleanup
+604a86d  design: project card tabs as mini-navbar pills, no borders
+4f466ee  design: remove Next best step panel from workspace header  ← HEAD
 ```
 
 Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (hardening + polish).
@@ -408,13 +424,18 @@ Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (harden
 40. **Tasteful 3D inspiration pass** — current uncommitted session. Bhavana referenced `https://www.trymindhub.com/about` and asked to extract/duplicate the most valuable tasteful 3D animation features. The adapted takeaways were: circular kinetic text around a center mark, a slow horizontal text rail, and layered floating cards with subtle perspective movement. Implemented as Gist-specific landing hero motion: `ResearchOrbit`, `kinetic-marquee`, `research-orbit`, `depth-scene`, `depth-stack`, and `float-card`; no MindHub branding, assets, or copy were reused. Verification: `npx tsc --noEmit` and `npm run build` pass.
 41. **Workspace clarity + ambient 3D** — current uncommitted session. Bhavana asked for more 3D animation ideas, better use of empty side space, a centered footer, clearer signed-in purpose, tighter landing copy, and logout latency investigation. Changes made: `page-wide` widened to `max-w-6xl`; added `ambient-3d-field` side shapes for decorative 3D motion on wide screens; added centered readable footer in `layout.tsx`; signed-in workspace now leads with "Turn customer interviews into decisions you can trust" plus a "Next best step" panel; landing audience copy is larger and simpler; removed "Not designed for..." wording and replaced the em dash in hero description; added a client `LogoutButton` with pending text; `/logout` now redirects relative to `request.url` instead of hardcoded localhost and uses local sign-out scope. Verification: `npx tsc --noEmit` and `npm run build` pass. Build still warns if untracked `gist/package-lock.json` exists alongside `gist/frontend/package-lock.json`.
 42. **UI spacing + micro-interactions** — current uncommitted session. Bhavana asked to review the whole frontend, remove excess whitespace, judge where icons/images are valuable, add visual/2D/3D motion to other tabs, and add micro-interactions. Changes made: reduced `.page` / `.page-wide` vertical padding and section spacing; added nav glyphs for Home/Projects/Private saves/Settings; added state visuals for Projects/Private saves/Settings; updated `.btn-primary` hover to scale and color-shift to brand teal; added default `cardLoad` animation for `.card`; added `fade-panel` for empty/data-loaded transitions on Projects, Private saves, upload file list, and synthesis action bar; tightened Projects, Private saves, Settings, Synthesis detail, workspace, landing, and footer spacing. Verification: `npx tsc --noEmit` and `npm run build` pass. Build warning remains tied to untracked `gist/package-lock.json`.
-43. **Railway Python build fix** — current uncommitted session. Railway backend build failed during `mise install` for `python@3.11.9` with `No GitHub artifact attestations found for python@3.11.9` under `mise 2026.6.0`. Added `gist/backend/mise.toml` with `[settings] python.github_attestations = false`, matching the fix suggested by the build logs. This keeps `runtime.txt` on `python-3.11.9` while disabling only the failing attestation verification step.
+43. **Railway Python build fix** — Railway backend build failed during `mise install` for `python@3.11.9` with `No GitHub artifact attestations found` under `mise 2026.6.0`. Added `gist/backend/mise.toml` with `[settings] python.github_attestations = false`.
+44. **Design iteration (Codex session)** — replaced ResearchOrbit with ProductDemo (mock browser frame showing a synthesis result); tightened card shadows, body gradient, and hover states; added product-frame CSS classes. Citation dot "7" removed from demo card.
+45. **Project descriptions + synthesis linking + workspace cleanup** — full feature session. See build phases table for full list. Key decisions: syntheses shown under projects come from `encrypted_artifacts` (frontend Supabase query), not the backend `syntheses` table; project description stored in `projects.description` (migration required); synthesis title auto-populates from first uploaded file's stem; `.project-tabs` is a new CSS class separate from `.workspace-tabs` (dark pill active, no borders).
+46. **Docs update** — updated CLAUDE.md (stack, full repo layout, backend routes table, design system class reference) and PROMPT.md (this file) to reflect all changes since session 43.
 
 ---
 
 ## 12. Open / next steps
 
-- **(A) Security/trust hardening — remaining items**
+- **(A) Pending migration — run now**
+  - **`ALTER TABLE projects ADD COLUMN IF NOT EXISTS description text;`** — required for project description save/edit to work. File: `backend/migrations/002_add_project_description.sql`. Run in Supabase SQL Editor, then `NOTIFY pgrst, 'reload schema';`.
+- **(B) Security/trust hardening — remaining items**
   - **Generate `NOTION_TOKEN_ENCRYPTION_KEY`, set in Railway, reconnect Notion** — until this is done, Notion OAuth tokens sit in plaintext in Supabase
   - **Pin `requirements.txt` versions** — use `pip freeze` or `uv lock`; prevents silent CVE regressions on every Railway deploy
   - **Add GitHub Actions CI** — lint, `pip-audit`, `npm audit --audit-level=high`, build check; skeleton is in the audit report
@@ -425,10 +446,10 @@ Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (harden
   - Add delete controls for projects, syntheses, encrypted artifacts, and Notion connection
   - Add event logging for synthesis/private-save/notion/copy actions
   - Consider Postgres-backed job store for restart durability
-- **(B) Custom domain** — buy `gist.tld`, point at Vercel via DNS.
-- **(C) Phase 4 real users** — recruit first 5-10 users manually with redacted/synthetic transcripts. Lead with "private-by-default synthesis with traceable quotes."
-- **(D) Watch for real-user feedback, iterate**
-- **(E) Backlog**
+- **(C) Custom domain** — buy `gist.tld`, point at Vercel via DNS.
+- **(D) Phase 4 real users** — recruit first 5-10 users manually with redacted/synthetic transcripts. Lead with "private-by-default synthesis with traceable quotes."
+- **(E) Watch for real-user feedback, iterate**
+- **(F) Backlog**
   - Notion `default_database_id` column exists in schema but never used
   - Synthesis save errors silently swallowed — wire to Sentry / structured log
   - Notion OAuth path needs continued production testing
@@ -458,11 +479,12 @@ git reflog expire --expire=now --all && git gc --aggressive --prune=now
 
 ---
 
-## Latest UI session
+## Latest UI/UX sessions
 
-44. **TryClean-inspired density and footer pass** - Bhavana asked for larger navigation and buttons, larger type across the product, tighter page spacing, bolder solid color, richer card motion, and a real footer. Adapted the strongest structural ideas from `https://www.tryclean.ai/` without reusing its branding or assets: a larger floating navigation shell with paired outlined/solid actions, denser asymmetric feature cards, and a full-width dark CTA footer with large brand type. Removed the public hero's forced viewport height, tightened landing section gaps, increased shared button/input/label sizing, strengthened teal/amber/charcoal contrast, and moved the final signup CTA into the site footer.
-45. **Granola-inspired navigation and palette refinement** - Bhavana asked to remove the signup hover scrollbar, eliminate em dashes from visible copy, reduce the footer, restrict the footer to the signed-out homepage, prevent protected-page previews, remove navbar borders, and unify the product around white and dark green. Adapted Granola's compact, borderless header proportions and product-first restraint without copying its branding or assets. The navbar now uses dedicated compact controls and icon-only mobile navigation; the footer lives only on the signed-out landing page, routes preview links directly to signup with prefetch disabled, and uses a smaller two-part layout. Decorative amber, rose, multicolor progress, and charcoal controls were replaced with the brand green system while semantic errors remain red.
-46. **Research workflow design synthesis** - Completed a detailed source, CSS, product-image, and workflow study of Looppanel, Dovetail, and Grain, documented in `DESIGN_RESEARCH_REPORT.md`. Replaced the abstract landing visual with a realistic Gist product workspace; added project and report tabs, metadata chips, connected toolbars, research-project history, and verification motion; rebuilt synthesis detail as a Grain-style split document with a Dovetail-style dark source-evidence rail; refined private saves into a connected master-detail repository; and flattened global card elevation to match the references' document-first product hierarchy. TypeScript and production build pass. Automated visual screenshots were attempted through both the in-app browser and installed Edge, but the in-app Windows sandbox failed to spawn and the Edge headless capture process timed out.
+44. **TryClean-inspired density and footer pass** — larger nav/buttons, tighter spacing, bolder color, richer card motion, full-width dark CTA footer.
+45. **Granola-inspired navigation and palette refinement** — compact borderless header, footer restricted to signed-out landing, brand green unified throughout, prefetch disabled on protected-page preview links.
+46. **Research workflow design synthesis** — detailed study of Looppanel, Dovetail, and Grain (documented in `DESIGN_RESEARCH_REPORT.md`). Landing visual replaced with ProductDemo (realistic mock browser frame); synthesis detail rebuilt as split document + dark evidence rail; private saves as master-detail repository.
+47. **Project descriptions + synthesis linking + workspace UX cleanup** — see session log entry 45 above and build phases table for full detail. Key user-visible changes: project description field (editable in Overview tab), synthesis names shown under each project, Private Saves X close button, workspace hub simplified (Recent syntheses list replaces How it works + Private saves card + Next best step panel). Requires running `002_add_project_description.sql` in Supabase.
 
 ---
 
