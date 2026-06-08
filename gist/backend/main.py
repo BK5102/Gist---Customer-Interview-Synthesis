@@ -22,6 +22,7 @@ from db import (
     get_syntheses_for_user,
     save_synthesis,
     save_transcript,
+    update_project,
 )
 from synth.cluster import cluster_themes, cluster_themes_cached
 from synth.extract import extract_from_text
@@ -88,7 +89,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
@@ -585,6 +586,10 @@ class CreateProjectRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
 
 
+class UpdateProjectRequest(BaseModel):
+    description: str | None = Field(None, max_length=2000)
+
+
 @app.get("/projects")
 def list_projects(
     user_id: str = Depends(require_auth),
@@ -608,6 +613,20 @@ def create_project_endpoint(
         raise HTTPException(503, "Database not configured")
     _enforce_project_limits(user_id)
     return create_project(user_id, body.name)
+
+
+@app.patch("/projects/{project_id}")
+def update_project_endpoint(
+    project_id: str,
+    body: UpdateProjectRequest,
+    user_id: str = Depends(require_auth),
+) -> dict[str, Any]:
+    if not db_available():
+        raise HTTPException(503, "Database not configured")
+    proj = update_project(user_id, project_id, body.description)
+    if not proj:
+        raise HTTPException(404, "Project not found")
+    return proj
 
 
 @app.get("/projects/{project_id}")

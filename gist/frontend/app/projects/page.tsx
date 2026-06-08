@@ -7,26 +7,32 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-type Synthesis = {
+type EncryptedSave = {
   id: string;
+  title: string | null;
   created_at: string;
-  transcript_ids: string[] | null;
+  project_id: string | null;
 };
 
 type Project = {
   id: string;
   name: string;
+  description?: string | null;
   created_at: string;
-  syntheses?: Synthesis[];
 };
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[] | null>(null);
+  const [allSaves, setAllSaves] = useState<EncryptedSave[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [activeProjectTabs, setActiveProjectTabs] = useState<Record<string, "overview" | "syntheses">>({});
+  const [editingProject, setEditingProject] = useState<string | null>(null);
+  const [descriptionDraft, setDescriptionDraft] = useState("");
+  const [savingDescription, setSavingDescription] = useState(false);
 
-  const fetchProjects = async () => {
+  const fetchData = async () => {
     try {
       const supabase = createClient();
       const {
@@ -36,14 +42,25 @@ export default function ProjectsPage() {
         window.location.href = "/login";
         return;
       }
-      const res = await fetch(`${API_URL}/projects?include_syntheses=true`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (!res.ok) {
+
+      const [projectsRes, savesRes] = await Promise.all([
+        fetch(`${API_URL}/projects`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }),
+        supabase
+          .from("encrypted_artifacts")
+          .select("id,title,created_at,project_id")
+          .eq("artifact_type", "synthesis")
+          .order("created_at", { ascending: false }),
+      ]);
+
+      if (!projectsRes.ok) {
         setProjects([]);
-        return;
+      } else {
+        setProjects((await projectsRes.json()) as Project[]);
       }
-      setProjects((await res.json()) as Project[]);
+
+      setAllSaves((savesRes.data ?? []) as EncryptedSave[]);
     } catch {
       setProjects([]);
     } finally {
@@ -52,7 +69,7 @@ export default function ProjectsPage() {
   };
 
   useEffect(() => {
-    fetchProjects();
+    fetchData();
   }, []);
 
   const createProject = async (e: React.FormEvent) => {
@@ -74,8 +91,40 @@ export default function ProjectsPage() {
     });
     setNewName("");
     setCreating(false);
-    fetchProjects();
+    fetchData();
   };
+
+  const saveDescription = async (projectId: string) => {
+    setSavingDescription(true);
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) { setSavingDescription(false); return; }
+
+    const res = await fetch(`${API_URL}/projects/${projectId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ description: descriptionDraft.trim() || null }),
+    });
+
+    if (res.ok) {
+      setProjects((prev) =>
+        prev?.map((p) =>
+          p.id === projectId ? { ...p, description: descriptionDraft.trim() || null } : p
+        ) ?? null
+      );
+      setEditingProject(null);
+    }
+    setSavingDescription(false);
+  };
+
+  const tabFor = (projectId: string) => activeProjectTabs[projectId] ?? "syntheses";
+  const setTab = (projectId: string, tab: "overview" | "syntheses") =>
+    setActiveProjectTabs((prev) => ({ ...prev, [projectId]: tab }));
 
   if (loading) {
     return (
@@ -89,11 +138,7 @@ export default function ProjectsPage() {
     );
   }
 
-  const synthesisCount =
-    projects?.reduce(
-      (sum, project) => sum + (project.syntheses?.length ?? 0),
-      0,
-    ) ?? 0;
+  const mostRecentSave = allSaves[0] ?? null;
 
   return (
     <main className="page-wide">
@@ -111,25 +156,26 @@ export default function ProjectsPage() {
             Projects
           </h1>
           <p className="mt-2 max-w-xl text-base leading-relaxed text-neutral-600">
-            Keep interviews, syntheses, and private reports together by
-            research question.
+            Keep interviews and syntheses together by research question.
           </p>
         </div>
-        <div className="hidden gap-2 sm:flex">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="meta-chip">{projects?.length ?? 0} projects</span>
-          <span className="meta-chip">{synthesisCount} syntheses</span>
+          <span className="meta-chip">{allSaves.length} syntheses</span>
+          {mostRecentSave && (
+            <Link
+              href="/encrypted"
+              className="btn-secondary min-h-9 px-3 py-1.5 text-sm"
+            >
+              Most recent: {mostRecentSave.title || "Synthesis"} &rarr;
+            </Link>
+          )}
         </div>
       </header>
 
-      <div className="workspace-tabs rounded-t-xl border border-neutral-200 border-b-0 bg-white">
-        <span className="is-active">Projects</span>
-        <span>Recent syntheses</span>
-        <span>Private reports</span>
-      </div>
-
       <form
         onSubmit={createProject}
-        className="workspace-toolbar mb-6 rounded-b-xl border border-neutral-200 bg-white px-3"
+        className="workspace-toolbar mb-6 rounded-xl border border-neutral-200 bg-white px-3"
       >
         <input
           type="text"
@@ -164,100 +210,149 @@ export default function ProjectsPage() {
 
       {projects && projects.length > 0 && (
         <ul className="fade-panel space-y-4">
-          {projects.map((project) => (
-            <li key={project.id}>
-              <article className="report-shell motion-card">
-                <div className="flex flex-wrap items-start justify-between gap-4 p-5">
-                  <div>
-                    <p className="product-kicker">Research project</p>
-                    <h2 className="mt-1 text-xl font-semibold text-neutral-950">
-                      {project.name}
-                    </h2>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="meta-chip">
-                        Created{" "}
-                        {new Date(project.created_at).toLocaleDateString()}
-                      </span>
-                      <span className="meta-chip">
-                        {project.syntheses?.length ?? 0} syntheses
-                      </span>
+          {projects.map((project) => {
+            const projectSaves = allSaves.filter((s) => s.project_id === project.id);
+            const activeTab = tabFor(project.id);
+            const isEditing = editingProject === project.id;
+
+            return (
+              <li key={project.id}>
+                <article className="report-shell motion-card">
+                  <div className="flex flex-wrap items-start justify-between gap-4 p-5">
+                    <div>
+                      <p className="product-kicker">Research project</p>
+                      <h2 className="mt-1 text-xl font-semibold text-neutral-950">
+                        {project.name}
+                      </h2>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="meta-chip">
+                          Created{" "}
+                          {new Date(project.created_at).toLocaleDateString()}
+                        </span>
+                        <span className="meta-chip">
+                          {projectSaves.length}{" "}
+                          {projectSaves.length === 1 ? "synthesis" : "syntheses"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
                     <Link
                       href={`/?project=${project.id}`}
                       className="btn-primary min-h-10 px-4 py-2 text-sm"
                     >
                       New synthesis
                     </Link>
-                    <Link
-                      href={`/encrypted?project=${project.id}`}
-                      className="btn-secondary min-h-10 px-4 py-2 text-sm"
-                    >
-                      Private saves
-                    </Link>
                   </div>
-                </div>
 
-                <div className="workspace-tabs border-x-0">
-                  <span>Overview</span>
-                  <span className="is-active">Syntheses</span>
-                  <span>Sources</span>
-                </div>
-
-                <div className="p-4 sm:p-5">
-                  {project.syntheses && project.syntheses.length > 0 ? (
-                    <>
-                      <p className="product-kicker mb-2">Recent analysis</p>
-                      <ul className="divide-y divide-neutral-100">
-                        {project.syntheses.map((synthesis) => (
-                          <li key={synthesis.id}>
-                            <Link
-                              href={`/syntheses/${synthesis.id}`}
-                              className="group flex items-center justify-between gap-4 px-2 py-3 text-sm text-neutral-700 transition-colors hover:bg-brand-50"
-                            >
-                              <span className="font-medium text-neutral-900">
-                                {new Date(
-                                  synthesis.created_at,
-                                ).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })}{" "}
-                                synthesis
-                              </span>
-                              <span className="text-xs text-neutral-500 group-hover:text-brand-800">
-                                {synthesis.transcript_ids?.length ?? 0}{" "}
-                                transcript
-                                {(synthesis.transcript_ids?.length ?? 0) === 1
-                                  ? ""
-                                  : "s"}{" "}
-                                &rarr;
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
-                    <p className="rounded-lg bg-neutral-50 p-4 text-sm text-neutral-500">
-                      No synthesis has been run for this project yet.
-                    </p>
-                  )}
-                  <p className="mt-3 text-xs text-neutral-500">
-                    Password-encrypted synthesis reports are in{" "}
-                    <Link
-                      href={`/encrypted?project=${project.id}`}
-                      className="text-brand-700 underline underline-offset-2"
+                  <div className="workspace-tabs border-x-0">
+                    <button
+                      type="button"
+                      onClick={() => setTab(project.id, "overview")}
+                      className={activeTab === "overview" ? "is-active" : ""}
                     >
-                      Private saves
-                    </Link>
-                    .
-                  </p>
-                </div>
-              </article>
-            </li>
-          ))}
+                      Overview
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTab(project.id, "syntheses")}
+                      className={activeTab === "syntheses" ? "is-active" : ""}
+                    >
+                      Syntheses
+                    </button>
+                  </div>
+
+                  <div className="p-4 sm:p-5">
+                    {activeTab === "overview" && (
+                      <div>
+                        {isEditing ? (
+                          <div className="flex flex-col gap-3">
+                            <textarea
+                              value={descriptionDraft}
+                              onChange={(e) => setDescriptionDraft(e.target.value)}
+                              placeholder="Describe this project — the research question, participant segment, or goal."
+                              rows={4}
+                              className="input resize-none text-sm"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => saveDescription(project.id)}
+                                disabled={savingDescription}
+                                className="btn-primary px-3 py-1.5 text-xs"
+                              >
+                                {savingDescription ? "Saving..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingProject(null)}
+                                className="btn-secondary px-3 py-1.5 text-xs"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            {project.description ? (
+                              <p className="text-sm leading-relaxed text-neutral-700">
+                                {project.description}
+                              </p>
+                            ) : (
+                              <p className="text-sm text-neutral-400">
+                                No description yet.
+                              </p>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDescriptionDraft(project.description ?? "");
+                                setEditingProject(project.id);
+                              }}
+                              className="mt-3 text-xs font-medium text-brand-700 hover:underline"
+                            >
+                              {project.description ? "Edit description" : "Add description"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === "syntheses" && (
+                      <div>
+                        {projectSaves.length > 0 ? (
+                          <ul className="divide-y divide-neutral-100">
+                            {projectSaves.map((save) => (
+                              <li key={save.id}>
+                                <Link
+                                  href={`/encrypted?project=${project.id}`}
+                                  className="group flex items-center justify-between gap-4 px-2 py-3 text-sm text-neutral-700 transition-colors hover:bg-brand-50"
+                                >
+                                  <span className="font-medium text-neutral-900">
+                                    {save.title || "Private synthesis"}
+                                  </span>
+                                  <span className="text-xs text-neutral-500 group-hover:text-brand-800">
+                                    {new Date(save.created_at).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}{" "}
+                                    &rarr;
+                                  </span>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="rounded-lg bg-neutral-50 p-4 text-sm text-neutral-500">
+                            No synthesis has been run for this project yet.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </article>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

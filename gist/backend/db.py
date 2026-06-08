@@ -151,6 +151,20 @@ def get_project(user_id: str, project_id: str) -> dict[str, Any] | None:
 
 
 @_with_db_retry
+def update_project(user_id: str, project_id: str, description: str | None) -> dict[str, Any] | None:
+    """Update mutable fields on a project. Currently only description."""
+    resp = (
+        _db()
+        .table("projects")
+        .update({"description": description})
+        .eq("id", project_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return resp.data[0] if resp.data else None
+
+
+@_with_db_retry
 def save_transcript(
     project_id: str,
     filename: str,

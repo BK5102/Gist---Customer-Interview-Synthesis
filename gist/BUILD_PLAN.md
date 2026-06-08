@@ -144,8 +144,10 @@ create table projects (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
   name text not null,
+  description text,                 -- Free-text project bio shown in Overview tab
   created_at timestamptz default now()
 );
+-- Migration: ALTER TABLE projects ADD COLUMN IF NOT EXISTS description text;
 
 create table transcripts (
   id uuid primary key default gen_random_uuid(),

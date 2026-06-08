@@ -268,7 +268,25 @@ function LandingFooter() {
   );
 }
 
+type RecentSave = { id: string; title: string | null; created_at: string; project_id: string | null };
+
 function SignedInHome() {
+  const [recentSaves, setRecentSaves] = useState<RecentSave[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("encrypted_artifacts")
+        .select("id,title,created_at,project_id")
+        .eq("artifact_type", "synthesis")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      setRecentSaves((data ?? []) as RecentSave[]);
+    };
+    load();
+  }, []);
+
   return (
     <main className="page-wide">
       <header className="motion-section mb-6 grid gap-5 lg:grid-cols-[1fr_360px] lg:items-end">
@@ -279,7 +297,7 @@ function SignedInHome() {
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
             Start with a project, synthesize your calls, then save the report
-            privately. Everything here is organized around that flow.
+            privately.
           </p>
         </div>
         <div className="surface-panel p-5">
@@ -294,67 +312,45 @@ function SignedInHome() {
         </div>
       </header>
 
-      <div className="workspace-tabs mb-5 rounded-xl border border-neutral-200 bg-white">
-        <span className="is-active">Workspace</span>
-        <span>Recent analysis</span>
-        <span>Private reports</span>
-      </div>
+      <Link href="/projects" className="card card-hover motion-card block p-6">
+        <div className="mb-4 h-1.5 w-16 rounded-full bg-brand-600" />
+        <p className="text-base font-semibold text-neutral-900">Projects</p>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+          Create a project and run syntheses within it. Each project keeps
+          one research round in one place.
+        </p>
+        <p className="mt-5 text-sm font-semibold text-brand-800">
+          Open projects &rarr;
+        </p>
+      </Link>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        <Link href="/projects" className="card card-hover motion-card p-6">
-          <div className="mb-4 h-1.5 w-16 rounded-full bg-brand-600" />
-          <p className="text-base font-semibold text-neutral-900">Projects</p>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-            Create a project and run syntheses within it. Each project keeps
-            one research round in one place.
-          </p>
-          <p className="mt-5 text-sm font-semibold text-brand-800">
-            Open projects
-          </p>
-        </Link>
-        <Link href="/encrypted" className="card card-hover motion-card p-6 [animation-delay:90ms]">
-          <div className="mb-4 h-1.5 w-16 rounded-full bg-brand-800" />
-          <p className="text-base font-semibold text-neutral-900">
-            Private saves
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-            Return to a saved report. Decrypt it with the password you set
-            when you saved it.
-          </p>
-          <p className="mt-5 text-sm font-semibold text-brand-800">
-            Open saves
-          </p>
-        </Link>
-      </section>
-
-      <section className="surface-panel mt-6 p-6 motion-section">
-        <div className="flex items-center gap-3">
-          <div className="stage-rail h-1.5 flex-1 rounded-full" />
-          <h2 className="text-sm font-semibold text-neutral-900">How it works</h2>
-        </div>
-        <div className="mt-5 grid gap-3 text-sm text-neutral-700 sm:grid-cols-3">
-          <div className="flow-step">
-            <p className="font-semibold text-neutral-900">1. Create a project</p>
-            <p className="mt-1 leading-relaxed">
-              Group interviews by research round, customer segment, or topic.
-            </p>
-          </div>
-          <div className="flow-step">
-            <p className="font-semibold text-neutral-900">2. Run a synthesis</p>
-            <p className="mt-1 leading-relaxed">
-              Upload transcripts or audio within the project and keep the tab
-              open while it runs.
-            </p>
-          </div>
-          <div className="flow-step">
-            <p className="font-semibold text-neutral-900">3. Save privately</p>
-            <p className="mt-1 leading-relaxed">
-              Encrypt the report with a password you choose. It's not stored
-              anywhere. Only you can open it.
-            </p>
-          </div>
-        </div>
-      </section>
+      {recentSaves.length > 0 && (
+        <section className="surface-panel mt-6 p-5 motion-section">
+          <p className="product-kicker mb-3">Recent syntheses</p>
+          <ul className="divide-y divide-neutral-100">
+            {recentSaves.map((save) => (
+              <li key={save.id}>
+                <Link
+                  href={save.project_id ? `/encrypted?project=${save.project_id}` : "/encrypted"}
+                  className="group flex items-center justify-between gap-4 px-1 py-3 text-sm transition-colors hover:bg-brand-50"
+                >
+                  <span className="font-medium text-neutral-900">
+                    {save.title || "Private synthesis"}
+                  </span>
+                  <span className="text-xs text-neutral-400 group-hover:text-brand-700">
+                    {new Date(save.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}{" "}
+                    &rarr;
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }
@@ -512,6 +508,7 @@ export default function Home() {
     setFiles(picked);
     setLabels(picked.map(() => ""));
     setResult(null);
+    setPrivateSaveTitle((prev) => prev || stemOf(picked[0].name));
   };
 
   const pickFiles = (incoming: FileList | null) => {
@@ -769,9 +766,8 @@ export default function Home() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-xl leading-relaxed text-neutral-700">
-              Upload transcripts or drop audio files. Gist clusters themes across
-              all your interviews and pulls direct quotes, not rewrites. A second
-              pass checks every quote against the source before it reaches you.
+              Upload transcripts or audio. Gist clusters themes across all your
+              interviews and verifies every quote against the source.
             </p>
 
           <p className="mt-4 max-w-xl text-xl font-semibold leading-snug text-neutral-900">
@@ -849,31 +845,6 @@ export default function Home() {
           </div>
           </section>
 
-          <section className="motion-section py-7">
-          <p className="eyebrow">How it works</p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-4">
-            {(
-              [
-                ["1", "Upload", "Add your .txt, .mp3, or .wav files, up to 20 at once"],
-                ["2", "Transcribe", "Audio is transcribed via Whisper before synthesis runs"],
-                ["3", "Synthesize", "Themes are clustered across all participants, each anchored to a direct quote"],
-                ["4", "Export", "Copy the report as markdown or send it to a Notion database"],
-              ] as const
-            ).map(([n, title, body]) => (
-              <div key={n} className="flow-step">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-950 text-xs font-medium text-white">
-                  {n}
-                </span>
-                <div className="mt-4">
-                  <p className="text-lg font-bold text-neutral-950">
-                    {title}
-                  </p>
-                  <p className="mt-2 text-base leading-relaxed text-neutral-700">{body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          </section>
         </main>
         {!user && <LandingFooter />}
       </>

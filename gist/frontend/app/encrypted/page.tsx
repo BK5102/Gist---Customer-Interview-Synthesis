@@ -141,12 +141,6 @@ export default function EncryptedSavesPage() {
         </p>
       </header>
 
-      <div className="workspace-tabs mb-5 rounded-xl border border-neutral-200 bg-white">
-        <span>All reports</span>
-        <span className="is-active">Private saves</span>
-        <span>Sources</span>
-      </div>
-
       {artifacts.length === 0 ? (
         <section className="fade-panel rounded-xl border border-dashed border-neutral-300 bg-white/65 p-10 text-center">
           <div className="state-visual">
@@ -235,9 +229,26 @@ export default function EncryptedSavesPage() {
             )}
 
             {decrypted && (
-              <article className="prose prose-neutral prose-brand mt-2 max-w-none">
-                <ReactMarkdown>{decrypted.markdown}</ReactMarkdown>
-              </article>
+              <div>
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-neutral-900">
+                    {selected?.title || "Private synthesis"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setDecrypted(null); setSelected(null); }}
+                    aria-label="Close report"
+                    className="grid h-7 w-7 place-items-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4">
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <article className="prose prose-neutral prose-brand max-w-none">
+                  <ReactMarkdown>{decrypted.markdown}</ReactMarkdown>
+                </article>
+              </div>
             )}
           </div>
         </section>
