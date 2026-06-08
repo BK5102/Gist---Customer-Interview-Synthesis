@@ -289,27 +289,15 @@ function SignedInHome() {
 
   return (
     <main className="page-wide">
-      <header className="motion-section mb-6 grid gap-5 lg:grid-cols-[1fr_360px] lg:items-end">
-        <div>
-          <p className="eyebrow">Workspace</p>
-          <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
-            Turn customer interviews into decisions you can trust.
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
-            Start with a project, synthesize your calls, then save the report
-            privately.
-          </p>
-        </div>
-        <div className="surface-panel p-5">
-          <p className="text-sm font-semibold text-neutral-900">Next best step</p>
-          <p className="mt-1 text-sm leading-relaxed text-neutral-600">
-            Open Projects to create a research round or continue from a saved
-            one.
-          </p>
-          <Link href="/projects" className="btn-primary mt-4 w-full">
-            Go to projects
-          </Link>
-        </div>
+      <header className="motion-section mb-6">
+        <p className="eyebrow">Workspace</p>
+        <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
+          Turn customer interviews into decisions you can trust.
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
+          Start with a project, synthesize your calls, then save the report
+          privately.
+        </p>
       </header>
 
       <Link href="/projects" className="card card-hover motion-card block p-6">
