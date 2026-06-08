@@ -243,7 +243,7 @@ export default function ProjectsPage() {
                     </Link>
                   </div>
 
-                  <div className="workspace-tabs border-x-0">
+                  <div className="project-tabs">
                     <button
                       type="button"
                       onClick={() => setTab(project.id, "overview")}

@@ -413,6 +413,19 @@
     @apply bg-brand-50 font-semibold text-brand-900;
   }
 
+  /* Inner project card tab nav — no borders, pill-style active state */
+  .project-tabs {
+    @apply flex items-center gap-1 px-4 py-2 sm:px-5;
+  }
+
+  .project-tabs button {
+    @apply cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-medium text-neutral-500 transition-all duration-150 hover:bg-neutral-100 hover:text-neutral-800;
+  }
+
+  .project-tabs button.is-active {
+    @apply bg-brand-950 font-semibold text-white;
+  }
+
   .product-split {
     @apply grid md:grid-cols-[1.16fr_0.84fr];
   }
