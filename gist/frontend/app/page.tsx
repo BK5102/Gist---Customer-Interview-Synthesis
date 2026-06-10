@@ -772,13 +772,48 @@ export default function Home() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {[
-              "Browser-encrypted saves",
-              "Verbatim quote verification",
-              "No transcript storage",
-              "Audio supported",
-            ].map((label) => (
-              <span key={label} className="trust-chip">{label}</span>
+            {([
+              {
+                label: "Browser-encrypted saves",
+                icon: (
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+                    <rect x="3" y="8" width="10" height="7" rx="1.5" />
+                    <path d="M5.5 8V5.5a2.5 2.5 0 0 1 5 0V8" />
+                  </svg>
+                ),
+              },
+              {
+                label: "Verbatim quote verification",
+                icon: (
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+                    <polyline points="2.5 8.5 6 12 13.5 4" />
+                  </svg>
+                ),
+              },
+              {
+                label: "No transcript storage",
+                icon: (
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+                    <path d="M8 1.5L2 4v4c0 3.5 2.5 6.75 6 7.75C11.5 14.75 14 11.5 14 8V4L8 1.5z" />
+                    <line x1="5.5" y1="8" x2="10.5" y2="8" />
+                  </svg>
+                ),
+              },
+              {
+                label: "Audio supported",
+                icon: (
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+                    <path d="M8 1.5a2 2 0 0 0-2 2v4a2 2 0 0 0 4 0v-4a2 2 0 0 0-2-2z" />
+                    <path d="M12 6.5v1a4 4 0 0 1-8 0v-1" />
+                    <line x1="8" y1="11.5" x2="8" y2="14" />
+                  </svg>
+                ),
+              },
+            ] as { label: string; icon: React.ReactNode }[]).map(({ label, icon }) => (
+              <span key={label} className="trust-chip">
+                {icon}
+                {label}
+              </span>
             ))}
           </div>
           </div>
@@ -791,7 +826,12 @@ export default function Home() {
           <section className="motion-section py-5">
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="feature-card bg-brand-50 dark:bg-brand-950/20 sm:col-span-2">
-              <div className="mb-4 h-2 w-24 rounded-full bg-brand-700" />
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700/10 text-brand-700 dark:bg-brand-400/10 dark:text-brand-400">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <polyline points="8.5 12 11 14.5 15.5 9.5" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Every quote checked against the transcript
               </h3>
@@ -803,7 +843,13 @@ export default function Home() {
               </p>
             </div>
             <div className="feature-card bg-white dark:bg-neutral-900">
-              <div className="mb-4 h-2 w-20 rounded-full bg-brand-800" />
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                  <circle cx="12" cy="16" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Reports encrypted in your browser
               </h3>
@@ -813,7 +859,14 @@ export default function Home() {
               </p>
             </div>
             <div className="feature-card bg-brand-50 dark:bg-brand-950/20">
-              <div className="mb-4 h-2 w-20 rounded-full bg-brand-950" />
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700/10 text-brand-700 dark:bg-brand-400/10 dark:text-brand-400">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+                  <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                  <line x1="8" y1="22" x2="16" y2="22" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Audio files and text transcripts
               </h3>
@@ -824,7 +877,13 @@ export default function Home() {
               </p>
             </div>
             <div className="feature-card bg-white dark:bg-neutral-900 sm:col-span-2">
-              <div className="mb-4 h-2 w-24 rounded-full bg-brand-950" />
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Send the report to Notion
               </h3>
