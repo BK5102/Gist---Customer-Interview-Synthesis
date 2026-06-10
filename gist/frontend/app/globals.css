@@ -153,14 +153,14 @@
   }
 
   .dark .btn-primary {
-    background-color: rgb(15 118 110);
-    box-shadow: 0 14px 30px rgba(15, 118, 110, 0.3);
+    background-color: rgb(13 148 136);
+    box-shadow: 0 14px 30px rgba(13, 148, 136, 0.35);
   }
   .dark .btn-primary:hover {
-    background-color: rgb(13 148 136);
+    background-color: rgb(20 184 166);
   }
   .dark .btn-primary:active {
-    background-color: rgb(17 94 89);
+    background-color: rgb(15 118 110);
   }
 
   .btn-ghost {
@@ -962,6 +962,8 @@
 .dark .page-title {
   background: linear-gradient(110deg, #e5e5e5 30%, #5eead4 50%, #e5e5e5 70%);
   background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 @media (prefers-reduced-motion: reduce) {

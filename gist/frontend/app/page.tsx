@@ -290,8 +290,7 @@ function SignedInHome() {
   return (
     <main className="page-wide">
       <header className="motion-section mb-6">
-        <p className="eyebrow">Workspace</p>
-        <h1 className="mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
+        <h1 className="page-title max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Turn customer interviews into decisions you can trust.
         </h1>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
@@ -315,17 +314,17 @@ function SignedInHome() {
       {recentSaves.length > 0 && (
         <section className="surface-panel mt-6 p-5 motion-section">
           <p className="product-kicker mb-3">Recent syntheses</p>
-          <ul className="divide-y divide-neutral-100">
+          <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
             {recentSaves.map((save) => (
               <li key={save.id}>
                 <Link
                   href={save.project_id ? `/encrypted?project=${save.project_id}` : "/encrypted"}
-                  className="group flex items-center justify-between gap-4 px-1 py-3 text-sm transition-colors hover:bg-brand-50"
+                  className="group flex items-center justify-between gap-4 px-1 py-3 text-sm transition-colors hover:bg-brand-50 dark:hover:bg-brand-950/30"
                 >
-                  <span className="font-medium text-neutral-900">
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">
                     {save.title || "Private synthesis"}
                   </span>
-                  <span className="text-xs text-neutral-400 group-hover:text-brand-700">
+                  <span className="text-sm font-medium text-neutral-500 group-hover:text-brand-700 dark:text-neutral-300 dark:group-hover:text-brand-300">
                     {new Date(save.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -742,7 +741,7 @@ export default function Home() {
         <main className="page-wide">
           <section className="grid items-center gap-5 pb-4 pt-2 lg:grid-cols-[1.05fr_0.95fr] lg:pb-6">
           <div className="motion-section">
-            <h1 className="page-title max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
+            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-6xl">
               Read ten interviews at once.{" "}
               <span className="text-gradient">Every finding linked to who said it.</span>
             </h1>

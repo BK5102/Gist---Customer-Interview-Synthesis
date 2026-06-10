@@ -327,7 +327,7 @@ export default function ProjectsPage() {
                                   <span className="font-medium text-neutral-900 dark:text-neutral-100">
                                     {save.title || "Private synthesis"}
                                   </span>
-                                  <span className="text-sm text-neutral-500 group-hover:text-brand-800 dark:text-neutral-400 dark:group-hover:text-brand-300">
+                                  <span className="text-sm font-medium text-neutral-500 group-hover:text-brand-800 dark:text-neutral-300 dark:group-hover:text-brand-300">
                                     {new Date(save.created_at).toLocaleDateString("en-US", {
                                       month: "short",
                                       day: "numeric",
