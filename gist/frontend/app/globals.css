@@ -152,6 +152,17 @@
     background-color: rgb(38 38 38);
   }
 
+  .dark .btn-primary {
+    background-color: rgb(15 118 110);
+    box-shadow: 0 14px 30px rgba(15, 118, 110, 0.3);
+  }
+  .dark .btn-primary:hover {
+    background-color: rgb(13 148 136);
+  }
+  .dark .btn-primary:active {
+    background-color: rgb(17 94 89);
+  }
+
   .btn-ghost {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg
            px-4 py-2.5 text-base font-semibold text-neutral-700
@@ -263,6 +274,13 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  .dark .text-gradient {
+    background: linear-gradient(90deg, #2dd4bf, #5eead4 40%, #a7f3d0 60%, #5eead4 80%, #2dd4bf 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: text-shimmer 3s linear infinite;
   }
 
   .flow-step {
@@ -467,9 +485,9 @@
     background-color: rgba(255, 255, 255, 0.8);
   }
   .dark .trust-chip {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
     background-color: rgba(23, 23, 23, 0.6);
-    color: rgb(115 115 115);
+    color: rgb(196 196 196);
   }
 
   .fade-panel {
@@ -923,6 +941,27 @@
   100% {
     width: 100%;
   }
+}
+
+/* ─── page title shimmer ─────────────────────────────────────────── */
+
+@keyframes text-shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.page-title {
+  background: linear-gradient(110deg, #171717 30%, #737373 50%, #171717 70%);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 6s linear infinite;
+}
+
+.dark .page-title {
+  background: linear-gradient(110deg, #e5e5e5 30%, #5eead4 50%, #e5e5e5 70%);
+  background-size: 300% auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

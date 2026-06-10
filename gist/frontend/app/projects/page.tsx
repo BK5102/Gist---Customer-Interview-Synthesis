@@ -122,7 +122,7 @@ export default function ProjectsPage() {
     setSavingDescription(false);
   };
 
-  const tabFor = (projectId: string) => activeProjectTabs[projectId] ?? "syntheses";
+  const tabFor = (projectId: string) => activeProjectTabs[projectId] ?? "overview";
   const setTab = (projectId: string, tab: "overview" | "syntheses") =>
     setActiveProjectTabs((prev) => ({ ...prev, [projectId]: tab }));
 
@@ -151,8 +151,7 @@ export default function ProjectsPage() {
 
       <header className="motion-section mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow">Research rounds</p>
-          <h1 className="mt-1 text-4xl font-semibold tracking-tight">
+          <h1 className="page-title text-4xl font-semibold tracking-tight">
             Projects
           </h1>
           <p className="mt-2 max-w-xl text-base leading-relaxed text-neutral-600">
@@ -175,7 +174,7 @@ export default function ProjectsPage() {
 
       <form
         onSubmit={createProject}
-        className="workspace-toolbar mb-6 rounded-xl border border-neutral-200 bg-white px-3"
+        className="workspace-toolbar mb-6 rounded-xl border border-neutral-200 bg-white px-3 dark:border-neutral-700 dark:bg-neutral-900"
       >
         <input
           type="text"
@@ -220,8 +219,7 @@ export default function ProjectsPage() {
                 <article className="report-shell motion-card">
                   <div className="flex flex-wrap items-start justify-between gap-4 p-5">
                     <div>
-                      <p className="product-kicker">Research project</p>
-                      <h2 className="mt-1 text-xl font-semibold text-neutral-950">
+                      <h2 className="text-xl font-semibold text-neutral-950">
                         {project.name}
                       </h2>
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -324,12 +322,12 @@ export default function ProjectsPage() {
                               <li key={save.id}>
                                 <Link
                                   href={`/encrypted?project=${project.id}`}
-                                  className="group flex items-center justify-between gap-4 px-2 py-3 text-sm text-neutral-700 transition-colors hover:bg-brand-50"
+                                  className="group flex items-center justify-between gap-4 px-2 py-3 text-sm text-neutral-700 transition-colors hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-brand-950/30"
                                 >
-                                  <span className="font-medium text-neutral-900">
+                                  <span className="font-medium text-neutral-900 dark:text-neutral-100">
                                     {save.title || "Private synthesis"}
                                   </span>
-                                  <span className="text-xs text-neutral-500 group-hover:text-brand-800">
+                                  <span className="text-sm text-neutral-500 group-hover:text-brand-800 dark:text-neutral-400 dark:group-hover:text-brand-300">
                                     {new Date(save.created_at).toLocaleDateString("en-US", {
                                       month: "short",
                                       day: "numeric",

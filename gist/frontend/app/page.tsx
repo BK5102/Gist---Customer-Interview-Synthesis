@@ -742,7 +742,7 @@ export default function Home() {
         <main className="page-wide">
           <section className="grid items-center gap-5 pb-4 pt-2 lg:grid-cols-[1.05fr_0.95fr] lg:pb-6">
           <div className="motion-section">
-            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-6xl">
+            <h1 className="page-title max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
               Read ten interviews at once.{" "}
               <span className="text-gradient">Every finding linked to who said it.</span>
             </h1>
@@ -752,7 +752,7 @@ export default function Home() {
               with verified quotes — ready to share or push to Notion.
             </p>
 
-          <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-400">
+          <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-200">
             For founders and product teams turning calls into clear next steps.
           </p>
 
@@ -929,12 +929,6 @@ export default function Home() {
         </p>
       </header>
 
-      <div className="workspace-tabs mb-5 rounded-xl border border-neutral-200 bg-white">
-        <span className={!isLoading && !result ? "is-active" : ""}>Files</span>
-        <span className={isLoading ? "is-active" : ""}>Progress</span>
-        <span className={result ? "is-active" : ""}>Report</span>
-      </div>
-
       <section className="card motion-card p-6">
         {/* Drag-and-drop zone */}
         <div
@@ -946,8 +940,8 @@ export default function Home() {
             transition-all duration-300 ease-out
             ${
               isDragging
-                ? "scale-[1.01] border-brand-700 bg-brand-50"
-                : "border-neutral-300 bg-white/50 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50/40"
+                ? "scale-[1.01] border-brand-700 bg-brand-50 dark:bg-brand-950/30"
+                : "border-neutral-300 dark:border-neutral-600 bg-white/50 dark:bg-neutral-800/60 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50/40 dark:hover:bg-brand-950/20"
             }
             ${isLoading ? "opacity-50" : ""}
           `}
@@ -967,12 +961,12 @@ export default function Home() {
               />
             </svg>
           </div>
-          <p className="mt-4 text-base font-semibold text-neutral-800">
+          <p className="mt-4 text-base font-semibold text-neutral-800 dark:text-neutral-100">
             {isDragging
               ? "Drop to upload"
               : "Drag & drop, or browse"}
           </p>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-300">
             .txt, .mp3, .wav, .m4a, .mp4, .webm · up to {MAX_FILES} files · 200 MB each
           </p>
           <label className="btn-secondary mt-4 cursor-pointer text-xs">
@@ -1006,7 +1000,7 @@ export default function Home() {
                 return (
                   <li
                     key={f.name + i}
-                    className="flex flex-col gap-2 rounded-lg bg-white/75 p-3 text-sm text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white sm:flex-row sm:items-center sm:gap-3"
+                    className="flex flex-col gap-2 rounded-lg bg-white/75 p-3 text-sm text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white dark:bg-neutral-800/75 dark:text-neutral-200 dark:hover:bg-neutral-800 sm:flex-row sm:items-center sm:gap-3"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                       <span className="truncate font-medium">

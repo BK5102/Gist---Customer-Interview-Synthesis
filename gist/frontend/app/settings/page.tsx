@@ -151,7 +151,7 @@ export default function SettingsPage() {
       />
       <header className="motion-section mb-5">
         <p className="eyebrow">Account</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight dark:text-neutral-100">Settings</h1>
+        <h1 className="page-title mt-1 text-2xl font-semibold tracking-tight">Settings</h1>
       </header>
 
       <section className="card motion-card p-6">

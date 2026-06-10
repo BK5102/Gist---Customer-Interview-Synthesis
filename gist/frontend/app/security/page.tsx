@@ -12,7 +12,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
         {title}
       </h2>
-      <div className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+      <div className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
         {children}
       </div>
     </section>
@@ -65,11 +65,10 @@ export default function SecurityPage() {
     <main className="page">
       <div className="mx-auto max-w-2xl">
         <header className="mb-8">
-          <p className="eyebrow">Trust &amp; Privacy</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+          <h1 className="page-title text-3xl font-bold tracking-tight">
             Security at Gist
           </h1>
-          <p className="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400">
+          <p className="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
             Customer interviews contain sensitive opinions, names, and research insights.
             Here is exactly how Gist handles that data — and what it never touches.
           </p>
@@ -113,7 +112,7 @@ export default function SecurityPage() {
           </Section>
 
           <Section title="Third-party data processors">
-            <p className="text-neutral-500 dark:text-neutral-500">
+            <p className="text-neutral-500 dark:text-neutral-400">
               Two external AI providers process your content. You should know this before uploading regulated or confidential data.
             </p>
             <Row
@@ -152,7 +151,7 @@ export default function SecurityPage() {
           </Section>
 
           <section className="rounded-xl border border-neutral-200 bg-neutral-50 px-7 py-5 dark:border-white/[0.08] dark:bg-neutral-900/60">
-            <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
               Questions or concerns? Reach out at{" "}
               <a href="mailto:bkannan8@asu.edu" className="font-medium text-brand-700 underline-offset-2 hover:underline dark:text-brand-400">
                 bkannan8@asu.edu

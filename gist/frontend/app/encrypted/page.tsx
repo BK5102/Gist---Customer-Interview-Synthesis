@@ -131,8 +131,7 @@ export default function EncryptedSavesPage() {
         ]}
       />
       <header className="motion-section mb-5">
-        <p className="eyebrow">Browser-encrypted storage</p>
-        <h1 className="mt-1 text-4xl font-semibold tracking-tight">
+        <h1 className="page-title text-4xl font-semibold tracking-tight">
           Private saves
         </h1>
         <p className="mt-2 text-base leading-relaxed text-neutral-600">
@@ -155,7 +154,7 @@ export default function EncryptedSavesPage() {
         </section>
       ) : (
         <section className="report-shell fade-panel grid lg:grid-cols-[300px_1fr]">
-          <ul className="space-y-1 border-b border-neutral-200 bg-neutral-50 p-3 lg:border-b-0 lg:border-r">
+          <ul className="space-y-1 border-b border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-900 lg:border-b-0 lg:border-r">
             {artifacts.map((artifact) => (
               <li key={artifact.id}>
                 <button
@@ -163,8 +162,8 @@ export default function EncryptedSavesPage() {
                   onClick={() => selectArtifact(artifact)}
                   className={`w-full rounded-lg p-4 text-left transition-colors ${
                     selected?.id === artifact.id
-                      ? "bg-brand-950 text-white"
-                      : "bg-white text-neutral-900 hover:bg-brand-50"
+                      ? "bg-brand-950 text-white dark:bg-brand-700"
+                      : "bg-white text-neutral-900 hover:bg-brand-50 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-brand-950/40"
                   }`}
                 >
                   <p className="text-sm font-semibold">
@@ -174,7 +173,7 @@ export default function EncryptedSavesPage() {
                     className={`mt-1 text-xs ${
                       selected?.id === artifact.id
                         ? "text-brand-200"
-                        : "text-neutral-500"
+                        : "text-neutral-500 dark:text-neutral-400"
                     }`}
                   >
                     {new Date(artifact.created_at).toLocaleString()}
