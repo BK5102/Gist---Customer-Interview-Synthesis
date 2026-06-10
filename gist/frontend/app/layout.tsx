@@ -79,6 +79,12 @@ async function Navbar() {
             </>
           ) : (
             <>
+              <Link href="/#features" className="nav-link hidden sm:inline-flex px-3.5">
+                Features
+              </Link>
+              <Link href="/security" className="nav-link hidden sm:inline-flex px-3.5">
+                Security
+              </Link>
               <Link href="/login" className="nav-link px-3.5">
                 Log in
               </Link>

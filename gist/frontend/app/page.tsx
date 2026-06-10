@@ -823,7 +823,7 @@ export default function Home() {
           </div>
           </section>
 
-          <section className="motion-section py-5">
+          <section id="features" className="motion-section py-5">
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="feature-card bg-brand-50 dark:bg-brand-950/20 sm:col-span-2">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700/10 text-brand-700 dark:bg-brand-400/10 dark:text-brand-400">
