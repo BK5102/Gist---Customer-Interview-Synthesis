@@ -24,7 +24,7 @@ output. Built for solo founders doing customer discovery.
 - Backend API: https://gist-backend-production-ab73.up.railway.app
 - GitHub: https://github.com/BK5102/Gist---Customer-Interview-Synthesis
 
-**Latest pushed commit:** `4f466ee` — design: remove Next best step panel from workspace header
+**Latest pushed commit:** `794f4ed` — docs: update CLAUDE.md and PROMPT.md to reflect current state (dark mode + competitor design pass pending)
 
 ---
 
@@ -58,6 +58,7 @@ Gist---Customer-Interview-Synthesis/        ← repo root (GitHub root)
 │   │   │   ├── globals.css                  ← design system
 │   │   │   └── icon.svg                     ← favicon
 │   │   ├── components/Breadcrumb.tsx        ← shared breadcrumb nav component
+│   │   ├── components/ThemeProvider.tsx     ← dark/light/system theme context + useTheme() hook
 │   │   ├── lib/supabase/{client,server}.ts
 │   │   ├── proxy.ts                         ← Supabase session refresh for Next 16
 │   │   ├── tailwind.config.ts               ← brand palette + animations
@@ -174,7 +175,8 @@ Same three as `frontend/.env.local` but with
 | UI spacing + micro-interactions | Reduced whitespace, nav icons/state visuals, stronger primary button hover, `cardLoad` animation, `fade-panel` transitions. | ✅ |
 | Railway Python build fix | Added `gist/backend/mise.toml` with `python.github_attestations = false` for Railway/mise 2026.6.0 compatibility. | ✅ |
 | Project descriptions + synthesis linking | `PATCH /projects/{id}` endpoint; `update_project()` in db.py; `projects.description` column (migration `002_add_project_description.sql`); project card Overview tab shows editable description; synthesis list queries `encrypted_artifacts` by `project_id` directly from frontend — shows save titles, not dates from backend `syntheses` table (which is empty by default). | ✅ |
-| Workspace UX cleanup | Private Saves: removed 3-tab nav (single working list), added X close button. Projects page: removed Private saves button per card; functional Overview/Syntheses tabs (`.project-tabs` dark pill style, no borders); removed non-functional top workspace-tabs; added Most recent synthesis header button. Workspace hub: removed Private reports tab, Private saves card, How it works section, Next best step panel; added Recent syntheses list (last 5 from `encrypted_artifacts`). Landing: removed How it works card grid, trimmed hero paragraph. Synthesis title auto-populated from first file stem. | ✅ Current |
+| Workspace UX cleanup | Private Saves: removed 3-tab nav (single working list), added X close button. Projects page: removed Private saves button per card; functional Overview/Syntheses tabs (`.project-tabs` dark pill style, no borders); removed non-functional top workspace-tabs; added Most recent synthesis header button. Workspace hub: removed Private reports tab, Private saves card, How it works section, Next best step panel; added Recent syntheses list (last 5 from `encrypted_artifacts`). Landing: removed How it works card grid, trimmed hero paragraph. Synthesis title auto-populated from first file stem. | ✅ |
+| Dark mode + competitor design pass | Theme toggle in Settings (Light/Dark/System); `ThemeProvider` client component with localStorage + system preference; anti-flash inline script in `<head>`; comprehensive dark CSS vars in globals.css; removed hero kinetic-marquee scroll animation + both eyebrows ("Private-by-default…" and "What it does"); tightened page spacing; trust signal chips below hero CTAs; Dovetail/Looppanel-inspired feature copy; `SECURITY_TRUST_PLAN.md` + `E2EE_STORAGE_PLAN.md` added to `.gitignore`. | ✅ Current |
 | Phase 4 | Real users, iterate on feedback | ⏳ Open |
 
 ---
@@ -306,6 +308,9 @@ npm run dev
 33. **Project descriptions editable in-line** — `PATCH /projects/{id}` endpoint; `update_project()` in db.py. Requires `projects.description text` column (migration `002_add_project_description.sql`). The frontend patches optimistically and updates local state on success.
 34. **`.project-tabs` vs `.workspace-tabs`** — two separate CSS classes. `.workspace-tabs` is for page-level tab bars (border-y, `span` elements, light active state). `.project-tabs` is for inner card tab navs (no borders, `button` elements, dark pill active state — `bg-brand-950 text-white`). Never mix them.
 35. **`SignedInHome` is a standalone component with its own fetch** — it fetches recent encrypted_artifacts from Supabase directly (no backend call needed). Kept separate from the `Home` function to avoid passing props through the conditional render tree.
+36. **Dark mode architecture: `darkMode: "class"` + Turbopack gotcha** — With `darkMode: "class"` in Tailwind + Next.js 16 Turbopack, `bg-white` (and opacity variants like `bg-white/90`) in `@apply` inside `@layer components` causes a circular dependency build error. `dark:*` variants in `@apply` also fail. Fix: replace every `bg-white` in `@apply` with raw `background-color: white;`; replace every `dark:*` in `@apply` with a separate `.dark .classname { }` rule placed OUTSIDE all `@layer` blocks. Unlayered CSS has higher cascade priority than all layered utilities, so `.dark` overrides placed outside layers beat Tailwind classes without `!important`. Never use Tailwind utility class names (`.bg-white`, `.text-neutral-*`) as CSS selectors inside `@layer base`.
+37. **`ThemeProvider` pattern** — `components/ThemeProvider.tsx` is a `"use client"` context component that wraps all body content in `layout.tsx`. It reads from `localStorage` on mount and listens for system preference changes. Anti-flash inline `<script>` in `<head>` applies the `dark` class synchronously before React hydrates. `suppressHydrationWarning` on `<html>` prevents server/client mismatch. Theme persisted as `"light" | "dark" | "system"` under key `"gist-theme"`.
+38. **`.trust-chip` design system class** — small bordered chip for trust signal labels (e.g., "Browser-encrypted saves"). Used in the landing page hero below the CTA buttons, competitor-inspired (Looppanel SOC2/security badge pattern). Defined in `globals.css`.
 
 ---
 
@@ -384,7 +389,8 @@ bc35d2a  design: replace orbit with product demo frame and refine UI polish
 58319b8  design: remove citation dot '7' from product demo card
 db99a3c  feat: project descriptions, synthesis linking, workspace cleanup
 604a86d  design: project card tabs as mini-navbar pills, no borders
-4f466ee  design: remove Next best step panel from workspace header  ← HEAD
+4f466ee  design: remove Next best step panel from workspace header
+794f4ed  docs: update CLAUDE.md and PROMPT.md to reflect current state  ← HEAD (dark mode commit pending)
 ```
 
 Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (hardening + polish).
@@ -428,6 +434,7 @@ Tags: `v0.2.0` (Phase 1 milestone), `v1.0.0` (Phase 3 release), `v1.0.1` (harden
 44. **Design iteration (Codex session)** — replaced ResearchOrbit with ProductDemo (mock browser frame showing a synthesis result); tightened card shadows, body gradient, and hover states; added product-frame CSS classes. Citation dot "7" removed from demo card.
 45. **Project descriptions + synthesis linking + workspace cleanup** — full feature session. See build phases table for full list. Key decisions: syntheses shown under projects come from `encrypted_artifacts` (frontend Supabase query), not the backend `syntheses` table; project description stored in `projects.description` (migration required); synthesis title auto-populates from first uploaded file's stem; `.project-tabs` is a new CSS class separate from `.workspace-tabs` (dark pill active, no borders).
 46. **Docs update** — updated CLAUDE.md (stack, full repo layout, backend routes table, design system class reference) and PROMPT.md (this file) to reflect all changes since session 43.
+47. **Dark mode + competitor design pass** — full dark mode system: `ThemeProvider` client component (localStorage + system preference, `"light"|"dark"|"system"`), anti-flash inline script in `<head>`, `suppressHydrationWarning` on `<html>`, `darkMode: "class"` in Tailwind config. Comprehensive dark CSS vars in `globals.css` (all 16 bg-white @apply replaced with raw CSS, all dark: @apply moved to `.dark .class {}` rules outside @layers). Settings page: new Appearance section with Light/Dark/System 3-column pill toggle. Homepage: removed kinetic-marquee scroll animation, removed both eyebrows ("Private-by-default interview synthesis" and "What it does"), tightened hero + features section spacing, added trust signal chip row (Browser-encrypted saves / Verbatim quote verification / No transcript storage / Audio supported), sharpened feature card copy (Dovetail/Looppanel-inspired). `SECURITY_TRUST_PLAN.md` + `E2EE_STORAGE_PLAN.md` added to `.gitignore`. Critical Turbopack gotcha: `bg-white` in @apply inside `@layer components` causes circular dependency when `darkMode: "class"` is active — see architecture decision note below.
 
 ---
 
@@ -485,6 +492,7 @@ git reflog expire --expire=now --all && git gc --aggressive --prune=now
 45. **Granola-inspired navigation and palette refinement** — compact borderless header, footer restricted to signed-out landing, brand green unified throughout, prefetch disabled on protected-page preview links.
 46. **Research workflow design synthesis** — detailed study of Looppanel, Dovetail, and Grain (documented in `DESIGN_RESEARCH_REPORT.md`). Landing visual replaced with ProductDemo (realistic mock browser frame); synthesis detail rebuilt as split document + dark evidence rail; private saves as master-detail repository.
 47. **Project descriptions + synthesis linking + workspace UX cleanup** — see session log entry 45 above and build phases table for full detail. Key user-visible changes: project description field (editable in Overview tab), synthesis names shown under each project, Private Saves X close button, workspace hub simplified (Recent syntheses list replaces How it works + Private saves card + Next best step panel). Requires running `002_add_project_description.sql` in Supabase.
+48. **Dark mode + competitor design pass** — see session log entry 47 above. Key implementation notes: `ThemeProvider` in `components/ThemeProvider.tsx`; dark rules go OUTSIDE all `@layer` blocks (higher cascade priority than utilities, no `!important` needed); ProductDemo mockup protected with `background-color: #ffffff !important` so demo always renders as light UI. New design system class: `.trust-chip`.
 
 ---
 

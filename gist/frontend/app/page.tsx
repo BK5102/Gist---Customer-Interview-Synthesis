@@ -740,29 +740,23 @@ export default function Home() {
     return (
       <>
         <main className="page-wide">
-          <section className="grid items-center gap-7 pb-8 pt-3 lg:grid-cols-[1.05fr_0.95fr] lg:pb-10">
+          <section className="grid items-center gap-5 pb-4 pt-2 lg:grid-cols-[1.05fr_0.95fr] lg:pb-6">
           <div className="motion-section">
-            <div className="kinetic-marquee mb-4 max-w-xl">
-              <span className="kinetic-marquee-track">
-                trace quotes • cluster themes • protect reports • synthesize interviews • trace quotes • cluster themes • protect reports • synthesize interviews •
-              </span>
-            </div>
-            <p className="eyebrow">Private-by-default interview synthesis</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 sm:text-6xl">
+            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-6xl">
               Read ten interviews at once.{" "}
-              <span className="text-gradient">Every finding traced to who said it.</span>
+              <span className="text-gradient">Every finding linked to who said it.</span>
             </h1>
 
-            <p className="mt-4 max-w-2xl text-xl leading-relaxed text-neutral-700">
-              Upload transcripts or audio. Gist clusters themes across all your
-              interviews and verifies every quote against the source.
+            <p className="mt-3 max-w-2xl text-xl leading-relaxed text-neutral-700 dark:text-neutral-300">
+              Upload your interviews or recordings. Get back a structured report
+              with verified quotes — ready to share or push to Notion.
             </p>
 
-          <p className="mt-4 max-w-xl text-xl font-semibold leading-snug text-neutral-900">
+          <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-400">
             For founders and product teams turning calls into clear next steps.
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
             <Link
               href={user ? "/" : "/signup"}
               className="btn-primary px-6 py-3"
@@ -776,6 +770,17 @@ export default function Home() {
               {user ? "Go to projects" : "Log in"}
             </Link>
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[
+              "Browser-encrypted saves",
+              "Verbatim quote verification",
+              "No transcript storage",
+              "Audio supported",
+            ].map((label) => (
+              <span key={label} className="trust-chip">{label}</span>
+            ))}
+          </div>
           </div>
 
           <div className="depth-scene motion-card [animation-delay:120ms]">
@@ -783,51 +788,50 @@ export default function Home() {
           </div>
           </section>
 
-          <section className="motion-section py-7">
-          <p className="eyebrow">What it does</p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            <div className="feature-card bg-brand-50 sm:col-span-2">
-              <div className="mb-5 h-2 w-24 rounded-full bg-brand-700" />
-              <h3 className="text-xl font-bold text-neutral-950">
+          <section className="motion-section py-5">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="feature-card bg-brand-50 dark:bg-brand-950/20 sm:col-span-2">
+              <div className="mb-4 h-2 w-24 rounded-full bg-brand-700" />
+              <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Every quote checked against the transcript
               </h3>
-              <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-700">
-                After generating themes, Gist runs a second pass that checks
-                each quote against the original text verbatim. Quotes that don't
-                appear in the source are dropped, not rewritten. You get fewer
-                quotes, but the ones you see are real.
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
+                Every theme comes with a quote. Every quote is checked against
+                the original text verbatim. Quotes that don't appear in the
+                source are dropped — not rewritten. Fewer quotes, but all of
+                them real.
               </p>
             </div>
-            <div className="feature-card bg-white">
-              <div className="mb-5 h-2 w-20 rounded-full bg-brand-800" />
-              <h3 className="text-xl font-bold text-neutral-950">
+            <div className="feature-card bg-white dark:bg-neutral-900">
+              <div className="mb-4 h-2 w-20 rounded-full bg-brand-800" />
+              <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Reports encrypted in your browser
               </h3>
-              <p className="mt-3 text-base leading-relaxed text-neutral-700">
-                The report is encrypted here before it's stored. The password
-                never leaves your device. Gist can't access your saves.
+              <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
+                Your report is encrypted before it's stored. The password never
+                leaves your device. Not even Gist can read what you save.
               </p>
             </div>
-            <div className="feature-card bg-brand-50">
-              <div className="mb-5 h-2 w-20 rounded-full bg-brand-950" />
-              <h3 className="text-xl font-bold text-neutral-950">
+            <div className="feature-card bg-brand-50 dark:bg-brand-950/20">
+              <div className="mb-4 h-2 w-20 rounded-full bg-brand-950" />
+              <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Audio files and text transcripts
               </h3>
-              <p className="mt-3 text-base leading-relaxed text-neutral-700">
+              <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
                 Accepts .mp3, .wav, .m4a, and .mp4 up to 200 MB. Audio is
-                transcribed via Whisper, then goes through the same pipeline as
-                a text file.
+                transcribed first, then runs the same verification pipeline as a
+                text transcript.
               </p>
             </div>
-            <div className="feature-card bg-white sm:col-span-2">
-              <div className="mb-5 h-2 w-24 rounded-full bg-brand-950" />
-              <h3 className="text-xl font-bold text-neutral-950">
+            <div className="feature-card bg-white dark:bg-neutral-900 sm:col-span-2">
+              <div className="mb-4 h-2 w-24 rounded-full bg-brand-950" />
+              <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 Send the report to Notion
               </h3>
-              <p className="mt-3 text-base leading-relaxed text-neutral-700">
-                Pick a database from your Notion workspace and Gist writes the
-                synthesis there as a new page. The connection uses OAuth, so
-                there are no API keys to copy and paste.
+              <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
+                Connect once via OAuth — no API keys to copy. Then push any
+                synthesis to a Notion database with one click. The report
+                arrives as a formatted page, ready to share.
               </p>
             </div>
           </div>

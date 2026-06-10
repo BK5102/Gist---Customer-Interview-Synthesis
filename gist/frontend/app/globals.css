@@ -29,6 +29,79 @@
     font-size: 1.0625rem;
   }
 
+  .dark body {
+    background:
+      linear-gradient(180deg, rgba(15, 118, 110, 0.08), transparent 360px),
+      #0a0f0e;
+    color: #f5f5f4;
+  }
+
+  /* ─── dark mode: neutral text overrides ─────────────────────── */
+  .dark .text-neutral-950 { color: #fafaf9; }
+  .dark .text-neutral-900 { color: #f5f5f4; }
+  .dark .text-neutral-800 { color: #e7e5e4; }
+  .dark .text-neutral-700 { color: #d6d3d1; }
+  .dark .text-neutral-600 { color: #a8a29e; }
+  .dark .text-neutral-500 { color: #78716c; }
+  .dark .text-neutral-400 { color: #57534e; }
+
+  /* ─── dark mode: brand text ───────────────────────────────────── */
+  .dark .text-brand-950 { color: #99f6e4; }
+  .dark .text-brand-900 { color: #5eead4; }
+  .dark .text-brand-800 { color: #2dd4bf; }
+  .dark .text-brand-700 { color: #14b8a6; }
+  .dark .text-brand-200 { color: #99f6e4; }
+  .dark .text-brand-100 { color: #ccfbf1; }
+
+  /* ─── dark mode: neutral backgrounds ─────────────────────────── */
+  .dark .bg-neutral-100 { background-color: rgba(255, 255, 255, 0.07); }
+  .dark .bg-neutral-50  { background-color: rgba(255, 255, 255, 0.04); }
+
+  /* ─── dark mode: brand backgrounds ───────────────────────────── */
+  .dark .bg-brand-50 { background-color: rgba(15, 118, 110, 0.13); }
+
+  /* ─── dark mode: border overrides ────────────────────────────── */
+  .dark .border-neutral-300 { border-color: rgba(255, 255, 255, 0.13); }
+  .dark .border-neutral-200 { border-color: rgba(255, 255, 255, 0.09); }
+  .dark .border-neutral-100 { border-color: rgba(255, 255, 255, 0.05); }
+  .dark .divide-neutral-100 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* ─── dark mode: hover overrides ─────────────────────────────── */
+  .dark .hover\:bg-brand-50:hover  { background-color: rgba(15, 118, 110, 0.13); }
+  .dark .hover\:bg-neutral-100:hover { background-color: rgba(255, 255, 255, 0.07); }
+  .dark .hover\:text-brand-950:hover { color: #5eead4; }
+  .dark .hover\:text-brand-700:hover { color: #2dd4bf; }
+  .dark .hover\:text-white:hover     { color: #f5f5f4; }
+
+  /* ─── dark mode: error/status states ─────────────────────────── */
+  .dark .bg-red-50   { background-color: rgba(220, 38, 38, 0.15); }
+  .dark .text-red-800 { color: #fca5a5; }
+  .dark .text-red-700 { color: #fca5a5; }
+  .dark .text-red-500 { color: #f87171; }
+
+  /* ─── product demo: force light-mode appearance ───────────────── */
+  .dark .product-frame { background-color: #ffffff !important; color: #1c1917; }
+  .dark .product-frame .text-neutral-950 { color: #0c0a09; }
+  .dark .product-frame .text-neutral-900 { color: #1c1917; }
+  .dark .product-frame .text-neutral-800 { color: #292524; }
+  .dark .product-frame .text-neutral-700 { color: #404040; }
+  .dark .product-frame .text-neutral-600 { color: #525252; }
+  .dark .product-frame .text-neutral-500 { color: #737373; }
+  .dark .product-frame .text-neutral-400 { color: #a3a3a3; }
+  .dark .product-frame .bg-neutral-100  { background-color: #f5f5f5; }
+  .dark .product-frame .bg-neutral-50   { background-color: #fafafa; }
+
+  /* ─── dark mode: ambient 3D field tones ──────────────────────── */
+  .dark .ambient-3d-field span {
+    background:
+      linear-gradient(145deg, rgba(15, 118, 110, 0.12), rgba(4, 47, 46, 0.06));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 26px 80px rgba(15, 118, 110, 0.08);
+  }
+
   ::selection {
     background-color: rgba(15, 118, 110, 0.15);
     color: #042f2e;
@@ -56,13 +129,27 @@
 
   .btn-secondary {
     @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl
-           border-2 border-neutral-300 bg-white px-6 py-3
+           border-2 border-neutral-300 px-6 py-3
            text-base font-semibold text-neutral-800
            transition-all duration-300 ease-out
            hover:-translate-y-1 hover:scale-[1.02] hover:border-brand-700 hover:bg-brand-50 hover:text-brand-950
            active:bg-neutral-100
            disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: white;
     box-shadow: 0 10px 24px rgba(28, 25, 23, 0.08);
+  }
+  .dark .btn-secondary {
+    background-color: rgb(23 23 23);
+    border-color: rgb(64 64 64);
+    color: rgb(229 229 229);
+  }
+  .dark .btn-secondary:hover {
+    border-color: rgb(13 148 136);
+    background-color: rgba(4, 47, 46, 0.4);
+    color: rgb(153 246 228);
+  }
+  .dark .btn-secondary:active {
+    background-color: rgb(38 38 38);
   }
 
   .btn-ghost {
@@ -71,12 +158,25 @@
            transition-all duration-200 ease-out
            hover:-translate-y-0.5 hover:bg-brand-50 hover:text-brand-950;
   }
+  .dark .btn-ghost {
+    color: rgb(212 212 212);
+  }
+  .dark .btn-ghost:hover {
+    background-color: rgb(38 38 38);
+    color: white;
+  }
 
   .card {
-    @apply rounded-xl bg-white;
+    @apply rounded-xl;
+    background-color: white;
     animation: cardLoad 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
     border: 1px solid rgba(4, 47, 46, 0.08);
     box-shadow: 0 12px 34px rgba(28, 25, 23, 0.06);
+  }
+  .dark .card {
+    background-color: rgb(23 23 23);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.3);
   }
   .card-hover {
     @apply transition-all duration-300 ease-out;
@@ -87,14 +187,33 @@
     box-shadow: 0 18px 44px rgba(15, 118, 110, 0.1);
     transform: translateY(-3px);
   }
+  .dark .card-hover:hover {
+    border-color: rgba(15, 118, 110, 0.3);
+    box-shadow: 0 18px 44px rgba(15, 118, 110, 0.15);
+  }
 
   .input {
-    @apply block w-full rounded-lg border border-neutral-300 bg-white
+    @apply block w-full rounded-lg border border-neutral-300
            px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400
            transition-colors duration-150
            focus:border-brand-700 focus:outline-none
            focus:ring-2 focus:ring-brand-200
            disabled:cursor-not-allowed disabled:bg-neutral-50;
+    background-color: white;
+  }
+  .dark .input {
+    background-color: rgb(17 24 19);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgb(245 245 244);
+  }
+  .dark .input::placeholder {
+    color: rgb(115 115 115);
+  }
+  .dark .input:focus {
+    border-color: rgb(13 148 136);
+  }
+  .dark .input:disabled {
+    background-color: rgb(38 38 38);
   }
 
   .label {
@@ -109,12 +228,15 @@
   .eyebrow {
     @apply text-sm font-bold uppercase tracking-wider text-brand-800;
   }
+  .dark .eyebrow {
+    color: rgb(45 212 191);
+  }
 
   .page {
-    @apply mx-auto w-full max-w-3xl px-6 py-7 sm:py-8;
+    @apply mx-auto w-full max-w-3xl px-6 py-5 sm:py-6;
   }
   .page-wide {
-    @apply mx-auto w-full max-w-6xl px-6 py-7 sm:py-8;
+    @apply mx-auto w-full max-w-6xl px-6 py-5 sm:py-6;
   }
 
   .motion-section {
@@ -127,8 +249,13 @@
   }
 
   .surface-panel {
-    @apply rounded-xl bg-white/70;
+    @apply rounded-xl;
+    background-color: rgba(255, 255, 255, 0.7);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+  .dark .surface-panel {
+    background-color: rgba(23, 23, 23, 0.7);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .text-gradient {
@@ -139,8 +266,13 @@
   }
 
   .flow-step {
-    @apply relative rounded-xl bg-white p-5 transition-all duration-300 ease-out;
+    @apply relative rounded-xl p-5 transition-all duration-300 ease-out;
+    background-color: white;
     box-shadow: 0 18px 48px rgba(28, 25, 23, 0.08);
+  }
+  .dark .flow-step {
+    background-color: rgb(23 23 23);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
   }
 
   .flow-step:hover {
@@ -155,8 +287,13 @@
   }
 
   .kinetic-marquee {
-    @apply overflow-hidden whitespace-nowrap rounded-full bg-white/65 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-500;
+    @apply overflow-hidden whitespace-nowrap rounded-full py-2 text-xs font-semibold uppercase tracking-wider text-neutral-500;
+    background-color: rgba(255, 255, 255, 0.65);
     mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .dark .kinetic-marquee {
+    background-color: rgba(23, 23, 23, 0.65);
+    color: rgb(163 163 163);
   }
 
   .kinetic-marquee-track {
@@ -166,7 +303,8 @@
   }
 
   .research-orbit {
-    @apply relative mx-auto grid h-40 w-40 place-items-center rounded-full bg-white/80;
+    @apply relative mx-auto grid h-40 w-40 place-items-center rounded-full;
+    background-color: rgba(255, 255, 255, 0.8);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.9),
       0 28px 70px rgba(15, 118, 110, 0.16);
@@ -295,17 +433,43 @@
   .nav-glyph {
     @apply grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600 transition-all duration-200;
   }
+  .dark .nav-glyph {
+    background-color: rgb(38 38 38);
+    color: rgb(163 163 163);
+  }
 
   .btn-ghost:hover .nav-glyph {
     @apply bg-brand-50 text-brand-800;
     transform: rotate(-4deg) scale(1.06);
   }
+  .dark .btn-ghost:hover .nav-glyph {
+    background-color: rgba(4, 47, 46, 0.5);
+    color: rgb(94 234 212);
+  }
 
   .state-visual {
-    @apply mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white/80 text-neutral-900;
+    @apply mx-auto grid h-16 w-16 place-items-center rounded-2xl text-neutral-900;
+    background-color: rgba(255, 255, 255, 0.8);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.85),
       0 18px 48px rgba(15, 118, 110, 0.12);
+  }
+  .dark .state-visual {
+    background-color: rgba(23, 23, 23, 0.8);
+    color: rgb(245 245 244);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 18px 48px rgba(15, 118, 110, 0.1);
+  }
+
+  .trust-chip {
+    @apply inline-flex items-center rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-500;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  .dark .trust-chip {
+    border-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(23, 23, 23, 0.6);
+    color: rgb(115 115 115);
   }
 
   .fade-panel {
@@ -318,6 +482,13 @@
 
   .nav-link {
     @apply inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-brand-50 hover:text-brand-950 sm:px-2.5;
+  }
+  .dark .nav-link {
+    color: rgb(212 212 212);
+  }
+  .dark .nav-link:hover {
+    background-color: rgb(38 38 38);
+    color: white;
   }
 
   .nav-cta {
@@ -346,7 +517,8 @@
   }
 
   .product-frame {
-    @apply overflow-hidden rounded-2xl bg-white;
+    @apply overflow-hidden rounded-2xl;
+    background-color: white;
     border: 1px solid rgba(4, 47, 46, 0.12);
     box-shadow:
       0 34px 90px rgba(4, 47, 46, 0.18),
@@ -369,7 +541,7 @@
   }
 
   .product-frame-bar > span:nth-child(3) {
-    @apply bg-white;
+    background-color: white;
   }
 
   .product-frame-bar p {
@@ -476,7 +648,8 @@
   }
 
   .evidence-source > span {
-    @apply grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-bold text-brand-950;
+    @apply grid h-8 w-8 place-items-center rounded-full text-xs font-bold text-brand-950;
+    background-color: white;
   }
 
   .evidence-source p {
@@ -488,7 +661,8 @@
   }
 
   .evidence-progress {
-    @apply mt-6 h-1 overflow-hidden rounded-full bg-white/15;
+    @apply mt-6 h-1 overflow-hidden rounded-full;
+    background-color: rgba(255, 255, 255, 0.15);
   }
 
   .evidence-progress span {
@@ -505,9 +679,15 @@
   }
 
   .report-shell {
-    @apply overflow-hidden rounded-xl bg-white;
+    @apply overflow-hidden rounded-xl;
+    background-color: white;
     border: 1px solid rgba(4, 47, 46, 0.1);
     box-shadow: 0 22px 60px rgba(28, 25, 23, 0.08);
+  }
+  .dark .report-shell {
+    background-color: rgb(23 23 23);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
   }
 
   .report-grid {
@@ -523,7 +703,8 @@
   }
 
   .evidence-card {
-    @apply mt-3 rounded-lg bg-white/10 p-4;
+    @apply mt-3 rounded-lg p-4;
+    background-color: rgba(255, 255, 255, 0.1);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
   }
 
@@ -567,6 +748,20 @@
            transition-colors hover:text-brand-800;
   }
 
+  /* Dark mode prose overrides */
+  .dark .prose-brand h1,
+  .dark .prose-brand h2,
+  .dark .prose-brand h3 { color: #f5f5f4; }
+  .dark .prose-brand h3 { color: #2dd4bf; }
+  .dark .prose-brand blockquote {
+    background-color: rgba(15, 118, 110, 0.12);
+    color: #d6d3d1;
+    border-color: #0d9488;
+  }
+  .dark .prose-brand strong { color: #f5f5f4; }
+  .dark .prose-brand p { color: #d6d3d1; }
+  .dark .prose-brand li { color: #d6d3d1; }
+
   .scroll-fade {
     animation: riseIn 0.7s ease-out both;
   }
@@ -582,6 +777,15 @@
   );
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
 }
 
 @keyframes riseIn {

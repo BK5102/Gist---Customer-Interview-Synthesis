@@ -81,3 +81,7 @@ test-transcripts/*.mp4
 
 # TypeScript incremental build cache
 frontend/tsconfig.tsbuildinfo
+
+# Internal planning documents — not for public repository
+SECURITY_TRUST_PLAN.md
+E2EE_STORAGE_PLAN.md

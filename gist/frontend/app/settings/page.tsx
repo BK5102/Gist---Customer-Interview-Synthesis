@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { useTheme, type Theme } from "@/components/ThemeProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -10,12 +11,19 @@ type NotionStatus =
   | { connected: false }
   | { connected: true; workspace_id?: string; workspace_name?: string };
 
+const THEME_OPTIONS: { value: Theme; label: string; icon: string; description: string }[] = [
+  { value: "light", label: "Light", icon: "☀", description: "Always light" },
+  { value: "dark",  label: "Dark",  icon: "◑", description: "Always dark"  },
+  { value: "system",label: "System",icon: "⊙", description: "Match device" },
+];
+
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const [notion, setNotion] = useState<NotionStatus>({ connected: false });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const init = async () => {
@@ -141,45 +149,69 @@ export default function SettingsPage() {
           { label: "Settings" },
         ]}
       />
-      <header className="motion-section mb-6">
+      <header className="motion-section mb-5">
         <p className="eyebrow">Account</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Settings</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight dark:text-neutral-100">Settings</h1>
       </header>
 
       <section className="card motion-card p-6">
-        <h2 className="eyebrow">
-          Account
-        </h2>
+        <h2 className="eyebrow">Account</h2>
         <div className="mt-3 flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-sm font-semibold text-white">
             {user?.email?.[0]?.toUpperCase() ?? "?"}
           </span>
-          <p className="text-sm text-neutral-800">
+          <p className="text-sm text-neutral-800 dark:text-neutral-200">
             {user?.email ?? "Unknown"}
           </p>
         </div>
       </section>
 
-      <section className="card motion-card mt-5 p-6">
-        <h2 className="eyebrow">
-          Integrations
-        </h2>
+      <section className="card motion-card mt-4 p-6">
+        <h2 className="eyebrow">Appearance</h2>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          Choose how Gist looks on this device. Your preference is saved locally.
+        </p>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {THEME_OPTIONS.map((opt) => {
+            const active = theme === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setTheme(opt.value)}
+                className={`flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-sm font-medium transition-all duration-150
+                  ${active
+                    ? "border-brand-700 bg-brand-50 text-brand-900 dark:border-brand-500 dark:bg-brand-950/40 dark:text-brand-300"
+                    : "border-neutral-200 text-neutral-600 hover:border-brand-400 hover:bg-brand-50/50 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-brand-700 dark:hover:bg-brand-950/20"
+                  }`}
+              >
+                <span className="text-xl leading-none">{opt.icon}</span>
+                <span>{opt.label}</span>
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-500">{opt.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="card motion-card mt-4 p-6">
+        <h2 className="eyebrow">Integrations</h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <span className="state-visual h-12 w-12 text-sm font-bold text-neutral-700">
+            <span className="state-visual h-12 w-12 text-sm font-bold text-neutral-700 dark:text-neutral-300">
               N
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-neutral-900">Notion</p>
+                <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Notion</p>
                 {notion.connected && (
-                  <span className="pill bg-brand-50 text-brand-800 ring-brand-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-brand-700" />
+                  <span className="pill bg-brand-50 text-brand-800 ring-brand-200 dark:bg-brand-950/40 dark:text-brand-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-700 dark:bg-brand-400" />
                     Connected
                   </span>
                 )}
               </div>
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                 {notion.connected
                   ? notion.workspace_name
                     ? `Workspace: "${notion.workspace_name}" · Push syntheses directly.`
@@ -209,7 +241,7 @@ export default function SettingsPage() {
           )}
         </div>
         {error && (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in">
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 animate-fade-in dark:bg-red-950/40 dark:text-red-300">
             {error}
           </p>
         )}

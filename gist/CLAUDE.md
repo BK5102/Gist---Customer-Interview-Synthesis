@@ -1,6 +1,6 @@
 # Gist — Customer Interview Synthesis
 
-AI tool that turns customer interview transcripts (and audio) into themed synthesis with traceable quotes.
+AI tool that turns customer interview transcripts (and audio) into themed synthesis with verified quotes.
 
 ## Stack
 
@@ -42,18 +42,19 @@ gist/
 │   │   ├── projects/page.tsx        # Project list, create project, per-project synthesis history
 │   │   ├── syntheses/[id]/page.tsx  # Synthesis detail + Notion push
 │   │   ├── encrypted/page.tsx       # Browser-decrypted private saves
-│   │   ├── settings/page.tsx        # Notion connect/disconnect
+│   │   ├── settings/page.tsx        # Notion connect/disconnect + Appearance (dark/light/system toggle)
 │   │   ├── login/ signup/ logout/ forgot-password/ reset-password/
 │   │   ├── layout.tsx       # Navbar
 │   │   ├── globals.css      # Design system — all shared classes here
 │   │   └── icon.svg
 │   ├── components/
-│   │   └── Breadcrumb.tsx
+│   │   ├── Breadcrumb.tsx
+│   │   └── ThemeProvider.tsx    # dark/light/system theme context; useTheme() hook; wraps layout body
 │   ├── lib/
 │   │   ├── supabase/{client,server}.ts
 │   │   ├── encryption.ts    # AES-GCM browser encryption for private saves
 │   │   └── password.ts      # Password validation rules
-│   ├── tailwind.config.ts   # Brand palette
+│   ├── tailwind.config.ts   # Brand palette + darkMode: "class"
 │   ├── package.json
 │   └── .env.local.example
 ├── test-transcripts/        # Sample .txt files for dev (P1.txt, P2.txt, P3.txt)
@@ -104,3 +105,5 @@ Key classes:
 - `.meta-chip` — small label chips
 - `.eyebrow` — uppercase section label
 - `.product-kicker` — small teal label
+- `.trust-chip` — small bordered chip for trust signal labels (used in landing hero below CTAs)
+- Dark mode: `darkMode: "class"` in Tailwind; `.dark .class {}` overrides live OUTSIDE all `@layer` blocks; never use `bg-white` or `dark:*` in `@apply` (Turbopack circular dep error)

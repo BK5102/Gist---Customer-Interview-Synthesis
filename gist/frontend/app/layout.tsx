@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Analytics } from "@vercel/analytics/next";
 import { LogoutButton } from "@/components/LogoutButton";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -41,7 +42,7 @@ async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl">
+    <nav className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur-xl dark:border-white/[0.06] dark:bg-neutral-950/95">
       <div className="nav-shell">
         <Link
           href={user ? "/?landing=1" : "/"}
@@ -103,17 +104,27 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
 
   return (
-    <html lang="en">
-      <body className="min-h-screen text-neutral-900 antialiased">
-        <div className="ambient-3d-field" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
-        <Navbar />
-        <div className="relative z-10">{children}</div>
-        {!user && <Analytics />}
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Anti-flash: apply dark class before React hydrates */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('gist-theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body className="min-h-screen text-neutral-900 antialiased dark:text-neutral-100">
+        <ThemeProvider>
+          <div className="ambient-3d-field" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <Navbar />
+          <div className="relative z-10">{children}</div>
+          {!user && <Analytics />}
+        </ThemeProvider>
       </body>
     </html>
   );
