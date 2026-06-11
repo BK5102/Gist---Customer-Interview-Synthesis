@@ -43,8 +43,9 @@ gist/
 │   │   ├── syntheses/[id]/page.tsx  # Synthesis detail + Notion push
 │   │   ├── encrypted/page.tsx       # Browser-decrypted private saves
 │   │   ├── settings/page.tsx        # Notion connect/disconnect + Appearance (dark/light/system toggle)
+│   │   ├── security/page.tsx        # Static data-flow disclosure page (/security)
 │   │   ├── login/ signup/ logout/ forgot-password/ reset-password/
-│   │   ├── layout.tsx       # Navbar
+│   │   ├── layout.tsx       # Navbar — signed-out links: Features (/#features), Security (/security)
 │   │   ├── globals.css      # Design system — all shared classes here
 │   │   └── icon.svg
 │   ├── components/
@@ -105,5 +106,6 @@ Key classes:
 - `.meta-chip` — small label chips
 - `.eyebrow` — uppercase section label
 - `.product-kicker` — small teal label
-- `.trust-chip` — small bordered chip for trust signal labels (used in landing hero below CTAs)
+- `.trust-chip` — small bordered chip for trust signal labels (used in landing hero below CTAs); contains inline SVG icon + text
+- `.page-title` — shimmer gradient text for all page h1s; light: `#0a0a0a→#0f766e→#0a0a0a` 6 s sweep; dark: `#e5e5e5→#5eead4→#e5e5e5` 3 s sweep; **always re-declare `-webkit-background-clip: text; background-clip: text` in `.dark .page-title` — the `background` shorthand resets `background-clip` to `border-box`, rendering the gradient as a filled rectangle behind text instead of gradient-colored text**
 - Dark mode: `darkMode: "class"` in Tailwind; `.dark .class {}` overrides live OUTSIDE all `@layer` blocks; never use `bg-white` or `dark:*` in `@apply` (Turbopack circular dep error)
