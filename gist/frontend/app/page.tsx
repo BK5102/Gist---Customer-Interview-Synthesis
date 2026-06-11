@@ -741,7 +741,7 @@ export default function Home() {
         <main className="page-wide">
           <section className="grid items-center gap-5 pb-4 pt-2 lg:grid-cols-[1.05fr_0.95fr] lg:pb-6">
           <div className="motion-section">
-            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-6xl">
+            <h1 className="page-title max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
               Read ten interviews at once.{" "}
               <span className="text-gradient">Every finding linked to who said it.</span>
             </h1>
@@ -919,7 +919,7 @@ export default function Home() {
         ]}
       />
       <header className="motion-section mb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="page-title text-3xl font-semibold tracking-tight">
           New synthesis
         </h1>
         <p className="mt-2 text-base leading-relaxed text-neutral-600">

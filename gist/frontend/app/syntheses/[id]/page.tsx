@@ -195,7 +195,7 @@ export default function SynthesisDetailPage() {
 
       <header className="motion-section mb-5">
         <p className="eyebrow">Synthesis report</p>
-        <h1 className="mt-1 text-4xl font-semibold tracking-tight">
+        <h1 className="page-title mt-1 text-4xl font-semibold tracking-tight">
           Interview synthesis
         </h1>
         <div className="mt-3 flex flex-wrap gap-2">

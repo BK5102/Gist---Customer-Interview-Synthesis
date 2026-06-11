@@ -951,7 +951,7 @@
 }
 
 .page-title {
-  background: linear-gradient(110deg, #171717 30%, #737373 50%, #171717 70%);
+  background: linear-gradient(110deg, #0a0a0a 30%, #0f766e 50%, #0a0a0a 70%);
   background-size: 300% auto;
   -webkit-background-clip: text;
   background-clip: text;

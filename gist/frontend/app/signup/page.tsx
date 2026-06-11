@@ -54,7 +54,7 @@ export default function SignupPage() {
           <span className="inline-grid h-10 w-10 place-items-center rounded-xl bg-brand-950 text-white">
             <span className="text-base font-bold">G</span>
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+          <h1 className="page-title mt-4 text-2xl font-semibold tracking-tight">
             Create your account
           </h1>
           <p className="mt-1 text-sm text-neutral-600">
