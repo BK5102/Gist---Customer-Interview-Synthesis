@@ -3,7 +3,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Security & Privacy | Gist",
   description:
-    "How Gist handles your interview transcripts, synthesis reports, and account data — and what it never stores.",
+    "How Gist handles your interview transcripts, synthesis reports, and account data and what it never stores.",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -12,7 +12,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
         {title}
       </h2>
-      <div className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
+      <div className="mt-4 space-y-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
         {children}
       </div>
     </section>
@@ -26,7 +26,7 @@ function Row({ icon, label, detail }: { icon: React.ReactNode; label: string; de
         {icon}
       </span>
       <div>
-        <span className="font-medium text-neutral-800 dark:text-neutral-200">{label} — </span>
+        <span className="font-medium text-neutral-800 dark:text-neutral-200">{label}: </span>
         {detail}
       </div>
     </div>
@@ -70,7 +70,7 @@ export default function SecurityPage() {
           </h1>
           <p className="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
             Customer interviews contain sensitive opinions, names, and research insights.
-            Here is exactly how Gist handles that data — and what it never touches.
+            Here is exactly how Gist handles that data, and what it never touches.
           </p>
         </header>
 
@@ -102,7 +102,7 @@ export default function SecurityPage() {
             <Row
               icon={<LockIcon />}
               label="PBKDF2-SHA256, 600 000 iterations"
-              detail="Your password is stretched using PBKDF2 at 600 000 iterations — meeting NIST SP 800-132 (2023) minimums — before it becomes the encryption key."
+              detail="Your password is stretched using PBKDF2 at 600 000 iterations, meeting NIST SP 800-132 (2023) minimums, before it becomes the encryption key."
             />
             <Row
               icon={<LockIcon />}
@@ -112,7 +112,7 @@ export default function SecurityPage() {
           </Section>
 
           <Section title="Third-party data processors">
-            <p className="text-neutral-500 dark:text-neutral-400">
+            <p className="text-neutral-600 dark:text-neutral-200">
               Two external AI providers process your content. You should know this before uploading regulated or confidential data.
             </p>
             <Row
@@ -136,7 +136,7 @@ export default function SecurityPage() {
             <Row
               icon={<ShieldIcon />}
               label="Row-level security"
-              detail="Every database table is protected by Supabase RLS policies. You can only read or write your own data — even if you know another user's project ID."
+              detail="Every database table is protected by Supabase RLS policies. You can only read or write your own data, even if you know another user's project ID."
             />
             <Row
               icon={<ShieldIcon />}
@@ -151,7 +151,7 @@ export default function SecurityPage() {
           </Section>
 
           <section className="rounded-xl border border-neutral-200 bg-neutral-50 px-7 py-5 dark:border-white/[0.08] dark:bg-neutral-900/60">
-            <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
+            <p className="text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
               Questions or concerns? Reach out at{" "}
               <a href="mailto:bkannan8@asu.edu" className="font-medium text-brand-700 underline-offset-2 hover:underline dark:text-brand-400">
                 bkannan8@asu.edu

@@ -200,7 +200,7 @@ export default function ProjectsPage() {
           <h2 className="mt-4 text-lg font-semibold text-neutral-800">
             No projects yet
           </h2>
-          <p className="mt-1 text-sm text-neutral-600">
+          <p className="mt-1 text-base text-neutral-600">
             Create one project per research round, customer segment, or product
             area.
           </p>
@@ -266,7 +266,7 @@ export default function ProjectsPage() {
                             <textarea
                               value={descriptionDraft}
                               onChange={(e) => setDescriptionDraft(e.target.value)}
-                              placeholder="Describe this project — the research question, participant segment, or goal."
+                              placeholder="Describe this project: the research question, participant segment, or goal."
                               rows={4}
                               className="input resize-none text-sm"
                             />

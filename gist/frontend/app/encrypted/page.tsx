@@ -173,7 +173,7 @@ export default function EncryptedSavesPage() {
                     className={`mt-1 text-xs ${
                       selected?.id === artifact.id
                         ? "text-brand-200"
-                        : "text-neutral-500 dark:text-neutral-400"
+                        : "text-neutral-500 dark:text-neutral-300"
                     }`}
                   >
                     {new Date(artifact.created_at).toLocaleString()}

@@ -748,7 +748,7 @@ export default function Home() {
 
             <p className="mt-3 max-w-2xl text-xl leading-relaxed text-neutral-700 dark:text-neutral-300">
               Upload your interviews or recordings. Get back a structured report
-              with verified quotes — ready to share or push to Notion.
+              with verified quotes, ready to share or push to Notion.
             </p>
 
           <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-200">
@@ -837,7 +837,7 @@ export default function Home() {
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
                 Every theme comes with a quote. Every quote is checked against
                 the original text verbatim. Quotes that don't appear in the
-                source are dropped — not rewritten. Fewer quotes, but all of
+                source are dropped, not rewritten. Fewer quotes, but all of
                 them real.
               </p>
             </div>
@@ -887,7 +887,7 @@ export default function Home() {
                 Send the report to Notion
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Connect once via OAuth — no API keys to copy. Then push any
+                Connect once via OAuth, no API keys to copy. Then push any
                 synthesis to a Notion database with one click. The report
                 arrives as a formatted page, ready to share.
               </p>

@@ -85,3 +85,6 @@ frontend/tsconfig.tsbuildinfo
 # Internal planning documents — not for public repository
 SECURITY_TRUST_PLAN.md
 E2EE_STORAGE_PLAN.md
+
+# Session context file — local only, not committed
+PROMPT.md

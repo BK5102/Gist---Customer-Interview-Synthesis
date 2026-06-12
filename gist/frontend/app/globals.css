@@ -26,7 +26,7 @@
       linear-gradient(180deg, rgba(240, 253, 250, 0.72), transparent 360px),
       #ffffff;
     color: var(--ink);
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
   }
 
   .dark body {
@@ -83,6 +83,7 @@
 
   /* ─── product demo: force light-mode appearance ───────────────── */
   .dark .product-frame { background-color: #ffffff !important; color: #1c1917; }
+  .dark .product-frame .evidence-source > span { background-color: rgba(255, 255, 255, 0.6); }
   .dark .product-frame .text-neutral-950 { color: #0c0a09; }
   .dark .product-frame .text-neutral-900 { color: #1c1917; }
   .dark .product-frame .text-neutral-800 { color: #292524; }

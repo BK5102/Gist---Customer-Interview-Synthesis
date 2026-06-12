@@ -168,7 +168,7 @@ export default function SettingsPage() {
 
       <section className="card motion-card mt-4 p-6">
         <h2 className="eyebrow">Appearance</h2>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-300">
           Choose how Gist looks on this device. Your preference is saved locally.
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2">
@@ -182,12 +182,12 @@ export default function SettingsPage() {
                 className={`flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-sm font-medium transition-all duration-150
                   ${active
                     ? "border-brand-700 bg-brand-50 text-brand-900 dark:border-brand-500 dark:bg-brand-950/40 dark:text-brand-300"
-                    : "border-neutral-200 text-neutral-600 hover:border-brand-400 hover:bg-brand-50/50 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-brand-700 dark:hover:bg-brand-950/20"
+                    : "border-neutral-200 text-neutral-600 hover:border-brand-400 hover:bg-brand-50/50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-brand-700 dark:hover:bg-brand-950/20"
                   }`}
               >
                 <span className="text-xl leading-none">{opt.icon}</span>
                 <span>{opt.label}</span>
-                <span className="text-[10px] text-neutral-400 dark:text-neutral-500">{opt.description}</span>
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-300">{opt.description}</span>
               </button>
             );
           })}
@@ -211,7 +211,7 @@ export default function SettingsPage() {
                   </span>
                 )}
               </div>
-              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-300">
                 {notion.connected
                   ? notion.workspace_name
                     ? `Workspace: "${notion.workspace_name}" · Push syntheses directly.`
