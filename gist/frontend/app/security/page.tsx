@@ -112,7 +112,7 @@ export default function SecurityPage() {
           </Section>
 
           <Section title="Third-party data processors">
-            <p className="text-neutral-600 dark:text-neutral-200">
+            <p className="font-medium text-neutral-700 dark:text-neutral-100">
               Two external AI providers process your content. You should know this before uploading regulated or confidential data.
             </p>
             <Row

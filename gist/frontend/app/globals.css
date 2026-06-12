@@ -41,9 +41,9 @@
   .dark .text-neutral-900 { color: #f5f5f4; }
   .dark .text-neutral-800 { color: #e7e5e4; }
   .dark .text-neutral-700 { color: #d6d3d1; }
-  .dark .text-neutral-600 { color: #a8a29e; }
-  .dark .text-neutral-500 { color: #78716c; }
-  .dark .text-neutral-400 { color: #57534e; }
+  .dark .text-neutral-600 { color: #c4c0bc; }
+  .dark .text-neutral-500 { color: #a8a29e; }
+  .dark .text-neutral-400 { color: #78716c; }
 
   /* ─── dark mode: brand text ───────────────────────────────────── */
   .dark .text-brand-950 { color: #99f6e4; }
@@ -83,7 +83,7 @@
 
   /* ─── product demo: force light-mode appearance ───────────────── */
   .dark .product-frame { background-color: #ffffff !important; color: #1c1917; }
-  .dark .product-frame .evidence-source > span { background-color: rgba(255, 255, 255, 0.6); }
+  .dark .product-frame .evidence-source > span { background-color: rgba(255, 255, 255, 0.3); }
   .dark .product-frame .text-neutral-950 { color: #0c0a09; }
   .dark .product-frame .text-neutral-900 { color: #1c1917; }
   .dark .product-frame .text-neutral-800 { color: #292524; }
@@ -604,7 +604,7 @@
     @apply bg-brand-50 font-semibold text-brand-900;
   }
 
-  /* Inner project card tab nav — no borders, pill-style active state */
+  /* Inner project card tab nav: no borders, pill-style active state */
   .project-tabs {
     @apply flex items-center gap-1 px-4 py-2 sm:px-5;
   }

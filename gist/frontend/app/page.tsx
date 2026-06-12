@@ -293,7 +293,7 @@ function SignedInHome() {
         <h1 className="page-title max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Turn customer interviews into decisions you can trust.
         </h1>
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600">
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-300">
           Start with a project, synthesize your calls, then save the report
           privately.
         </p>
@@ -302,7 +302,7 @@ function SignedInHome() {
       <Link href="/projects" className="card card-hover motion-card block p-6">
         <div className="mb-4 h-1.5 w-16 rounded-full bg-brand-600" />
         <p className="text-base font-semibold text-neutral-900">Projects</p>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+        <p className="mt-2 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
           Create a project and run syntheses within it. Each project keeps
           one research round in one place.
         </p>
@@ -922,7 +922,7 @@ export default function Home() {
         <h1 className="page-title text-3xl font-semibold tracking-tight">
           New synthesis
         </h1>
-        <p className="mt-2 text-base leading-relaxed text-neutral-600">
+        <p className="mt-2 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
           Add one or more transcripts or audio files. Gist clusters themes
           across all of them and pulls a verbatim quote from each.
         </p>

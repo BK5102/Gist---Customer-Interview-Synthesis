@@ -168,7 +168,7 @@ export default function SettingsPage() {
 
       <section className="card motion-card mt-4 p-6">
         <h2 className="eyebrow">Appearance</h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-300">
+        <p className="mt-1 text-base text-neutral-500 dark:text-neutral-300">
           Choose how Gist looks on this device. Your preference is saved locally.
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2">
@@ -211,7 +211,7 @@ export default function SettingsPage() {
                   </span>
                 )}
               </div>
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-300">
+              <p className="mt-1 text-base text-neutral-500 dark:text-neutral-300">
                 {notion.connected
                   ? notion.workspace_name
                     ? `Workspace: "${notion.workspace_name}" · Push syntheses directly.`

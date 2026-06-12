@@ -134,7 +134,7 @@ export default function EncryptedSavesPage() {
         <h1 className="page-title text-4xl font-semibold tracking-tight">
           Private saves
         </h1>
-        <p className="mt-2 text-base leading-relaxed text-neutral-600">
+        <p className="mt-2 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
           Saved reports are decrypted in this browser with the password you
           chose. Gist never stores that password.
         </p>
@@ -148,7 +148,7 @@ export default function EncryptedSavesPage() {
           <h2 className="mt-4 text-lg font-semibold text-neutral-900">
             No private saves yet
           </h2>
-          <p className="mt-1 text-sm text-neutral-600">
+          <p className="mt-1 text-base text-neutral-600 dark:text-neutral-300">
             Run a synthesis, then save it privately with a password.
           </p>
         </section>
@@ -195,7 +195,7 @@ export default function EncryptedSavesPage() {
                 <p className="text-sm font-semibold text-neutral-900">
                   Enter password
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+                <p className="mt-1 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
                   Use the password you chose when saving this report.
                 </p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">

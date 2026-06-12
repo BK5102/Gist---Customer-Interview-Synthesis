@@ -154,7 +154,7 @@ export default function ProjectsPage() {
           <h1 className="page-title text-4xl font-semibold tracking-tight">
             Projects
           </h1>
-          <p className="mt-2 max-w-xl text-base leading-relaxed text-neutral-600">
+          <p className="mt-2 max-w-xl text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
             Keep interviews and syntheses together by research question.
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function ProjectsPage() {
           <h2 className="mt-4 text-lg font-semibold text-neutral-800">
             No projects yet
           </h2>
-          <p className="mt-1 text-base text-neutral-600">
+          <p className="mt-1 text-base text-neutral-600 dark:text-neutral-300">
             Create one project per research round, customer segment, or product
             area.
           </p>
@@ -291,7 +291,7 @@ export default function ProjectsPage() {
                         ) : (
                           <div>
                             {project.description ? (
-                              <p className="text-sm leading-relaxed text-neutral-700">
+                              <p className="text-base leading-relaxed text-neutral-700 dark:text-neutral-200">
                                 {project.description}
                               </p>
                             ) : (

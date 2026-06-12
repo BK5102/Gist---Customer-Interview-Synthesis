@@ -50,7 +50,7 @@ export default function LoginPage() {
           <h1 className="page-title mt-4 text-2xl font-semibold tracking-tight">
             Welcome back
           </h1>
-          <p className="mt-1 text-base text-neutral-600">
+          <p className="mt-1 text-lg text-neutral-600 dark:text-neutral-300">
             Log in to keep your syntheses in one place.
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-base text-neutral-600">
+        <p className="mt-6 text-center text-base text-neutral-600 dark:text-neutral-300">
           Don&rsquo;t have an account?{" "}
           <Link
             href="/signup"

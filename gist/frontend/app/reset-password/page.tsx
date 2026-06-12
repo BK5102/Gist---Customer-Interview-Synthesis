@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
           <h1 className="page-title mt-4 text-2xl font-semibold tracking-tight">
             Choose a new password
           </h1>
-          <p className="mt-1 text-sm text-neutral-600">
+          <p className="mt-1 text-base text-neutral-600 dark:text-neutral-300">
             Use a password you will not reuse anywhere else.
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function ResetPasswordPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-neutral-600">
+        <p className="mt-6 text-center text-base text-neutral-600 dark:text-neutral-300">
           <Link
             href="/login"
             className="font-medium text-brand-700 transition-colors hover:text-brand-800"

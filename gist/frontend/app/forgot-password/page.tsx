@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
           <h1 className="page-title mt-4 text-2xl font-semibold tracking-tight">
             Reset your password
           </h1>
-          <p className="mt-1 text-sm text-neutral-600">
+          <p className="mt-1 text-base text-neutral-600 dark:text-neutral-300">
             Enter your account email and we will send a secure reset link.
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-neutral-600">
+        <p className="mt-6 text-center text-base text-neutral-600 dark:text-neutral-300">
           Remembered it?{" "}
           <Link
             href="/login"
