@@ -82,9 +82,13 @@ test-transcripts/*.mp4
 # TypeScript incremental build cache
 frontend/tsconfig.tsbuildinfo
 
-# Internal planning documents — not for public repository
+# All docs are local only — only README.md is committed
+CLAUDE.md
+PROMPT.md
+BUILD_PLAN.md
+JOURNAL.md
+USER_GROWTH_PLAN.md
+DESIGN_RESEARCH_REPORT.md
 SECURITY_TRUST_PLAN.md
 E2EE_STORAGE_PLAN.md
-
-# Session context file — local only, not committed
-PROMPT.md
+eval/baseline.md
