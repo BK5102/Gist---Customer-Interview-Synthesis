@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
@@ -192,6 +193,25 @@ export default function SettingsPage() {
             );
           })}
         </div>
+      </section>
+
+      <section className="card motion-card mt-4 p-6">
+        <h2 className="eyebrow">Security &amp; Privacy</h2>
+        <p className="mt-1 text-base text-neutral-500 dark:text-neutral-300">
+          How Gist handles your transcripts, synthesis output, and account data.
+        </p>
+        <Link
+          href="/security"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-all duration-200 hover:border-brand-700 hover:bg-brand-50 hover:text-brand-800 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-brand-600 dark:hover:bg-brand-950/30 dark:hover:text-brand-300"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          View security disclosure
+          <svg className="h-3.5 w-3.5 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </Link>
       </section>
 
       <section className="card motion-card mt-4 p-6">

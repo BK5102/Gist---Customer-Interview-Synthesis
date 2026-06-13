@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Analytics } from "@vercel/analytics/next";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -75,6 +76,7 @@ async function Navbar() {
               <span className="ml-2 hidden text-sm text-neutral-500 xl:inline">
                 {user.email}
               </span>
+              <ThemeToggle />
               <LogoutButton />
             </>
           ) : (
@@ -85,6 +87,7 @@ async function Navbar() {
               <Link href="/security" className="nav-link hidden sm:inline-flex px-3.5">
                 Security
               </Link>
+              <ThemeToggle />
               <Link href="/login" className="nav-link px-3.5">
                 Log in
               </Link>
