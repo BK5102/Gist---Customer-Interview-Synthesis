@@ -4,7 +4,7 @@ Turn customer interview transcripts into themed synthesis with traceable quotes 
 
 **🌐 Live: [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app)**
 
-**Status: v1.0 — auth, persistence, audio, and Notion push in production.**
+**Status: v1.1 — auth, persistence, audio, Notion push, dark mode, and UX polish in production.**
 
 Drop `.txt` transcripts or audio (`.mp3 .wav .m4a .mp4 .webm` up to 200 MB), and Gist returns markdown with:
 
@@ -226,4 +226,4 @@ This is a hobby project. If you actually use it for customer discovery and have 
 
 ## Status
 
-**`v1.0.1` is live in production** at [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app) — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion). Phase 4 (real users + iteration) is in progress.
+**`v1.1` is live in production** at [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app) — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion) → design + UX polish (dark mode, bigger nav, readable breadcrumbs, back navigation, meta-chip visibility, JSON render fix, save flow clarity). Phase 4 (real users + iteration) is in progress.
