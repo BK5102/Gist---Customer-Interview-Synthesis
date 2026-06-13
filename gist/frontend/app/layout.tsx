@@ -73,9 +73,27 @@ async function Navbar() {
                 <NavGlyph kind="settings" />
                 <span className="hidden lg:inline">Settings</span>
               </Link>
-              <span className="ml-2 hidden text-sm text-neutral-500 xl:inline">
-                {user.email}
-              </span>
+              <Link
+                href="/settings"
+                className="ml-2 hidden shrink-0 items-center gap-2 xl:flex"
+                aria-label="Account settings"
+              >
+                {user.user_metadata?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt=""
+                    className="h-8 w-8 rounded-full object-cover ring-1 ring-neutral-200 dark:ring-white/10"
+                  />
+                ) : (
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-950 text-xs font-semibold text-white">
+                    {(user.email?.[0] ?? "?").toUpperCase()}
+                  </span>
+                )}
+                <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                  {user.email}
+                </span>
+              </Link>
               <ThemeToggle />
               <LogoutButton />
             </>
