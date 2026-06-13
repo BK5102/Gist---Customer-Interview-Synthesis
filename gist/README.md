@@ -4,9 +4,9 @@ Turn customer interview transcripts into themed synthesis with traceable quotes 
 
 **🌐 Live: [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app)**
 
-**Status: v1.1 — auth, persistence, audio, Notion push, dark mode, and UX polish in production.**
+**Status: v1.1 — auth, persistence, audio, Notion push, dark mode, profile photo, Postgres job store, and UX polish in production.**
 
-Latest: navbar "Workspace" label, clean settings gear icon, underline-style project tabs.
+Latest: theme toggle in navbar, profile photo upload in Settings, scroll-to-save warning, Postgres-backed job store (survives Railway restarts), avatar shown in navbar.
 
 Drop `.txt` transcripts or audio (`.mp3 .wav .m4a .mp4 .webm` up to 200 MB), and Gist returns markdown with:
 
@@ -228,4 +228,4 @@ This is a hobby project. If you actually use it for customer discovery and have 
 
 ## Status
 
-**`v1.1` is live in production** at [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app) — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion) → design + UX polish (dark mode, bigger nav, readable breadcrumbs, back navigation, meta-chip visibility, JSON render fix, save flow clarity, underline project tabs, clean settings icon). Phase 4 (real users + iteration) is in progress.
+**`v1.1` is live in production** at [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app) — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion) → design + UX polish (dark mode, bigger nav, breadcrumbs, back nav, meta-chips, JSON fix, save flow, underline tabs, clean settings icon, theme toggle in navbar, profile photo, avatar in navbar, Postgres job store). Phase 4 (real users + iteration) is in progress.

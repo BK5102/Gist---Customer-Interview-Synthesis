@@ -4,19 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { useTheme, type Theme } from "@/components/ThemeProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type NotionStatus =
   | { connected: false }
   | { connected: true; workspace_id?: string; workspace_name?: string };
-
-const THEME_OPTIONS: { value: Theme; label: string; icon: string; description: string }[] = [
-  { value: "light", label: "Light", icon: "☀", description: "Always light" },
-  { value: "dark",  label: "Dark",  icon: "◑", description: "Always dark"  },
-  { value: "system",label: "System",icon: "⊙", description: "Match device" },
-];
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2 MB
 
@@ -26,7 +19,6 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { theme, setTheme } = useTheme();
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -293,34 +285,6 @@ export default function SettingsPage() {
         <p className="mt-4 text-xs text-neutral-400 dark:text-neutral-500">
           JPG, PNG, or WebP · Max 2 MB.
         </p>
-      </section>
-
-      <section className="card motion-card mt-4 p-6">
-        <h2 className="eyebrow">Appearance</h2>
-        <p className="mt-1 text-base text-neutral-500 dark:text-neutral-300">
-          Choose how Gist looks on this device. Your preference is saved locally.
-        </p>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {THEME_OPTIONS.map((opt) => {
-            const active = theme === opt.value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setTheme(opt.value)}
-                className={`flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-sm font-medium transition-all duration-150
-                  ${active
-                    ? "border-brand-700 bg-brand-50 text-brand-900 dark:border-brand-500 dark:bg-brand-950/40 dark:text-brand-300"
-                    : "border-neutral-200 text-neutral-600 hover:border-brand-400 hover:bg-brand-50/50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-brand-700 dark:hover:bg-brand-950/20"
-                  }`}
-              >
-                <span className="text-xl leading-none">{opt.icon}</span>
-                <span>{opt.label}</span>
-                <span className="text-[10px] text-neutral-400 dark:text-neutral-300">{opt.description}</span>
-              </button>
-            );
-          })}
-        </div>
       </section>
 
       <section className="card motion-card mt-4 p-6">
