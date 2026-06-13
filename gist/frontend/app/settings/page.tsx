@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -18,6 +18,8 @@ const THEME_OPTIONS: { value: Theme; label: string; icon: string; description: s
   { value: "system",label: "System",icon: "⊙", description: "Match device" },
 ];
 
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2 MB
+
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const [notion, setNotion] = useState<NotionStatus>({ connected: false });
@@ -25,6 +27,13 @@ export default function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarSaved, setAvatarSaved] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -37,6 +46,9 @@ export default function SettingsPage() {
         if (!user) {
           window.location.href = "/login";
           return;
+        }
+        if (user.user_metadata?.avatar_url) {
+          setAvatarUrl(user.user_metadata.avatar_url);
         }
 
         // Cheap connection-status check: one DB read and no Notion API call.
@@ -63,6 +75,56 @@ export default function SettingsPage() {
     };
     init();
   }, []);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarError(null);
+    setAvatarSaved(false);
+
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Please select an image file.");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatarError("Image must be under 2 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => setAvatarPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+
+    setAvatarUploading(true);
+    try {
+      const supabase = createClient();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Not authenticated");
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(currentUser.id, file, { upsert: true, contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(currentUser.id);
+
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+
+      setAvatarUrl(publicUrl);
+      setAvatarPreview(null);
+      setAvatarSaved(true);
+      setTimeout(() => setAvatarSaved(false), 3000);
+    } catch (err: any) {
+      setAvatarError(err.message ?? "Upload failed. Check that the avatars storage bucket exists in Supabase.");
+      setAvatarPreview(null);
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const connectNotion = async () => {
     setError(null);
@@ -156,15 +218,81 @@ export default function SettingsPage() {
       </header>
 
       <section className="card motion-card p-6">
-        <h2 className="eyebrow">Account</h2>
-        <div className="mt-3 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-950 text-sm font-semibold text-white">
-            {user?.email?.[0]?.toUpperCase() ?? "?"}
-          </span>
-          <p className="text-sm text-neutral-800 dark:text-neutral-200">
-            {user?.email ?? "Unknown"}
-          </p>
+        <h2 className="eyebrow">Profile</h2>
+        <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-start">
+          {/* Avatar */}
+          <div className="flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={avatarUploading}
+              aria-label="Change profile photo"
+              className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-neutral-200 transition-all duration-200 hover:border-brand-700 dark:border-neutral-700"
+            >
+              {(avatarPreview ?? avatarUrl) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarPreview ?? avatarUrl!}
+                  alt="Profile photo"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="grid h-full w-full place-items-center bg-brand-950 text-2xl font-semibold text-white">
+                  {user?.email?.[0]?.toUpperCase() ?? "?"}
+                </span>
+              )}
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="text-xs font-medium text-brand-700 hover:underline disabled:opacity-50"
+            >
+              {avatarUploading ? "Uploading…" : "Change photo"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleAvatarChange}
+            />
+          </div>
+
+          {/* User info */}
+          <div className="flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Email</p>
+            <p className="mt-1 text-base font-medium text-neutral-900 dark:text-neutral-100">
+              {user?.email ?? "Unknown"}
+            </p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Member since</p>
+            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
+              {user?.created_at
+                ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                : "—"}
+            </p>
+          </div>
         </div>
+
+        {avatarSaved && (
+          <p className="mt-3 text-sm font-medium text-brand-700 dark:text-brand-400">
+            Profile photo updated.
+          </p>
+        )}
+        {avatarError && (
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-300">
+            {avatarError}
+          </p>
+        )}
+        <p className="mt-4 text-xs text-neutral-400 dark:text-neutral-500">
+          JPG, PNG, or WebP · Max 2 MB. Photo is stored in your Supabase project.
+        </p>
       </section>
 
       <section className="card motion-card mt-4 p-6">

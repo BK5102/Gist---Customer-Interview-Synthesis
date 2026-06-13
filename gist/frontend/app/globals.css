@@ -242,7 +242,7 @@
   }
 
   .eyebrow {
-    @apply text-sm font-bold uppercase tracking-wider text-brand-800;
+    @apply text-base font-bold uppercase tracking-wider text-brand-800;
   }
   .dark .eyebrow {
     color: rgb(45 212 191);
