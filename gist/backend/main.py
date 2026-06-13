@@ -13,15 +13,19 @@ from pydantic import BaseModel, Field
 
 from auth.supabase_client import require_auth
 from db import (
+    create_job,
     create_project,
     db_available,
+    get_job_from_db,
     get_project,
     get_projects,
     get_synthesis,
     get_syntheses_for_project,
     get_syntheses_for_user,
+    prune_old_jobs,
     save_synthesis,
     save_transcript,
+    update_job,
     update_project,
 )
 from synth.cluster import cluster_themes, cluster_themes_cached
@@ -145,6 +149,12 @@ def _prune_jobs() -> None:
     ]
     for job_id in stale:
         JOBS.pop(job_id, None)
+    if db_available():
+        try:
+            prune_old_jobs(JOB_RETENTION_SECONDS)
+        except Exception:
+            import logging
+            logging.getLogger("gist").exception("Failed to prune jobs from DB")
 
 
 def _active_jobs_for_user(user_id: str) -> int:
@@ -198,9 +208,16 @@ def _enforce_notion_limits(user_id: str) -> None:
 
 
 def _set_job(job_id: str, **fields: Any) -> None:
-    """Atomically merge fields into a job's state."""
+    """Merge fields into in-memory job state and persist to Postgres."""
     fields["updated_at"] = time.time()
-    JOBS[job_id].update(fields)
+    if job_id in JOBS:
+        JOBS[job_id].update(fields)
+    if db_available():
+        try:
+            update_job(job_id, **fields)
+        except Exception:
+            import logging
+            logging.getLogger("gist").exception("Failed to persist job %s to DB", job_id)
 
 
 def _set_file_status(
@@ -407,6 +424,13 @@ async def synthesize(
         "result": None,
         "error": None,
     }
+    if db_available():
+        try:
+            create_job(JOBS[job_id])
+        except Exception:
+            import logging
+            logging.getLogger("gist").exception("Failed to create job %s in DB", job_id)
+
     background_tasks.add_task(
         _run_pipeline, job_id, prepared, user_id, resolved_project_id
     )
@@ -420,9 +444,15 @@ def get_job(
 ) -> JobStatusResponse:
     _prune_jobs()
     job = JOBS.get(job_id)
-    if not job:
+    if job and job.get("user_id") != user_id:
         raise HTTPException(404, f"Unknown job id: {job_id}")
-    if job.get("user_id") != user_id:
+    if not job and db_available():
+        try:
+            job = get_job_from_db(job_id, user_id)
+        except Exception:
+            import logging
+            logging.getLogger("gist").exception("Failed to read job %s from DB", job_id)
+    if not job:
         raise HTTPException(404, f"Unknown job id: {job_id}")
     return JobStatusResponse(**job)
 

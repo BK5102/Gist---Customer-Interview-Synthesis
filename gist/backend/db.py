@@ -280,6 +280,101 @@ def get_syntheses_for_project(user_id: str, project_id: str) -> list[dict[str, A
     return resp.data or []
 
 
+# ─── jobs ──────────────────────────────────────────────────────────────────
+
+ACTIVE_JOB_STATUSES = {"queued", "transcribing", "extracting", "clustering", "insights"}
+
+
+@_with_db_retry
+def create_job(job: dict[str, Any]) -> None:
+    """Persist a new job row. Called immediately after the in-memory entry is created."""
+    _db().table("jobs").insert({
+        "id":           job["job_id"],
+        "user_id":      job["user_id"],
+        "project_id":   job.get("project_id") or None,
+        "status":       job["status"],
+        "current":      job.get("current"),
+        "total":        job.get("total"),
+        "file_progress": job.get("file_progress"),
+        "result":       job.get("result"),
+        "error":        job.get("error"),
+    }).execute()
+
+
+@_with_db_retry
+def update_job(job_id: str, **fields: Any) -> None:
+    """Write changed fields to the jobs row. Called from _set_job in main.py.
+
+    The 'markdown' key is deliberately stripped from any 'result' dict before
+    persisting, so the jobs table never stores raw synthesis content.
+    This preserves the STORE_PLAINTEXT_SYNTHESES=false privacy guarantee even
+    when Postgres-backed job tracking is enabled.
+    """
+    skip = {"job_id", "user_id", "project_id", "created_at", "updated_at"}
+    payload = {k: v for k, v in fields.items() if k not in skip}
+    if isinstance(payload.get("result"), dict):
+        payload["result"] = {k: v for k, v in payload["result"].items() if k != "markdown"}
+    payload["updated_at"] = datetime.now(timezone.utc).isoformat()
+    _db().table("jobs").update(payload).eq("id", job_id).execute()
+
+
+@_with_db_retry
+def get_job_from_db(job_id: str, user_id: str) -> dict[str, Any] | None:
+    """Fetch a job from Postgres, scoped to the requesting user.
+
+    Returns a dict shaped like the in-memory JOBS entry, or None.
+    If the job exists but its status is still active (pipeline was killed by a
+    restart), the status is overridden to 'error' with a clear message.
+    """
+    resp = (
+        _db()
+        .table("jobs")
+        .select("*")
+        .eq("id", job_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if not resp.data:
+        return None
+    row = resp.data[0]
+    status = row["status"]
+    error = row.get("error")
+    # If the pipeline was running when the backend restarted, the DB row is
+    # stuck in an active status with no process driving it forward.
+    if status in ACTIVE_JOB_STATUSES:
+        status = "error"
+        error = "The server restarted during synthesis. Please try again."
+    return {
+        "job_id":        row["id"],
+        "user_id":       str(row["user_id"]),
+        "project_id":    row.get("project_id"),
+        "status":        status,
+        "current":       row.get("current"),
+        "total":         row.get("total"),
+        "file_progress": row.get("file_progress"),
+        "result":        row.get("result"),
+        "error":         error,
+        "created_at":    row.get("created_at", 0),
+        "updated_at":    row.get("updated_at", 0),
+    }
+
+
+@_with_db_retry
+def prune_old_jobs(retention_seconds: int) -> None:
+    """Delete terminal jobs (done/error) older than retention_seconds."""
+    cutoff = (
+        datetime.now(timezone.utc) - timedelta(seconds=retention_seconds)
+    ).isoformat()
+    (
+        _db()
+        .table("jobs")
+        .delete()
+        .lt("updated_at", cutoff)
+        .not_.in_("status", list(ACTIVE_JOB_STATUSES))
+        .execute()
+    )
+
+
 # ─── notion_connections ────────────────────────────────────────────────────
 
 @_with_db_retry
