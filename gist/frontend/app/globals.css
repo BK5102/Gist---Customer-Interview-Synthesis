@@ -624,11 +624,18 @@
   }
 
   .project-tabs button {
-    @apply cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium text-neutral-500 transition-all duration-150 hover:bg-neutral-100 hover:text-neutral-800;
+    @apply cursor-pointer px-4 py-1.5 text-sm font-medium text-neutral-500 transition-all duration-150 hover:text-neutral-800;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
   }
 
   .project-tabs button.is-active {
-    @apply bg-brand-950 font-semibold text-white;
+    @apply font-semibold text-brand-800;
+    border-bottom-color: #0f766e;
+  }
+  .dark .project-tabs button.is-active {
+    color: #2dd4bf;
+    border-bottom-color: #0d9488;
   }
 
   .product-split {

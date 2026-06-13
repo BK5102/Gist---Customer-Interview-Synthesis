@@ -6,6 +6,8 @@ Turn customer interview transcripts into themed synthesis with traceable quotes 
 
 **Status: v1.1 — auth, persistence, audio, Notion push, dark mode, and UX polish in production.**
 
+Latest: navbar "Workspace" label, clean settings gear icon, underline-style project tabs.
+
 Drop `.txt` transcripts or audio (`.mp3 .wav .m4a .mp4 .webm` up to 200 MB), and Gist returns markdown with:
 
 - **Insights** — strongest signal, contradicted assumption, biggest surprise
@@ -43,7 +45,7 @@ The extract / cluster / insights steps cache by SHA1 of their input under `eval/
 | Audio | Groq (`whisper-large-v3`, free tier, preferred) or OpenAI (`whisper-1`, paid). Files >24 MB chunked via ffmpeg `-c copy` (no re-encode). Static ffmpeg ships via `imageio-ffmpeg` |
 | Backend | FastAPI, async job pattern (`POST /synthesize` returns 202 + `job_id`, client polls `GET /jobs/{id}`) |
 | Persistence | Supabase Postgres with row-level security; service-role key on backend, JWT auth on routes (HS256 legacy + ES256/RS256 JWKS) |
-| Frontend | Next.js 14 App Router, Tailwind, `react-markdown`, `@supabase/ssr` |
+| Frontend | Next.js 16 App Router, Tailwind, `react-markdown`, `@supabase/ssr` |
 | Notion | OAuth (Public integration) **or** internal-token fallback. Markdown→blocks converter handles headings, bullets, numbered lists, blockquotes, dividers, paragraphs. Block-count chunking and 2000-char rich_text guards. 429 backoff on all calls |
 | Infra | Railway (backend) + Vercel (frontend) + Supabase (auth + DB) |
 
@@ -226,4 +228,4 @@ This is a hobby project. If you actually use it for customer discovery and have 
 
 ## Status
 
-**`v1.1` is live in production** at [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app) — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion) → design + UX polish (dark mode, bigger nav, readable breadcrumbs, back navigation, meta-chip visibility, JSON render fix, save flow clarity). Phase 4 (real users + iteration) is in progress.
+**`v1.1` is live in production** at [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app) — covers Phase 0 (synthesis) → Phase 1 (audio + async) → Phase 2 (auth + persistence) → Phase 3 (Notion) → design + UX polish (dark mode, bigger nav, readable breadcrumbs, back navigation, meta-chip visibility, JSON render fix, save flow clarity, underline project tabs, clean settings icon). Phase 4 (real users + iteration) is in progress.
