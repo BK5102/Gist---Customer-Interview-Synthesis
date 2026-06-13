@@ -484,12 +484,17 @@ export default function Home() {
       return;
     }
 
-    if (picked.length > MAX_FILES) {
+    // Accumulate: merge with existing files, skipping exact filename duplicates.
+    const existingNames = new Set(files.map((f) => f.name));
+    const incoming = picked.filter((f) => !existingNames.has(f.name));
+    const merged = [...files, ...incoming];
+
+    if (merged.length > MAX_FILES) {
       setError(`Maximum ${MAX_FILES} files per request.`);
       return;
     }
 
-    const stems = picked.map((f) => stemOf(f.name));
+    const stems = merged.map((f) => stemOf(f.name));
     if (new Set(stems).size !== stems.length) {
       setError(
         "Duplicate filenames detected. Each transcript stem must be unique (e.g. P1.txt, P2.txt).",
@@ -497,10 +502,10 @@ export default function Home() {
       return;
     }
 
-    setFiles(picked);
-    setLabels(picked.map(() => ""));
+    setFiles(merged);
+    setLabels((prev) => [...prev, ...incoming.map(() => "")]);
     setResult(null);
-    setPrivateSaveTitle((prev) => prev || stemOf(picked[0].name));
+    setPrivateSaveTitle((prev) => prev || stemOf(merged[0].name));
   };
 
   const pickFiles = (incoming: FileList | null) => {
@@ -967,8 +972,8 @@ export default function Home() {
           </div>
           <p className="mt-4 text-base font-semibold text-neutral-800 dark:text-neutral-100">
             {isDragging
-              ? "Drop to upload"
-              : "Drag & drop, or browse"}
+              ? "Drop to add files"
+              : files.length > 0 ? "Add more files" : "Drag & drop, or browse"}
           </p>
           <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-300">
             .txt, .mp3, .wav, .m4a, .mp4, .webm · up to {MAX_FILES} files · 200 MB each
