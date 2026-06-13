@@ -624,7 +624,7 @@
   }
 
   .project-tabs button {
-    @apply cursor-pointer px-4 py-1.5 text-sm font-medium text-neutral-500 transition-all duration-150 hover:text-neutral-800;
+    @apply cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium text-neutral-600 transition-all duration-150 hover:bg-neutral-100 hover:text-neutral-800;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
   }
