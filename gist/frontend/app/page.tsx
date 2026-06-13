@@ -413,6 +413,11 @@ export default function Home() {
       }
       const res = await fetch(`${API_URL}/jobs/${jobId}`, { headers });
       if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error(
+            "The server restarted while your synthesis was running. Please try again — this usually happens right after a deploy."
+          );
+        }
         const text = await res.text();
         let detail = `Backend returned ${res.status}`;
         try {
