@@ -804,7 +804,7 @@ export default function Home() {
                 ),
               },
               {
-                label: "Audio supported",
+                label: "Text & audio uploads",
                 icon: (
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
                     <path d="M8 1.5a2 2 0 0 0-2 2v4a2 2 0 0 0 4 0v-4a2 2 0 0 0-2-2z" />
