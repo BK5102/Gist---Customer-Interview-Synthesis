@@ -1,5 +1,6 @@
 # Markdown report formatter: clusters + insights -> human-readable synthesis
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -32,7 +33,14 @@ def _safe_str(value: object, fallback: str = "") -> str:
                     parts = [str(i) for i in parsed if isinstance(i, str) and str(i).strip()]
                     return " ".join(parts) if parts else fallback
             except json.JSONDecodeError:
-                pass
+                # Regex fallback for truncated / malformed JSON strings (e.g.
+                # when the LLM hits a token limit mid-response). Try to extract
+                # a known text field by name before giving up and showing raw JSON.
+                for key in ("text", "summary", "content", "description",
+                            "headline", "explanation", "value"):
+                    m = re.search(rf'"{key}"\s*:\s*"((?:[^"\\]|\\.)*)"', t)
+                    if m:
+                        return m.group(1)
         return t or fallback
     if isinstance(value, dict):
         for key in ("text", "summary", "content", "description",

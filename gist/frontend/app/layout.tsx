@@ -22,7 +22,7 @@ function NavGlyph({ kind }: { kind: "home" | "projects" | "saves" | "settings" }
 
   return (
     <span className="nav-glyph" aria-hidden="true">
-      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
         <path
           d={paths[kind]}
           stroke="currentColor"
@@ -42,14 +42,14 @@ async function Navbar() {
   } = await supabase.auth.getUser();
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur-xl dark:border-white/[0.06] dark:bg-neutral-950/95">
+    <nav className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur-xl dark:border-white/[0.06] dark:bg-neutral-950/95">
       <div className="nav-shell">
         <Link
           href={user ? "/?landing=1" : "/"}
-          className="group flex shrink-0 items-center gap-2.5 text-xl font-bold tracking-tight"
+          className="group flex shrink-0 items-center gap-3 text-2xl font-bold tracking-tight"
         >
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-950 text-white transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
-            <span className="text-sm font-bold leading-none">G</span>
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-950 text-white transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
+            <span className="text-base font-bold leading-none">G</span>
           </span>
           <span className="text-neutral-900">Gist</span>
         </Link>

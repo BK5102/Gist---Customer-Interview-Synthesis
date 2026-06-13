@@ -1361,15 +1361,16 @@ export default function Home() {
                 onClick={saveEncrypted}
                 disabled={
                   isSavingEncrypted ||
+                  !!saveStatus ||
                   !isValidPassword(privateSavePassword) ||
                   privateSavePassword !== privateSavePasswordConfirm
                 }
                 className="btn-primary text-xs"
               >
-                {isSavingEncrypted ? "Encrypting..." : "Save privately"}
+                {isSavingEncrypted ? "Encrypting..." : saveStatus ? "Saved ✓" : "Save privately"}
               </button>
               <Link href="/projects" className="btn-secondary text-xs">
-                Do not save
+                {saveStatus ? "Close" : "Cancel"}
               </Link>
               {saveStatus && (
                 <span className="text-xs text-brand-800">{saveStatus}</span>

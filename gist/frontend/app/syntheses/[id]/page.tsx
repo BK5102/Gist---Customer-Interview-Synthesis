@@ -185,13 +185,24 @@ export default function SynthesisDetailPage() {
 
   return (
     <main className="page-wide">
-      <Breadcrumb
-        items={[
-          { label: "Workspace", href: "/" },
-          { label: "Projects", href: "/projects" },
-          { label: "Synthesis" },
-        ]}
-      />
+      <div className="mb-4 flex items-center gap-4">
+        <Link
+          href="/projects"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-all duration-200 hover:border-brand-700 hover:bg-brand-50 hover:text-brand-800 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-brand-600 dark:hover:bg-brand-950/30 dark:hover:text-brand-300"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M19 12H5M12 5l-7 7 7 7" />
+          </svg>
+          Back to projects
+        </Link>
+        <Breadcrumb
+          items={[
+            { label: "Workspace", href: "/" },
+            { label: "Projects", href: "/projects" },
+            { label: "Synthesis" },
+          ]}
+        />
+      </div>
 
       <header className="motion-section mb-5">
         <p className="eyebrow">Synthesis report</p>
