@@ -1198,6 +1198,9 @@ export default function Home() {
 
       {result && !result.synthesis_id && (
         <section className="card mt-6 p-6 animate-rise-in">
+          <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-300">
+            Scroll down to save — navigating away will lose this synthesis.
+          </p>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="eyebrow">
               {result.participant_count} participants ·{" "}

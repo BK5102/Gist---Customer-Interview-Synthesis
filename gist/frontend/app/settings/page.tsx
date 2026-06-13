@@ -291,7 +291,7 @@ export default function SettingsPage() {
           </p>
         )}
         <p className="mt-4 text-xs text-neutral-400 dark:text-neutral-500">
-          JPG, PNG, or WebP · Max 2 MB. Photo is stored in your Supabase project.
+          JPG, PNG, or WebP · Max 2 MB.
         </p>
       </section>
 
