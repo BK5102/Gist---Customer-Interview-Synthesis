@@ -368,6 +368,12 @@ export default function Home() {
   const [isSavingEncrypted, setIsSavingEncrypted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [notionConnected, setNotionConnected] = useState(false);
+  const [notionDatabases, setNotionDatabases] = useState<{ id: string; title: string }[]>([]);
+  const [notionSelectedDb, setNotionSelectedDb] = useState("");
+  const [notionPushing, setNotionPushing] = useState(false);
+  const [notionPushError, setNotionPushError] = useState<string | null>(null);
+  const [notionPushUrl, setNotionPushUrl] = useState<string | null>(null);
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auth state on mount
@@ -444,6 +450,29 @@ export default function Home() {
         // active browser session.
         if (next.result.synthesis_id) {
           window.location.href = `/syntheses/${next.result.synthesis_id}`;
+          return;
+        }
+        // Load Notion connection for the inline push button.
+        if (session) {
+          try {
+            const connRes = await fetch(`${API_URL}/notion/connection`, {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (connRes.ok) {
+              const conn = await connRes.json() as { connected: boolean };
+              if (conn.connected) {
+                setNotionConnected(true);
+                const dbRes = await fetch(`${API_URL}/notion/databases`, {
+                  headers: { Authorization: `Bearer ${session.access_token}` },
+                });
+                if (dbRes.ok) {
+                  const dbs = await dbRes.json() as { id: string; title: string }[];
+                  setNotionDatabases(dbs);
+                  if (dbs.length > 0) setNotionSelectedDb(dbs[0].id);
+                }
+              }
+            }
+          } catch { /* Notion check failed — push UI stays hidden */ }
         }
         return;
       }
@@ -651,6 +680,37 @@ export default function Home() {
   const copyMarkdown = async () => {
     if (!result) return;
     await navigator.clipboard.writeText(result.markdown);
+  };
+
+  const pushToNotion = async () => {
+    if (!result || !notionSelectedDb) return;
+    setNotionPushing(true);
+    setNotionPushError(null);
+    setNotionPushUrl(null);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const res = await fetch(`${API_URL}/notion/push`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ markdown: result.markdown, database_id: notionSelectedDb }),
+    });
+    setNotionPushing(false);
+    if (!res.ok) {
+      const text = await res.text();
+      let detail = text || "Push failed";
+      try {
+        const parsed = JSON.parse(text);
+        if (typeof parsed.detail === "string") detail = parsed.detail;
+      } catch { /* keep raw */ }
+      setNotionPushError(detail);
+      return;
+    }
+    const data = await res.json() as { notion_page_url: string };
+    setNotionPushUrl(data.notion_page_url);
   };
 
   const saveEncrypted = async () => {
@@ -1214,14 +1274,49 @@ export default function Home() {
                 ? ` (${result.themes_dropped} dropped)`
                 : ""}
             </p>
-            <button
-              type="button"
-              onClick={copyMarkdown}
-              className="btn-secondary text-xs"
-            >
-              Copy markdown
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={copyMarkdown}
+                className="btn-secondary text-xs"
+              >
+                Copy markdown
+              </button>
+              {notionConnected && notionDatabases.length > 0 && (
+                <>
+                  <select
+                    value={notionSelectedDb}
+                    onChange={(e) => setNotionSelectedDb(e.target.value)}
+                    className="input h-9 max-w-[12rem] py-1 text-sm"
+                  >
+                    {notionDatabases.map((db) => (
+                      <option key={db.id} value={db.id}>{db.title}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={pushToNotion}
+                    disabled={notionPushing || !notionSelectedDb}
+                    className="btn-primary min-h-9 px-4 py-1.5 text-sm"
+                  >
+                    {notionPushing ? "Pushing..." : "Push to Notion"}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
+          {notionPushError && (
+            <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+              {notionPushError}
+            </p>
+          )}
+          {notionPushUrl && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-700 text-xs text-white">&#10003;</span>
+              Pushed to Notion.{" "}
+              <a href={notionPushUrl} target="_blank" rel="noreferrer" className="font-medium underline">Open in Notion</a>
+            </div>
+          )}
           <article className="prose prose-neutral prose-brand max-w-none">
             {!result.markdown ? (
               <p className="text-sm text-neutral-500">

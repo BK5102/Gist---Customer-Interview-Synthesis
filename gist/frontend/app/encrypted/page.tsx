@@ -10,6 +10,10 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+type NotionDb = { id: string; title: string };
+
 type EncryptedArtifact = PasswordEncryptedArtifactRecord & {
   id: string;
   artifact_type: string;
@@ -42,6 +46,12 @@ export default function EncryptedSavesPage() {
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notionConnected, setNotionConnected] = useState(false);
+  const [databases, setDatabases] = useState<NotionDb[]>([]);
+  const [selectedDb, setSelectedDb] = useState("");
+  const [pushing, setPushing] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
+  const [pushUrl, setPushUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const loadArtifacts = async () => {
@@ -103,15 +113,75 @@ export default function EncryptedSavesPage() {
     if (!selected || !password) return;
     setError(null);
     setOpening(true);
+    setPushError(null);
+    setPushUrl(null);
     try {
       const plaintext = await decryptStringWithPassword(selected, password);
       setDecrypted(JSON.parse(plaintext) as DecryptedSynthesis);
+
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        try {
+          const connRes = await fetch(`${API_URL}/notion/connection`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (connRes.ok) {
+            const conn = await connRes.json() as { connected: boolean };
+            if (conn.connected) {
+              setNotionConnected(true);
+              const dbRes = await fetch(`${API_URL}/notion/databases`, {
+                headers: { Authorization: `Bearer ${session.access_token}` },
+              });
+              if (dbRes.ok) {
+                const dbs = await dbRes.json() as NotionDb[];
+                setDatabases(dbs);
+                if (dbs.length > 0) setSelectedDb(dbs[0].id);
+              }
+            }
+          }
+        } catch {
+          // Notion check failed — push UI stays hidden
+        }
+      }
     } catch {
       setError("Password did not unlock this private save.");
     } finally {
       setPassword("");
       setOpening(false);
     }
+  };
+
+  const pushToNotion = async () => {
+    if (!decrypted || !selectedDb) return;
+    setPushing(true);
+    setPushError(null);
+    setPushUrl(null);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const title = decrypted.title || selected?.title || "Interview Synthesis";
+    const res = await fetch(`${API_URL}/notion/push`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ markdown: decrypted.markdown, title, database_id: selectedDb }),
+    });
+    setPushing(false);
+    if (!res.ok) {
+      const text = await res.text();
+      let detail = text || "Push failed";
+      try {
+        const parsed = JSON.parse(text);
+        if (typeof parsed.detail === "string") detail = parsed.detail;
+      } catch { /* keep raw */ }
+      setPushError(detail);
+      return;
+    }
+    const data = await res.json() as { notion_page_url: string };
+    setPushUrl(data.notion_page_url);
   };
 
   if (loading) {
@@ -229,21 +299,54 @@ export default function EncryptedSavesPage() {
 
             {decrypted && (
               <div>
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-neutral-900">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                     {selected?.title || "Private synthesis"}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => { setDecrypted(null); setSelected(null); }}
-                    aria-label="Close report"
-                    className="grid h-7 w-7 place-items-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4">
-                      <path d="M18 6 6 18M6 6l12 12" />
-                    </svg>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {notionConnected && databases.length > 0 && (
+                      <>
+                        <select
+                          value={selectedDb}
+                          onChange={(e) => setSelectedDb(e.target.value)}
+                          className="input h-9 max-w-[12rem] py-1 text-sm"
+                        >
+                          {databases.map((db) => (
+                            <option key={db.id} value={db.id}>{db.title}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={pushToNotion}
+                          disabled={pushing || !selectedDb}
+                          className="btn-primary min-h-9 px-4 py-1.5 text-sm"
+                        >
+                          {pushing ? "Pushing..." : "Push to Notion"}
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { setDecrypted(null); setSelected(null); setPushUrl(null); setPushError(null); }}
+                      aria-label="Close report"
+                      className="grid h-7 w-7 place-items-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
+                {pushError && (
+                  <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{pushError}</p>
+                )}
+                {pushUrl && (
+                  <div className="mb-3 flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">
+                    <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-700 text-xs text-white">&#10003;</span>
+                    Pushed to Notion.{" "}
+                    <a href={pushUrl} target="_blank" rel="noreferrer" className="font-medium underline">Open in Notion</a>
+                  </div>
+                )}
                 <article className="prose prose-neutral prose-brand max-w-none">
                   <ReactMarkdown>{decrypted.markdown}</ReactMarkdown>
                 </article>

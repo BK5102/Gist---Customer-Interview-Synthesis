@@ -863,8 +863,10 @@ def list_notion_databases(user_id: str = Depends(require_auth)) -> list[dict[str
 
 
 class PushToNotionRequest(BaseModel):
-    synthesis_id: str
     database_id: str
+    synthesis_id: str | None = None
+    markdown: str | None = None
+    title: str | None = None
 
 
 @app.post("/notion/push")
@@ -872,22 +874,31 @@ def push_to_notion(
     body: PushToNotionRequest,
     user_id: str = Depends(require_auth),
 ) -> dict[str, str]:
+    if not body.synthesis_id and not body.markdown:
+        raise HTTPException(422, "Provide either synthesis_id or markdown")
+
     _enforce_notion_limits(user_id)
     conn = get_notion_connection(user_id)
     if not conn:
         raise HTTPException(401, "Notion not connected")
 
-    synth = get_synthesis(user_id, body.synthesis_id)
-    if not synth:
-        raise HTTPException(404, "Synthesis not found")
+    if body.synthesis_id:
+        synth = get_synthesis(user_id, body.synthesis_id)
+        if not synth:
+            raise HTTPException(404, "Synthesis not found")
+        markdown = synth["markdown_output"]
+        page_title = body.title or f"Interview Synthesis — {synth.get('created_at', '')[:10]}"
+    else:
+        markdown = body.markdown
+        page_title = body.title or "Interview Synthesis"
 
     client = NotionClient(conn["access_token"])
-    blocks = markdown_to_notion_blocks(synth["markdown_output"])
+    blocks = markdown_to_notion_blocks(markdown)
 
     try:
         page = client.create_page(
             database_id=body.database_id,
-            title=f"Interview Synthesis — {synth.get('created_at', '')[:10]}",
+            title=page_title,
             blocks=blocks,
         )
     except httpx.HTTPStatusError as e:
