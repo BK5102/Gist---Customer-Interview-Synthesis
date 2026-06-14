@@ -1,6 +1,6 @@
 # Gist
 
-Turn customer interview transcripts into themed synthesis with traceable quotes — built for solo founders doing customer discovery.
+Turn any conversation into expert-ready insights — themed synthesis with traceable, verified quotes.
 
 **🌐 Live: [gist-customer-interview-synthesis.vercel.app](https://gist-customer-interview-synthesis.vercel.app)**
 
@@ -11,9 +11,77 @@ Latest: theme toggle in navbar, profile photo upload in Settings, scroll-to-save
 Drop `.txt` transcripts or audio (`.mp3 .wav .m4a .mp4 .webm` up to 200 MB), and Gist returns markdown with:
 
 - **Insights** — strongest signal, contradicted assumption, biggest surprise
-- **Themes** — clustered across interviews, each with verbatim quotes and participant IDs
+- **Themes** — clustered across conversations, each with verbatim quotes and participant IDs
 
-Every quote is verified against the source transcript before it reaches the output. If a quote can't be found in the transcript (whitespace-normalized substring match), the theme is dropped and counted in the response — never made up.
+Every quote is verified against the source before it reaches the output. If a quote can't be found in the transcript (whitespace-normalized substring match), the theme is dropped and counted in the response — never made up.
+
+## Who uses Gist
+
+Gist works for any situation where conversations happen and an expert — human or AI agent — needs to understand what was said and why it matters. The tool is domain-agnostic: the synthesis pipeline extracts themes, surfaces contradictions, and verifies every quote verbatim regardless of who is talking or what they are talking about.
+
+### Law & Justice
+
+| Domain | Conversations | Expert briefed |
+|---|---|---|
+| **Law enforcement** | Bodycam footage, witness interviews, interrogations, 911 calls, undercover debriefs, cold case recordings | Prosecutors, DA offices, judges, internal affairs, oversight boards |
+| **Legal / civil litigation** | Depositions, client intake meetings, expert witness prep, mediation sessions | Attorneys, compliance teams, mediators, judges |
+| **Criminal defense** | Defendant interviews, witness statements, alibi conversations | Defense attorneys, public defenders |
+| **Corporate law** | Contract negotiation recordings, board meeting minutes, due-diligence calls | General counsel, executives, deal teams |
+| **Immigration & asylum** | Asylum seeker interviews, consular conversations, visa application sessions | Immigration judges, immigration lawyers |
+
+### Healthcare & Social Services
+
+| Domain | Conversations | Expert briefed |
+|---|---|---|
+| **Medicine / clinical** | Patient intake interviews, specialist consultations, clinical trial participant interviews | Specialists, care teams, clinical researchers |
+| **Mental health** | Therapy supervision sessions, crisis intervention debriefs, group therapy notes | Supervisors, clinical directors, treatment teams |
+| **Social work** | Family assessment interviews, child welfare conversations, case review sessions | Case managers, judges, oversight committees |
+| **Insurance / claims** | Claimant interviews, witness statements, accident investigation recordings | Adjusters, underwriters, fraud investigators, legal teams |
+
+### Government & Policy
+
+| Domain | Conversations | Expert briefed |
+|---|---|---|
+| **Public policy** | Town halls, constituent testimony, public comment hearings | Legislators, policy analysts, agency directors |
+| **Regulatory & compliance** | Enforcement interviews, examination sessions, whistleblower investigations | Regulators, inspectors general, executives |
+| **Military & defense** | After-action debriefs, intelligence briefings, training exercise feedback | Commanders, intelligence analysts, planning staff |
+| **Diplomatic** | Negotiation recordings, delegation debriefs, stakeholder roundtables | Ministers, advisors, diplomatic staff |
+
+### Business
+
+| Domain | Conversations | Expert briefed |
+|---|---|---|
+| **Management consulting** | Client discovery sessions, stakeholder interviews, post-engagement retrospectives | Senior partners, clients, project sponsors |
+| **Finance / M&A due diligence** | Management team interviews, vendor calls, reference checks | Investment analysts, deal partners, boards |
+| **Sales / RevOps** | Customer calls, win/loss interviews, QBRs, churn conversations | Sales managers, product teams, leadership |
+| **Product / UX research** | User interviews, usability sessions, beta feedback, advisory board sessions | PMs, designers, executives, engineering leads |
+| **HR / People Ops** | Exit interviews, candidate screens, 360 feedback, workplace investigation sessions | Leadership, compliance officers, HR directors |
+| **Corporate compliance & risk** | Ethics hotline investigation interviews, AML inquiry sessions, ESG stakeholder calls | General counsel, chief compliance officers, boards |
+| **Market research** | Consumer focus groups, ethnographic interviews, brand perception sessions | Brand teams, marketing directors, innovation leads |
+
+### Research & Media
+
+| Domain | Conversations | Expert briefed |
+|---|---|---|
+| **Academic research** | Qualitative research interviews, ethnographic field notes, expert elicitation | Thesis advisors, co-authors, journal reviewers, grant panels |
+| **Investigative journalism** | Source interviews, background conversations, whistleblower sessions | Editors, fact-checkers, legal counsel |
+| **Documentary & broadcast** | Subject interviews, archival research conversations | Producers, directors, editorial teams |
+| **Non-profit / NGO** | Beneficiary interviews, program evaluation sessions, community needs assessments | Donors, boards, grant agencies |
+
+### Other
+
+| Domain | Conversations | Expert briefed |
+|---|---|---|
+| **Education** | Student feedback sessions, faculty reviews, curriculum research interviews | Administrators, curriculum designers, accreditation bodies |
+| **Real estate & planning** | Client consultations, zoning hearing testimonies, tenant interviews | Brokers, developers, planning boards |
+| **Environmental & scientific** | Public comment sessions, researcher field interviews, regulatory hearings | Agencies, principal investigators, environmental counsel |
+| **Sports & performance** | Athlete and coach debriefs, scouting conversations, sports psychology sessions | Performance directors, coaches, front office |
+| **Crisis management & PR** | Post-incident stakeholder interviews, media prep sessions | Communications teams, executives, legal counsel |
+| **AI agents** | Any conversation that an AI agent or automated pipeline needs verified context about | LLM agents, retrieval systems, automated reporting pipelines |
+
+---
+
+The core workflow is identical across every domain: you have a conversation (or many), someone who was not in the room needs to understand the real insights, and every claim must trace back to the exact words that support it. Gist handles the extraction, clustering, contradiction-detection, and quote verification — you hand the brief to whoever needs it.
 
 ## Security note
 
@@ -244,7 +312,7 @@ A 5-interview synthesis on Groq: ~$0.08. On OpenAI: ~$0.23.
 
 ## Feedback
 
-This is a hobby project. If you actually use it for customer discovery and have notes — bugs, weird outputs, missing features — open an issue on GitHub or email the address in your `git log` author field.
+This is an early-stage project. If you use it — for legal prep, consulting deliverables, product research, sales analysis, or anything else — and have notes on bugs, weird outputs, or missing features, open an issue on GitHub or email the address in your `git log` author field.
 
 ## Status
 
