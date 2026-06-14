@@ -19,7 +19,7 @@ Every quote is verified against the source transcript before it reaches the outp
 
 Gist is an early beta that processes potentially sensitive customer-interview material. Do not upload regulated data, credentials, financial secrets, or highly confidential customer/company information until stronger retention, deletion, and encryption controls are in place.
 
-Current protections include Supabase Auth, RLS-backed tables, backend ownership checks, restricted CORS, Notion OAuth state nonces, authenticated job polling, baseline security headers, raw transcript retention disabled by default, synthesis disk caching disabled by default for the web app, and plaintext synthesis persistence disabled by default. See [SECURITY_TRUST_PLAN.md](SECURITY_TRUST_PLAN.md) and [E2EE_STORAGE_PLAN.md](E2EE_STORAGE_PLAN.md) for the honest security posture and client-side encrypted storage plan.
+Current protections include Supabase Auth, RLS-backed tables, backend ownership checks, restricted CORS, Notion OAuth state nonces, authenticated job polling, baseline security headers, raw transcript retention disabled by default, synthesis disk caching disabled by default for the web app, and plaintext synthesis persistence disabled by default. Private saves are AES-GCM encrypted in the browser with a password Gist never sees or stores. See [/security](https://gist-customer-interview-synthesis.vercel.app/security) for the full data-flow disclosure.
 
 ## Pipeline
 
@@ -43,11 +43,12 @@ The extract / cluster / insights steps cache by SHA1 of their input under `eval/
 |---|---|
 | Synthesis | Anthropic SDK, `claude-sonnet-4-6` (clustering, insights), `claude-haiku-4-5` (extraction) — all via tool-use for structured output |
 | Audio | Groq (`whisper-large-v3`, free tier, preferred) or OpenAI (`whisper-1`, paid). Files >24 MB chunked via ffmpeg `-c copy` (no re-encode). Static ffmpeg ships via `imageio-ffmpeg` |
-| Backend | FastAPI, async job pattern (`POST /synthesize` returns 202 + `job_id`, client polls `GET /jobs/{id}`) |
-| Persistence | Supabase Postgres with row-level security; service-role key on backend, JWT auth on routes (HS256 legacy + ES256/RS256 JWKS) |
-| Frontend | Next.js 16 App Router, Tailwind, `react-markdown`, `@supabase/ssr` |
+| Backend | FastAPI, async job pattern (`POST /synthesize` returns 202 + `job_id`, client polls `GET /jobs/{id}`). Jobs persisted to Postgres (write-through + fallback read) so synthesis survives Railway restarts. |
+| Persistence | Supabase Postgres with row-level security; service-role key on backend, JWT auth on routes (HS256 legacy + ES256/RS256 JWKS). Tables: `projects`, `transcripts`, `syntheses`, `encrypted_artifacts`, `notion_connections`, `oauth_states`, `jobs` |
+| Storage | Supabase Storage — `avatars` public bucket for profile photos (user-scoped RLS, flat path = user_id) |
+| Frontend | Next.js 16 App Router, Tailwind, `react-markdown`, `@supabase/ssr`. Dark mode via `ThemeProvider` (localStorage + system preference) + `ThemeToggle` (sun/moon toggle in navbar) |
 | Notion | OAuth (Public integration) **or** internal-token fallback. Markdown→blocks converter handles headings, bullets, numbered lists, blockquotes, dividers, paragraphs. Block-count chunking and 2000-char rich_text guards. 429 backoff on all calls |
-| Infra | Railway (backend) + Vercel (frontend) + Supabase (auth + DB) |
+| Infra | Railway (backend) + Vercel (frontend) + Supabase (auth + DB + storage) |
 
 ## Run locally
 
@@ -63,7 +64,8 @@ You need accounts on **Anthropic** (synthesis), **Groq or OpenAI** (audio), **Su
 3. **Project Settings → Auth → JWT Keys → Legacy JWT Secret**: copy the value (used by backend to verify tokens)
 4. **Authentication → Sign In / Providers → Email**: turn off **Confirm email** for local dev (so signup doesn't try to send mail)
 5. **Authentication → URL Configuration**: not strictly needed for local dev with Confirm Email off — but if you re-enable Confirm Email later, set **Site URL** = `http://localhost:3000` and add `http://localhost:3000/**` to Redirect URLs
-6. **SQL Editor**: paste `backend/schema.sql` and click Run. Then paste `NOTIFY pgrst, 'reload schema';` and run that too (PostgREST needs to refresh its cache after table creation)
+6. **SQL Editor**: paste `backend/schema.sql` and click Run. Then run each file in `backend/migrations/` in filename order. Finally paste `NOTIFY pgrst, 'reload schema';` and run that too (PostgREST needs to refresh its cache after table creation)
+7. **Storage**: create a bucket named `avatars`, set it to **Public**, and add an RLS policy that allows authenticated users to read/write their own objects (`name = auth.uid()::text`)
 
 ### 2. Notion (optional, for push)
 
@@ -176,7 +178,8 @@ The repo's actual layout is `gist/backend/` and `gist/frontend/` (one level unde
 
 - **DNS failure on Supabase URL** (`net::ERR_NAME_NOT_RESOLVED`) — Supabase free-tier projects pause after a week of inactivity. Log into the Supabase dashboard and click **Restart project**.
 - **CORS preflight failure on every route** — you forgot to add the Vercel URL to `CORS_ORIGINS` on Railway, or you used a trailing slash. The fix is always on Railway, never in the frontend.
-- **Tables missing in production** — re-run `gist/backend/schema.sql` in the Supabase SQL Editor, then `NOTIFY pgrst, 'reload schema';` to refresh PostgREST's cache.
+- **Tables missing in production** — re-run `gist/backend/schema.sql` in the Supabase SQL Editor, then each migration file in `backend/migrations/` in order, then `NOTIFY pgrst, 'reload schema';` to refresh PostgREST's cache.
+- **Avatar images blocked** (`net::ERR_BLOCKED_BY_CLIENT` or blank avatar) — `next.config.mjs` must include `https://*.supabase.co` in the `img-src` CSP directive. Check that the avatars bucket exists in Supabase Storage and is set to **Public**.
 - **Notion redirect URI mismatch** (OAuth only) — if you used the OAuth flow rather than internal token, update `NOTION_REDIRECT_URI` on Railway to `https://<railway-domain>/notion/callback` and add the same URL to your Notion integration's Redirect URIs.
 
 ## Repo layout
@@ -193,12 +196,16 @@ See [CLAUDE.md](CLAUDE.md) for the full tree. Key entry points:
 - [backend/transcribe/whisper.py](backend/transcribe/whisper.py) — audio → text + chunking
 - [backend/auth/supabase_client.py](backend/auth/supabase_client.py) — JWT verification (HS256 + JWKS)
 - [backend/integrations/notion.py](backend/integrations/notion.py) — OAuth, internal token, markdown→blocks
-- [backend/db.py](backend/db.py) — Supabase Postgres helpers (with HTTP/2 stale-connection retry)
+- [backend/db.py](backend/db.py) — Supabase Postgres helpers + job read/write (HTTP/2 stale-connection retry)
 - [backend/schema.sql](backend/schema.sql) — RLS-enabled tables for projects, transcripts, syntheses, notion_connections, oauth_states
-- [frontend/app/page.tsx](frontend/app/page.tsx) — upload UI (drag-drop, per-file labels, staged progress)
+- [backend/migrations/](backend/migrations/) — incremental SQL migrations (run in order in Supabase SQL Editor): `001_add_notion_connections.sql`, `002_add_project_description.sql`, `2026-06-13_jobs_table.sql`, `2026-06-13_avatars_storage.sql`
+- [frontend/app/page.tsx](frontend/app/page.tsx) — upload UI (drag-drop accumulates files, per-file labels, staged progress)
 - [frontend/app/projects/](frontend/app/projects/) — dashboard + project detail
 - [frontend/app/syntheses/[id]/page.tsx](frontend/app/syntheses/) — synthesis detail + Notion push
-- [frontend/app/settings/page.tsx](frontend/app/settings/page.tsx) — Notion connection UI
+- [frontend/app/settings/page.tsx](frontend/app/settings/page.tsx) — Profile (avatar upload), Security & Privacy link, Notion connection
+- [frontend/app/security/page.tsx](frontend/app/security/) — static data-flow disclosure page
+- [frontend/components/ThemeProvider.tsx](frontend/components/ThemeProvider.tsx) — dark/light/system theme context; `useTheme()` hook
+- [frontend/components/ThemeToggle.tsx](frontend/components/) — sun/moon icon toggle rendered in the navbar
 
 ## How many files to upload
 
