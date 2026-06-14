@@ -200,6 +200,19 @@ See [CLAUDE.md](CLAUDE.md) for the full tree. Key entry points:
 - [frontend/app/syntheses/[id]/page.tsx](frontend/app/syntheses/) — synthesis detail + Notion push
 - [frontend/app/settings/page.tsx](frontend/app/settings/page.tsx) — Notion connection UI
 
+## How many files to upload
+
+| File count | What you get |
+|---|---|
+| 1–2 | Runs, but clustering is weak — essentially summarizing two people. Not enough signal to distinguish patterns from coincidence. |
+| 3–5 | Sweet spot for early customer discovery. Enough variance to surface real themes, contradictions, and outliers. |
+| 6–10 | Strong signal. Themes become reliably representative. Best for a full research round. |
+| 10–20 | Good for larger rounds. Each file is a separate extraction call, so cost and time scale linearly. |
+
+Files accumulate on upload — add them one at a time or all at once. **3 files is the practical minimum** for the cross-interview clustering to be meaningfully different from a manual read-through.
+
+Individual quote accuracy is independent of file count — every quote is verified verbatim against its source transcript regardless of how many transcripts are in the batch.
+
 ## Limits
 
 - Text: 2 MB per `.txt` file
