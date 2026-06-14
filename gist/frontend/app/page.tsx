@@ -158,15 +158,15 @@ function ProductDemo() {
         <span />
         <span />
         <span />
-        <p>Q2 stakeholder interviews</p>
+        <p>Case #2024-0847 — witness statements</p>
       </div>
       <div className="product-frame-head">
         <div>
-          <p className="product-kicker">Analysis round</p>
-          <h2>Pricing and onboarding friction</h2>
+          <p className="product-kicker">Incident review</p>
+          <h2>Timeline discrepancy — 4 witness accounts</h2>
           <div className="mt-2 flex flex-wrap gap-2">
-            <span className="meta-chip">10 interviews</span>
-            <span className="meta-chip">24 themes</span>
+            <span className="meta-chip">4 interviews</span>
+            <span className="meta-chip">11 themes</span>
             <span className="meta-chip">Verified quotes</span>
           </div>
         </div>
@@ -177,29 +177,29 @@ function ProductDemo() {
       </div>
       <div className="workspace-tabs" role="presentation">
         <span className="is-active">Summary</span>
-        <span>Evidence</span>
+        <span>Contradictions</span>
         <span>Sources</span>
       </div>
       <div className="product-split">
         <div className="product-report">
-          <p className="product-kicker">Strongest signal</p>
-          <h3>Teams understand the value, but setup feels too long.</h3>
+          <p className="product-kicker">Contradiction flagged</p>
+          <h3>Three witnesses align on timing. One account diverges by 40 minutes.</h3>
           <p>
-            Seven participants described onboarding as the main barrier to
-            adopting the workflow.
+            Four transcripts cross-referenced. One unresolved discrepancy
+            surfaced for prosecutor review.
           </p>
           <div className="finding-list">
             <div>
               <span className="finding-index">01</span>
               <p>
-                Participants want a useful first result before configuring
-                integrations.
+                P1, P2, and P4 independently place the incident before 9:00 PM.
               </p>
             </div>
             <div>
               <span className="finding-index">02</span>
               <p>
-                Participants prefer a guided default over a blank project setup.
+                P3 describes the same sequence near 9:40 PM — inconsistent with
+                all three other accounts.
               </p>
             </div>
           </div>
@@ -207,16 +207,16 @@ function ProductDemo() {
         <aside className="product-evidence">
           <div className="flex items-center justify-between">
             <p className="product-kicker text-brand-100">Evidence</p>
-            <span className="text-xs text-brand-200">7 sources</span>
+            <span className="text-xs text-brand-200">4 witnesses</span>
           </div>
           <blockquote>
-            "I need to see the first insight before I spend time setting
-            everything up."
+            "It was still light out. Couldn't have been past 8:45 when it
+            happened."
           </blockquote>
           <div className="evidence-source">
-            <span>P3</span>
+            <span>P1</span>
             <div>
-              <p>Stakeholder interview</p>
+              <p>Witness interview</p>
               <small>Transcript matched verbatim</small>
             </div>
           </div>
