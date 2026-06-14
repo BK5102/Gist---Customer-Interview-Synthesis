@@ -69,7 +69,7 @@ export default function SecurityPage() {
             Security at Gist
           </h1>
           <p className="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
-            Customer interviews contain sensitive opinions, names, and research insights.
+            Conversations often contain privileged, confidential, or sensitive information.
             Here is exactly how Gist handles that data, and what it never touches.
           </p>
         </header>

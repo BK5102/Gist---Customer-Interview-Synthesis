@@ -8,9 +8,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gist | Interview Synthesis",
+  title: "Gist — Verified Expert Briefs",
   description:
-    "Turn customer interview transcripts into themed synthesis with traceable quotes.",
+    "Turn any conversation into expert-ready insights — themed synthesis with verbatim-verified quotes. For legal teams, consultants, researchers, sales, HR, and more.",
 };
 
 function NavGlyph({ kind }: { kind: "home" | "projects" | "saves" | "settings" }) {

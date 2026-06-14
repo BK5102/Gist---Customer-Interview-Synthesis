@@ -180,7 +180,7 @@ export default function ProjectsPage() {
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="Project name, e.g. Q2 customer discovery"
+          placeholder="Project name, e.g. Q2 stakeholder interviews"
           className="input min-w-[12rem] flex-1 border-0 bg-neutral-50 shadow-none focus:ring-1"
         />
         <button
@@ -201,8 +201,7 @@ export default function ProjectsPage() {
             No projects yet
           </h2>
           <p className="mt-1 text-base text-neutral-600 dark:text-neutral-300">
-            Create one project per research round, customer segment, or product
-            area.
+            Create one project per conversation batch, case, engagement, or research round.
           </p>
         </div>
       )}

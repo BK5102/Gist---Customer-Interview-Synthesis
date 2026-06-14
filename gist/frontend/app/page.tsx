@@ -87,9 +87,9 @@ const stageLabel = (job: JobStatus): string => {
     case "extracting":
       return `Extracting themes${fraction}…`;
     case "clustering":
-      return "Clustering themes across interviews…";
+      return "Clustering themes across conversations…";
     case "insights":
-      return "Generating founder takeaways…";
+      return "Generating insights…";
     case "done":
       return "Done";
     case "error":
@@ -158,12 +158,12 @@ function ProductDemo() {
         <span />
         <span />
         <span />
-        <p>Q2 customer discovery</p>
+        <p>Q2 stakeholder interviews</p>
       </div>
       <div className="product-frame-head">
         <div>
-          <p className="product-kicker">Research round</p>
-          <h2>Pricing and onboarding</h2>
+          <p className="product-kicker">Analysis round</p>
+          <h2>Pricing and onboarding friction</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             <span className="meta-chip">10 interviews</span>
             <span className="meta-chip">24 themes</span>
@@ -199,7 +199,7 @@ function ProductDemo() {
             <div>
               <span className="finding-index">02</span>
               <p>
-                Founders prefer a guided default over a blank project setup.
+                Participants prefer a guided default over a blank project setup.
               </p>
             </div>
           </div>
@@ -216,7 +216,7 @@ function ProductDemo() {
           <div className="evidence-source">
             <span>P3</span>
             <div>
-              <p>Founder interview</p>
+              <p>Stakeholder interview</p>
               <small>Transcript matched verbatim</small>
             </div>
           </div>
@@ -237,10 +237,10 @@ function LandingFooter() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-bold uppercase tracking-wider text-brand-200">
-            Start with one research round
+            Brief your expert in minutes
           </p>
           <h2 className="mt-2 max-w-2xl text-2xl font-bold tracking-tight sm:text-3xl">
-            Turn customer conversations into evidence your team can use.
+            Turn any conversation into evidence your expert can act on.
           </h2>
           <Link href="/signup" prefetch={false} className="btn-secondary mt-5">
             Create an account
@@ -291,11 +291,10 @@ function SignedInHome() {
     <main className="page-wide">
       <header className="motion-section mb-6">
         <h1 className="page-title max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-          Turn customer interviews into decisions you can trust.
+          Turn any conversation into a brief your expert can act on.
         </h1>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-300">
-          Start with a project, synthesize your calls, then save the report
-          privately.
+          Start with a project, synthesize your conversations, then save the report privately.
         </p>
       </header>
 
@@ -304,7 +303,7 @@ function SignedInHome() {
         <p className="text-base font-semibold text-neutral-900">Projects</p>
         <p className="mt-2 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
           Create a project and run syntheses within it. Each project keeps
-          one research round in one place.
+          one conversation batch in one place.
         </p>
         <p className="mt-5 text-sm font-semibold text-brand-800">
           Open projects &rarr;
@@ -812,17 +811,17 @@ export default function Home() {
           <section className="grid items-center gap-5 pb-4 pt-2 lg:grid-cols-[1.05fr_0.95fr] lg:pb-6">
           <div className="motion-section">
             <h1 className="page-title max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
-              Read ten interviews at once.{" "}
-              <span className="text-gradient">Every finding linked to who said it.</span>
+              Brief any expert on what the conversation revealed.{" "}
+              <span className="text-gradient">Every finding traced to who said it.</span>
             </h1>
 
             <p className="mt-3 max-w-2xl text-xl leading-relaxed text-neutral-700 dark:text-neutral-300">
-              Upload your interviews or recordings. Get back a structured report
-              with verified quotes, ready to share or push to Notion.
+              Upload transcripts or recordings. Get back a structured brief
+              with verified quotes — ready to hand to a lawyer, analyst, client, or team.
             </p>
 
           <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-200">
-            For founders and product teams turning calls into clear next steps.
+            For legal teams, consultants, researchers, sales managers, HR, and anyone who needs a verified brief from a conversation.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
@@ -1348,7 +1347,7 @@ export default function Home() {
                 type="text"
                 value={privateSaveTitle}
                 onChange={(e) => setPrivateSaveTitle(e.target.value)}
-                placeholder="Title, e.g. Pricing interviews, May 2026"
+                placeholder="Title, e.g. Legal discovery round, May 2026"
                 className="input"
               />
               <div className="grid gap-3">
