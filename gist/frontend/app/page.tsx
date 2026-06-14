@@ -158,12 +158,12 @@ function ProductDemo() {
         <span />
         <span />
         <span />
-        <p>Case #2024-0847 — witness statements</p>
+        <p>Case #2024-0847: witness statements</p>
       </div>
       <div className="product-frame-head">
         <div>
           <p className="product-kicker">Incident review</p>
-          <h2>Timeline discrepancy — 4 witness accounts</h2>
+          <h2>Timeline discrepancy: 4 witness accounts</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             <span className="meta-chip">4 interviews</span>
             <span className="meta-chip">11 themes</span>
@@ -198,7 +198,7 @@ function ProductDemo() {
             <div>
               <span className="finding-index">02</span>
               <p>
-                P3 describes the same sequence near 9:40 PM — inconsistent with
+                P3 describes the same sequence near 9:40 PM, inconsistent with
                 all three other accounts.
               </p>
             </div>
@@ -420,7 +420,7 @@ export default function Home() {
       if (!res.ok) {
         if (res.status === 404) {
           throw new Error(
-            "The server restarted while your synthesis was running. Please try again — this usually happens right after a deploy."
+            "The server restarted while your synthesis was running. Please try again. This usually happens right after a deploy."
           );
         }
         const text = await res.text();
@@ -816,11 +816,11 @@ export default function Home() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-xl leading-relaxed text-neutral-700 dark:text-neutral-300">
-              Synthesizing conversations manually means listening back, rewriting notes, and hoping your quotes are close enough. Gist reads every transcript at once, surfaces what matters across all of them, and proves every claim with the exact words from the source.
+              Manual notes mean paraphrased quotes. Gist reads every transcript and proves each finding with the exact words from the source.
             </p>
 
           <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-200">
-            For legal teams, investigators, consultants, and anyone who needs findings that hold up — not a summary, not a paraphrase. Proof.
+            For legal teams, investigators, consultants, and anyone who needs findings that hold up. Not a summary. Not a paraphrase. Proof.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
@@ -904,7 +904,7 @@ export default function Home() {
               </h3>
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
                 Every theme surfaces with a supporting quote. Every quote is
-                checked verbatim against the source — if those exact words
+                checked verbatim against the source. If those exact words
                 aren't in the transcript, the theme is dropped, not rewritten.
                 You get fewer claims, but every one is citable. No
                 paraphrasing. No hallucinated evidence.
@@ -922,7 +922,7 @@ export default function Home() {
                 Sensitive conversations stay sensitive.
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Depositions, witness interviews, client meetings — the
+                Depositions, witness interviews, client meetings. The
                 conversations worth synthesizing are also the ones you can't
                 afford to leak. Reports encrypt in your browser before storage.
                 The password never leaves your device. Gist cannot read what
@@ -944,7 +944,7 @@ export default function Home() {
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
                 Drop in .mp3, .wav, .m4a, .mp4, or .webm files up to 200 MB.
                 Gist transcribes first, then runs the same verification pipeline
-                as typed text. One file or twenty — the expert gets the same
+                as typed text. One file or twenty: the expert gets the same
                 verified brief either way.
               </p>
             </div>
@@ -960,10 +960,10 @@ export default function Home() {
                 Deliver the brief where your expert already works.
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Connect Notion once — no API keys. Push any synthesis directly
+                Connect Notion once, no API keys. Push any synthesis directly
                 to the database your lawyer, client, or team already uses. Every
                 theme, verified quote, and source lands as a formatted page.
-                No reformatting, no copy-pasting — just the brief, ready to act
+                No reformatting, no copy-pasting. Just the brief, ready to act
                 on.
               </p>
             </div>
@@ -1269,7 +1269,7 @@ export default function Home() {
       {result && !result.synthesis_id && (
         <section className="card mt-6 p-6 animate-rise-in">
           <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-300">
-            Scroll down to save — navigating away will lose this synthesis.
+            Scroll down to save. Navigating away will lose this synthesis.
           </p>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="eyebrow">

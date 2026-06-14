@@ -267,7 +267,7 @@ export default function SettingsPage() {
             <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
               {user?.created_at
                 ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-                : "—"}
+                : "N/A"}
             </p>
           </div>
         </div>

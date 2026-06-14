@@ -3,7 +3,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Security & Privacy | Gist",
   description:
-    "How Gist handles your interview transcripts, synthesis reports, and account data and what it never stores.",
+    "How Gist handles your conversation transcripts, synthesis reports, and account data.",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -79,74 +79,69 @@ export default function SecurityPage() {
             <Row
               icon={<CheckIcon />}
               label="Raw transcripts"
-              detail="Your interview text is processed in memory to extract themes, then discarded. It is never written to disk or database."
+              detail="Your conversation text is processed to extract themes, then immediately discarded. It is never written to a database."
             />
             <Row
               icon={<CheckIcon />}
-              label="Synthesis reports (plaintext)"
-              detail="Reports are not saved in readable form on our servers. The only copy that persists is the one you encrypt yourself."
+              label="Synthesis reports"
+              detail="Reports are not stored in readable form on our servers. The only copy that persists is the one you save and encrypt yourself."
             />
             <Row
               icon={<CheckIcon />}
               label="Your password"
-              detail="The password you use to protect a private save never leaves your browser. It is not transmitted or stored anywhere."
+              detail="The password you use to protect a private save never leaves your browser. It is never transmitted to or stored on our servers."
             />
           </Section>
 
-          <Section title="Browser-side encryption">
+          <Section title="How your saved reports are protected">
             <Row
               icon={<LockIcon />}
-              label="AES-GCM 256-bit"
-              detail="Private saves are encrypted in your browser before they are stored. The algorithm is AES-GCM with a 256-bit key."
-            />
-            <Row
-              icon={<LockIcon />}
-              label="PBKDF2-SHA256, 600 000 iterations"
-              detail="Your password is stretched using PBKDF2 at 600 000 iterations, meeting NIST SP 800-132 (2023) minimums, before it becomes the encryption key."
+              label="Encrypted before storage"
+              detail="Private saves are encrypted on your device before being stored. Without your password, the saved report is unreadable by anyone, including Gist."
             />
             <Row
               icon={<LockIcon />}
               label="Unrecoverable by design"
-              detail="Because the password never leaves your device, Gist cannot decrypt or recover a save if you forget it. This is intentional."
+              detail="Because your password never leaves your device, Gist cannot decrypt or recover a save if you forget it. This protection cannot be overridden by a support request or account reset."
             />
           </Section>
 
-          <Section title="Third-party data processors">
+          <Section title="AI processing disclosure">
             <p className="font-medium text-neutral-700 dark:text-neutral-100">
-              Two external AI providers process your content. You should know this before uploading regulated or confidential data.
+              Generating a synthesis requires sending conversation text to AI services. You should know this before uploading regulated or privileged material.
             </p>
             <Row
               icon={<AlertIcon />}
-              label="Audio transcription"
-              detail="Audio files are sent to Groq (preferred) or OpenAI Whisper for transcription. Neither provider is used for training on customer data under their API terms."
+              label="Theme analysis"
+              detail="Transcript text is sent to an AI service to extract themes and generate insights. The service does not retain or train on API inputs under its usage terms."
             />
             <Row
               icon={<AlertIcon />}
-              label="Theme extraction and synthesis"
-              detail="Transcript text and extracted themes are sent to Anthropic (Claude) for clustering and insight generation. Anthropic does not train on API inputs by default."
+              label="Audio transcription"
+              detail="Audio files are converted to text by a transcription service before analysis begins. The service does not retain audio after transcription under its usage terms."
             />
           </Section>
 
-          <Section title="Account and infrastructure">
+          <Section title="Account and access">
             <Row
               icon={<ShieldIcon />}
               label="Authentication"
-              detail="Accounts are managed by Supabase Auth with email confirmation and JWT-based sessions. Passwords are never stored by Gist directly."
+              detail="Accounts use email confirmation and secure, time-limited sessions. Passwords are never stored by Gist directly."
             />
             <Row
               icon={<ShieldIcon />}
-              label="Row-level security"
-              detail="Every database table is protected by Supabase RLS policies. You can only read or write your own data, even if you know another user's project ID."
+              label="Data isolation"
+              detail="Each user's data is isolated at the database level. Your projects, reports, and saves cannot be accessed by other users, even with knowledge of your account."
             />
             <Row
               icon={<ShieldIcon />}
-              label="HTTPS everywhere"
-              detail="All traffic is served over HTTPS. The backend sets HSTS with a two-year max-age and includeSubDomains."
+              label="Encrypted in transit"
+              detail="All connections to Gist are encrypted in transit. Data is never sent over unencrypted channels."
             />
             <Row
               icon={<ShieldIcon />}
-              label="No analytics on content"
-              detail="Gist does not read, index, or analyze the content of your interviews, reports, or saved artifacts."
+              label="No content monitoring"
+              detail="We do not read, index, or analyze the content of your conversations, reports, or saved artifacts."
             />
           </Section>
 

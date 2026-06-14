@@ -520,7 +520,7 @@
   }
 
   .feature-card {
-    @apply card card-hover relative overflow-hidden p-6 sm:p-7;
+    @apply card card-hover relative overflow-hidden p-5;
   }
 
   .feature-card::after {
