@@ -306,7 +306,7 @@ export default function SettingsPage() {
         </Link>
       </section>
 
-      <section className="card motion-card mt-4 p-6">
+      <section id="integrations" className="card motion-card mt-4 p-6">
         <h2 className="eyebrow">Integrations</h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">

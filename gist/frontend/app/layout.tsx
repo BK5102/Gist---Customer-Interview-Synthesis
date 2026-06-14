@@ -69,9 +69,8 @@ async function Navbar() {
                 <NavGlyph kind="saves" />
                 <span className="hidden lg:inline">Private saves</span>
               </Link>
-              <Link href="/settings" className="nav-link">
+              <Link href="/settings" className="nav-link" aria-label="Settings">
                 <NavGlyph kind="settings" />
-                <span className="hidden lg:inline">Settings</span>
               </Link>
               <Link
                 href="/settings"

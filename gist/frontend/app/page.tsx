@@ -820,7 +820,7 @@ export default function Home() {
             </p>
 
           <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-200">
-            For legal teams, investigators, consultants, and anyone who needs findings that hold up. Not a summary. Not a paraphrase. Proof.
+            For legal teams, investigators, consultants, and anyone who needs to brief an expert on what a conversation actually revealed.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
@@ -903,11 +903,12 @@ export default function Home() {
                 AI tools summarize. Gist verifies.
               </h3>
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Every theme surfaces with a supporting quote. Every quote is
-                checked verbatim against the source. If those exact words
-                aren't in the transcript, the theme is dropped, not rewritten.
-                You get fewer claims, but every one is citable. No
-                paraphrasing. No hallucinated evidence.
+                A lawyer needs exact quotes from a deposition. A detective
+                needs consistent statements across witnesses. A consultant
+                needs the client's real priorities from discovery calls. Every
+                theme Gist surfaces comes with a quote checked verbatim against
+                the source. If the exact words aren't in the transcript, the
+                theme is dropped. Every claim is traceable.
               </p>
             </div>
             <div className="feature-card bg-white dark:bg-neutral-900">
@@ -922,11 +923,11 @@ export default function Home() {
                 Sensitive conversations stay sensitive.
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Depositions, witness interviews, client meetings. The
-                conversations worth synthesizing are also the ones you can't
-                afford to leak. Reports encrypt in your browser before storage.
-                The password never leaves your device. Gist cannot read what
-                you save.
+                Depositions, discovery calls, witness interviews. Precisely
+                the conversations that need synthesis are the ones that need
+                protection. Reports encrypt in your browser before they are
+                stored. The password never reaches our servers. Gist cannot
+                read what you save.
               </p>
             </div>
             <div className="feature-card bg-brand-50 dark:bg-brand-950/20">
@@ -939,13 +940,13 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
-                Recordings work directly. No manual transcription.
+                Upload recordings. Transcription included.
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Drop in .mp3, .wav, .m4a, .mp4, or .webm files up to 200 MB.
-                Gist transcribes first, then runs the same verification pipeline
-                as typed text. One file or twenty: the expert gets the same
-                verified brief either way.
+                Bodycam footage, call recordings, audio depositions. Drop in
+                .mp3, .wav, .m4a, .mp4, or .webm files up to 200 MB. Gist
+                transcribes first, then runs the same verification pipeline as
+                typed text. One file or twenty.
               </p>
             </div>
             <div className="feature-card bg-white dark:bg-neutral-900 sm:col-span-2">
@@ -962,10 +963,17 @@ export default function Home() {
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
                 Connect Notion once, no API keys. Push any synthesis directly
                 to the database your lawyer, client, or team already uses. Every
-                theme, verified quote, and source lands as a formatted page.
-                No reformatting, no copy-pasting. Just the brief, ready to act
-                on.
+                theme, verified quote, and source lands as a formatted page,
+                ready to act on.
               </p>
+              {user && (
+                <Link
+                  href="/settings#integrations"
+                  className="btn-primary mt-4 inline-flex px-4 py-2 text-sm"
+                >
+                  Deliver the brief where your expert already works.
+                </Link>
+              )}
             </div>
           </div>
           </section>
