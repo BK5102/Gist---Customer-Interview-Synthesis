@@ -5,6 +5,7 @@ import re
 import time
 from pathlib import Path
 from typing import Any, Callable
+from urllib.parse import urlencode
 
 import httpx
 from dotenv import load_dotenv
@@ -136,15 +137,24 @@ def fetch_bot_info(access_token: str) -> dict[str, Any]:
 
 
 def auth_url(redirect_uri: str, state: str) -> str:
-    """Build the Notion OAuth authorization URL."""
+    """Build the Notion OAuth authorization URL.
+
+    All params are percent-encoded via urlencode so that special characters
+    in redirect_uri (e.g. extra query params in NOTION_REDIRECT_URI) cannot
+    bleed into the top-level query string and create duplicate/conflicting
+    response_type values, which Notion rejects with a 400 validation_error.
+    """
     client_id = _client_id()
     if not client_id:
         raise RuntimeError("NOTION_CLIENT_ID not configured")
-    return (
-        f"{NOTION_OAUTH_AUTHORIZE}?client_id={client_id}"
-        f"&response_type=code&owner=user&redirect_uri={redirect_uri}"
-        f"&state={state}"
-    )
+    params = urlencode({
+        "client_id": client_id,
+        "response_type": "code",
+        "owner": "user",
+        "redirect_uri": redirect_uri,
+        "state": state,
+    })
+    return f"{NOTION_OAUTH_AUTHORIZE}?{params}"
 
 
 def exchange_code(code: str, redirect_uri: str) -> dict[str, Any]:
