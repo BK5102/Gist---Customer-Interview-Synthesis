@@ -299,22 +299,30 @@ EXPERT_RECOMMENDATION_TOOL = {
 
 EXPERT_RECOMMENDATION_PROMPT = """You are reviewing a synthesis of one or more documents, transcripts, or artifacts.
 
-Your task: identify 2-4 expert roles who would have substantive, domain-specific views
-on this material, then speak as each expert.
+REQUIRED: You must return AT LEAST 3 expert perspectives. A single expert view is not
+acceptable — good material always warrants multiple angles. If the domain feels narrow,
+look for adjacent experts: an operational lens, a strategic lens, a risk lens, a
+practitioner lens. There are always at least 3 valid expert lenses on any substantive material.
+
+Your task: identify 3-4 domain-appropriate expert roles who would have substantive,
+domain-specific views on this material, then speak as each expert.
 
 Step 1 — Determine the domain.
 Read the clusters and insights carefully. What field or profession does this material
 belong to? Examples: legal proceedings, product/UX research, financial due diligence,
 clinical intake, investigative journalism, academic research, business strategy.
 
-Step 2 — Select 2-4 specific expert roles.
-Choose roles whose expertise is directly relevant to the content. Examples:
-- Legal deposition → Contract Lawyer, Compliance Officer
-- User research interviews → Product Manager, UX Researcher
-- Due diligence calls → M&A Analyst, Risk Advisor
-- Clinical notes → Attending Physician, Social Worker
-- Policy document → Regulatory Affairs Specialist, Legal Counsel
-Do NOT select generic roles like "Expert" or "Analyst". Be specific.
+Step 2 — Select 3-4 specific expert roles from DIFFERENT angles.
+Each expert must bring a meaningfully different perspective — not the same lens reworded.
+Look across: practitioner, strategist, risk/compliance, and adjacent-domain roles.
+Examples:
+- Legal deposition → Litigation Counsel, Compliance Officer, Forensic Analyst
+- User research interviews → Product Manager, UX Researcher, Go-to-Market Strategist
+- Due diligence calls → M&A Analyst, Risk Advisor, Operations Specialist
+- Clinical notes → Attending Physician, Social Worker, Case Manager
+- Policy document → Regulatory Affairs Specialist, Legal Counsel, Policy Analyst
+Do NOT select generic roles like "Expert" or "Analyst". Be specific to the domain.
+Do NOT return fewer than 3 experts.
 
 Step 3 — Speak as each expert.
 For each expert:
@@ -325,7 +333,7 @@ For each expert:
 - Every insight should tell the reader what to do next, what to investigate,
   or what decision to make based on what this material revealed.
 
-Call the recommend_experts tool with your findings.
+Call the recommend_experts tool with your findings. You MUST include at least 3 experts.
 
 SYNTHESIS (clusters + key insights):
 ---
