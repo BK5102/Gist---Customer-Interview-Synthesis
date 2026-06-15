@@ -23,7 +23,7 @@ def generate_expert_recommendations(clusters: list[dict], insights: dict) -> lis
     response = client.messages.create(
         model=MODEL,
         max_tokens=16000,
-        thinking={"type": "auto", "budget_tokens": 8000},
+        thinking={"type": "enabled", "budget_tokens": 8000},
         tools=[EXPERT_RECOMMENDATION_TOOL],
         tool_choice={"type": "tool", "name": "recommend_experts"},
         messages=[

@@ -268,8 +268,6 @@ EXPERT_RECOMMENDATION_TOOL = {
         "properties": {
             "experts": {
                 "type": "array",
-                "minItems": 2,
-                "maxItems": 4,
                 "items": {
                     "type": "object",
                     "properties": {
@@ -283,8 +281,6 @@ EXPERT_RECOMMENDATION_TOOL = {
                         },
                         "insights": {
                             "type": "array",
-                            "minItems": 3,
-                            "maxItems": 3,
                             "items": {
                                 "type": "string",
                                 "description": "Actionable insight in first person, grounded in the synthesis findings. Direct, no hedging."

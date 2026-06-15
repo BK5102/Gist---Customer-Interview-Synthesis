@@ -171,14 +171,14 @@ function ProductDemo() {
         <span />
         <span />
         <span />
-        <p>Case #2024-0847: witness statements</p>
+        <p>case-file-2024.pdf</p>
       </div>
       <div className="product-frame-head">
         <div>
           <p className="product-kicker">Incident review</p>
           <h2>Timeline discrepancy: 4 witness accounts</h2>
           <div className="mt-2 flex flex-wrap gap-2">
-            <span className="meta-chip">4 interviews</span>
+            <span className="meta-chip">4 sources</span>
             <span className="meta-chip">11 themes</span>
             <span className="meta-chip">Verified quotes</span>
           </div>
@@ -189,30 +189,28 @@ function ProductDemo() {
         </span>
       </div>
       <div className="workspace-tabs" role="presentation">
-        <span className="is-active">Summary</span>
-        <span>Contradictions</span>
+        <span>Summary</span>
+        <span className="is-active">Expert perspectives</span>
         <span>Sources</span>
       </div>
       <div className="product-split">
         <div className="product-report">
-          <p className="product-kicker">Contradiction flagged</p>
-          <h3>Three witnesses align on timing. One account diverges by 40 minutes.</h3>
-          <p>
-            Four transcripts cross-referenced. One unresolved discrepancy
-            surfaced for prosecutor review.
-          </p>
+          <p className="product-kicker">Prosecution Counsel</p>
+          <h3>P3's account diverges by 40 minutes — this needs follow-up before trial.</h3>
           <div className="finding-list">
             <div>
               <span className="finding-index">01</span>
               <p>
-                P1, P2, and P4 independently place the incident before 9:00 PM.
+                Subpoena P3 for a second recorded interview focused on the
+                9:00–9:45 PM window. Inconsistency is too large to attribute to
+                memory error alone.
               </p>
             </div>
             <div>
               <span className="finding-index">02</span>
               <p>
-                P3 describes the same sequence near 9:40 PM, inconsistent with
-                all three other accounts.
+                P1's lighting-condition detail corroborates the prosecution
+                timeline and should anchor the opening argument.
               </p>
             </div>
           </div>
@@ -880,7 +878,7 @@ export default function Home() {
                 ),
               },
               {
-                label: "PDF, DOCX, PPT & audio",
+                label: "PDF, DOCX, PPT, TXT & audio",
                 icon: (
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
                     <path d="M4 1.5h5l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z" />
@@ -906,7 +904,8 @@ export default function Home() {
 
           <section id="features" className="motion-section py-5">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="feature-card bg-brand-50 dark:bg-brand-950/20 sm:col-span-2">
+            {/* Row 1: three equal cards */}
+            <div className="feature-card bg-brand-50 dark:bg-brand-950/20">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700/10 text-brand-700 dark:bg-brand-400/10 dark:text-brand-400">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -916,17 +915,30 @@ export default function Home() {
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
                 AI tools summarize. Gist verifies.
               </h3>
-              <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                A lawyer needs exact quotes from a deposition. A detective
-                needs consistent statements across witnesses. A consultant
-                needs the client's real priorities from discovery calls. Every
-                theme Gist surfaces comes with a quote checked verbatim against
-                the source. If the exact words aren't in the transcript, the
-                theme is dropped. Every claim is traceable.
+              <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
+                Every theme surfaces with a quote checked verbatim against the
+                source. If the exact words aren't there, the theme is dropped.
+                Every claim is traceable.
               </p>
             </div>
             <div className="feature-card bg-white dark:bg-neutral-900">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+                  <circle cx="12" cy="8" r="5" />
+                  <path d="M3 21v-1a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v1" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
+                The right experts, identified automatically.
+              </h3>
+              <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
+                After synthesis, Gist reads the material and identifies which
+                expert types have substantive views on it. Each expert speaks
+                in their own voice, grounded in what the artifact actually says.
+              </p>
+            </div>
+            <div className="feature-card bg-brand-50 dark:bg-brand-950/20">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700/10 text-brand-700 dark:bg-brand-400/10 dark:text-brand-400">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
                   <rect x="5" y="11" width="14" height="10" rx="2" />
                   <path d="M8 11V7a4 4 0 0 1 8 0v4" />
@@ -934,18 +946,16 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
-                Sensitive conversations stay sensitive.
+                Sensitive material stays sensitive.
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Depositions, discovery calls, witness interviews. Precisely
-                the conversations that need synthesis are the ones that need
-                protection. Reports encrypt in your browser before they are
-                stored. The password never reaches our servers. Gist cannot
-                read what you save.
+                Reports encrypt in your browser before storage. The password
+                never reaches our servers. Gist cannot read what you save.
               </p>
             </div>
-            <div className="feature-card bg-brand-50 dark:bg-brand-950/20">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700/10 text-brand-700 dark:bg-brand-400/10 dark:text-brand-400">
+            {/* Row 2: small + wide */}
+            <div className="feature-card bg-white dark:bg-neutral-900">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
                   <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -957,13 +967,11 @@ export default function Home() {
                 Any file. One pipeline.
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                PDF, PPTX, DOCX, TXT, or audio recordings. Drop any artifact
-                and Gist extracts its text, runs the same verified synthesis,
-                and identifies the right experts for the domain. One file or
-                twenty.
+                PDF, PPTX, DOCX, TXT, or audio. Drop any artifact and Gist runs
+                the same verified synthesis. One file or twenty.
               </p>
             </div>
-            <div className="feature-card bg-white dark:bg-neutral-900 sm:col-span-2">
+            <div className="feature-card bg-brand-50 dark:bg-brand-950/20 sm:col-span-2">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -985,7 +993,7 @@ export default function Home() {
                   href="/settings#integrations"
                   className="btn-primary mt-4 inline-flex px-4 py-2 text-sm"
                 >
-                  Deliver the brief where your expert already works.
+                  Connect Notion →
                 </Link>
               )}
             </div>

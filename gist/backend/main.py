@@ -589,9 +589,15 @@ def _run_pipeline(
         )
 
         # 5. Expert recommendations — identify domain-appropriate experts and
-        #    generate their expert-voiced actionable insights.
+        #    generate their expert-voiced actionable insights. Non-fatal: a
+        #    failure here still delivers the synthesis without expert section.
         _set_job(job_id, status="experts")
-        expert_recs = generate_expert_recommendations(clusters, insights)
+        try:
+            expert_recs = generate_expert_recommendations(clusters, insights)
+        except Exception:
+            import logging
+            logging.getLogger("gist").exception("Expert recommendations failed for job %s", job_id)
+            expert_recs = []
 
         markdown = render_markdown(clusters, insights, expert_recs)
 
