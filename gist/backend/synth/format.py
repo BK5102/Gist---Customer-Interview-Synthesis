@@ -8,6 +8,11 @@ from synth.cluster import cluster_themes_cached, run_extraction_on_folder
 from synth.insights import generate_insights_cached
 
 
+def _no_emdash(text: str) -> str:
+    """Replace em-dashes in LLM-generated text with cleaner punctuation."""
+    return text.replace(" — ", ", ").replace("—", ", ")
+
+
 def _safe_str(value: object, fallback: str = "") -> str:
     """Coerce a value to a plain string safe for embedding in markdown.
 
@@ -57,21 +62,21 @@ def _format_insight(insight) -> str:
     # The schema asks for {headline, explanation} but the model sometimes
     # returns a bare string. Accept either shape.
     if isinstance(insight, str):
-        return _safe_str(insight)
+        return _no_emdash(_safe_str(insight))
     if not isinstance(insight, dict):
         return ""
-    headline = _safe_str(insight.get("headline", ""))
-    explanation = _safe_str(insight.get("explanation", ""))
+    headline = _no_emdash(_safe_str(insight.get("headline", "")))
+    explanation = _no_emdash(_safe_str(insight.get("explanation", "")))
     if headline and explanation:
         return f"**{headline}**\n\n{explanation}"
     return headline or explanation
 
 
 def _format_cluster(cluster: dict) -> str:
-    name = _safe_str(cluster.get("cluster_name"), "Unnamed cluster")
+    name = _no_emdash(_safe_str(cluster.get("cluster_name"), "Unnamed cluster"))
     category = _safe_str(cluster.get("category"), "uncategorized")
     participants = cluster.get("participants", [])
-    summary = _safe_str(cluster.get("cluster_summary", ""))
+    summary = _no_emdash(_safe_str(cluster.get("cluster_summary", "")))
     quotes = cluster.get("supporting_quotes", [])
 
     participants_str = ", ".join(participants) if participants else "none"
@@ -92,13 +97,13 @@ def _format_cluster(cluster: dict) -> str:
 
 
 def _format_expert(expert: dict) -> str:
-    role = _safe_str(expert.get("role", ""), "Expert")
-    perspective = _safe_str(expert.get("perspective", ""))
+    role = _no_emdash(_safe_str(expert.get("role", ""), "Expert"))
+    perspective = _no_emdash(_safe_str(expert.get("perspective", "")))
     raw_insights = expert.get("insights", [])
     if not isinstance(raw_insights, list):
         raw_insights = []
     insight_lines = [
-        f"{i + 1}. {_safe_str(ins)}"
+        f"{i + 1}. {_no_emdash(_safe_str(ins))}"
         for i, ins in enumerate(raw_insights)
         if _safe_str(ins)
     ]

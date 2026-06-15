@@ -1309,10 +1309,11 @@ export default function Home() {
           </p>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="eyebrow">
-              {result.participant_count} participants ·{" "}
-              {result.cluster_count} clusters · {result.themes_extracted} themes
-              {result.themes_dropped > 0
-                ? ` (${result.themes_dropped} dropped)`
+              {result.participant_count}{" "}
+              {result.participant_count === 1 ? "source" : "sources"} ·{" "}
+              {result.cluster_count} findings
+              {result.expert_recommendations && result.expert_recommendations.length > 0
+                ? ` · ${result.expert_recommendations.length} expert perspective${result.expert_recommendations.length === 1 ? "" : "s"}`
                 : ""}
             </p>
             <div className="flex flex-wrap items-center gap-2">

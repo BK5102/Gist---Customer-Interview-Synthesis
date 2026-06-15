@@ -44,8 +44,9 @@ def _parse_experts(response) -> list[dict]:
 def generate_expert_recommendations(clusters: list[dict], insights: dict) -> list[dict]:
     """Identify 3-4 domain-appropriate experts and generate their expert-voiced insights.
 
-    Uses extended thinking so the model reasons about domain before committing to expert roles.
-    Retries once if fewer than MIN_EXPERTS are returned.
+    Tries extended thinking first for deeper domain reasoning; falls back to standard
+    completion if that fails. Retries once with an emphatic message if fewer than
+    MIN_EXPERTS are returned.
     Returns a list of dicts, each with keys: role, perspective, insights (list[str]).
     """
     synthesis_json = json.dumps(
@@ -55,24 +56,36 @@ def generate_expert_recommendations(clusters: list[dict], insights: dict) -> lis
 
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"], max_retries=6)
 
-    def _call(content: str) -> list[dict]:
+    def _call(content: str, use_thinking: bool = True) -> list[dict]:
+        kwargs: dict = {}
+        if use_thinking:
+            kwargs["thinking"] = {"type": "enabled", "budget_tokens": 8000}
         resp = client.messages.create(
             model=MODEL,
             max_tokens=16000,
-            thinking={"type": "enabled", "budget_tokens": 8000},
             tools=[EXPERT_RECOMMENDATION_TOOL],
             tool_choice={"type": "tool", "name": "recommend_experts"},
             messages=[{"role": "user", "content": content}],
+            **kwargs,
         )
         return _parse_experts(resp)
 
-    result = _call(prompt)
+    # Attempt 1: extended thinking
+    try:
+        result = _call(prompt, use_thinking=True)
+    except Exception:
+        _log.warning("Extended-thinking call failed; retrying without thinking.")
+        result = _call(prompt, use_thinking=False)
 
+    # Attempt 2: retry if too few experts
     if len(result) < MIN_EXPERTS:
         _log.warning(
             "Expert step returned %d expert(s) (min %d); retrying once.",
             len(result), MIN_EXPERTS,
         )
-        result = _call(prompt + _RETRY_SUFFIX)
+        try:
+            result = _call(prompt + _RETRY_SUFFIX, use_thinking=True)
+        except Exception:
+            result = _call(prompt + _RETRY_SUFFIX, use_thinking=False)
 
     return result
