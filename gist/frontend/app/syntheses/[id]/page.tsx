@@ -32,6 +32,37 @@ function looksLikeJson(value: string): boolean {
   }
 }
 
+type ExpertBlock = { role: string; perspective: string; insights: string[] };
+
+function parseExpertSection(markdown: string): ExpertBlock[] {
+  const sectionMatch = markdown.match(/^## Expert Perspectives([\s\S]*)$/im);
+  if (!sectionMatch) return [];
+  const body = sectionMatch[1].trim();
+  const experts: ExpertBlock[] = [];
+  const chunks = body.split(/^### /m).filter(Boolean);
+  for (const chunk of chunks) {
+    const lines = chunk.trim().split("\n");
+    const role = lines[0].trim();
+    let perspectiveLine = "";
+    const insights: string[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      if (line.startsWith("*") && line.endsWith("*") && !perspectiveLine) {
+        perspectiveLine = line.replace(/^\*|\*$/g, "").trim();
+      } else if (/^\d+\.\s/.test(line)) {
+        insights.push(line.replace(/^\d+\.\s/, "").trim());
+      }
+    }
+    if (role) experts.push({ role, perspective: perspectiveLine, insights });
+  }
+  return experts;
+}
+
+function stripExpertSection(markdown: string): string {
+  return markdown.replace(/^## Expert Perspectives[\s\S]*$/im, "").trim();
+}
+
 function extractEvidence(markdown: string): string[] {
   const candidates: string[] = [];
   const blockquotes = markdown.match(/^>\s+(.+)$/gm) ?? [];
@@ -182,6 +213,8 @@ export default function SynthesisDetailPage() {
   }
 
   const evidence = extractEvidence(synth.markdown_output);
+  const expertBlocks = parseExpertSection(synth.markdown_output);
+  const cleanMarkdown = stripExpertSection(synth.markdown_output);
 
   return (
     <main className="page-wide">
@@ -207,7 +240,7 @@ export default function SynthesisDetailPage() {
       <header className="motion-section mb-5">
         <p className="eyebrow">Synthesis report</p>
         <h1 className="page-title mt-1 text-4xl font-semibold tracking-tight">
-          Interview synthesis
+          Synthesis report
         </h1>
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="meta-chip">
@@ -293,6 +326,47 @@ export default function SynthesisDetailPage() {
         </div>
       )}
 
+      {expertBlocks.length > 0 && (
+        <div className="mt-5 rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-5 dark:border-brand-800 dark:from-brand-950/30 dark:to-neutral-900">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-700 text-white dark:bg-brand-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
+                <circle cx="12" cy="8" r="5" />
+                <path d="M3 21v-1a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v1" />
+              </svg>
+            </span>
+            <div>
+              <p className="text-sm font-bold text-neutral-900 dark:text-neutral-50">Expert perspectives</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">What each expert would do with this material</p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {expertBlocks.map((expert, i) => (
+              <div key={i} className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-brand-700 dark:text-brand-400">
+                  {expert.role}
+                </p>
+                {expert.perspective && (
+                  <p className="mt-1.5 text-sm italic leading-relaxed text-neutral-600 dark:text-neutral-400">
+                    {expert.perspective}
+                  </p>
+                )}
+                <ol className="mt-3 space-y-2.5">
+                  {expert.insights.map((insight, j) => (
+                    <li key={j} className="flex gap-2.5 text-sm leading-relaxed text-neutral-800 dark:text-neutral-200">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white dark:bg-brand-600">
+                        {j + 1}
+                      </span>
+                      {insight}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <article className="report-shell motion-card mt-5">
         <div className="report-grid">
           <div className="report-document">
@@ -312,7 +386,7 @@ export default function SynthesisDetailPage() {
                   </p>
                 </div>
               ) : (
-                <ReactMarkdown>{synth.markdown_output}</ReactMarkdown>
+                <ReactMarkdown>{cleanMarkdown}</ReactMarkdown>
               )}
             </div>
           </div>

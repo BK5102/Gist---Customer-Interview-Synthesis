@@ -1358,6 +1358,50 @@ export default function Home() {
               <a href={notionPushUrl} target="_blank" rel="noreferrer" className="font-medium underline">Open in Notion</a>
             </div>
           )}
+          {result.expert_recommendations && result.expert_recommendations.length > 0 && (
+            <div className="mb-6 rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-5 dark:border-brand-800 dark:from-brand-950/30 dark:to-neutral-900">
+              <div className="mb-4 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-700 text-white dark:bg-brand-600">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
+                    <circle cx="12" cy="8" r="5" />
+                    <path d="M3 21v-1a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v1" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-sm font-bold text-neutral-900 dark:text-neutral-50">Expert perspectives</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">What each expert would do with this material</p>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {result.expert_recommendations.map((expert, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900"
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-700 dark:text-brand-400">
+                      {expert.role}
+                    </p>
+                    {expert.perspective && (
+                      <p className="mt-1.5 text-sm italic leading-relaxed text-neutral-600 dark:text-neutral-400">
+                        {expert.perspective}
+                      </p>
+                    )}
+                    <ol className="mt-3 space-y-2.5">
+                      {expert.insights.map((insight, j) => (
+                        <li key={j} className="flex gap-2.5 text-sm leading-relaxed text-neutral-800 dark:text-neutral-200">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white dark:bg-brand-600">
+                            {j + 1}
+                          </span>
+                          {insight}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <article className="prose prose-neutral prose-brand max-w-none">
             {!result.markdown ? (
               <p className="text-sm text-neutral-500">
@@ -1372,42 +1416,9 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              <ReactMarkdown>{result.markdown}</ReactMarkdown>
+              <ReactMarkdown>{result.markdown.replace(/^## Expert Perspectives[\s\S]*$/im, "").trim()}</ReactMarkdown>
             )}
           </article>
-
-          {result.expert_recommendations && result.expert_recommendations.length > 0 && (
-            <div className="mt-6">
-              <p className="eyebrow mb-3">Expert perspectives</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {result.expert_recommendations.map((expert, i) => (
-                  <div
-                    key={i}
-                    className="card border-l-2 border-brand-700 p-5 dark:border-brand-500"
-                  >
-                    <p className="text-sm font-bold text-neutral-900 dark:text-neutral-50">
-                      {expert.role}
-                    </p>
-                    {expert.perspective && (
-                      <p className="mt-1 text-xs italic leading-relaxed text-neutral-500 dark:text-neutral-400">
-                        {expert.perspective}
-                      </p>
-                    )}
-                    <ol className="mt-3 space-y-2">
-                      {expert.insights.map((insight, j) => (
-                        <li key={j} className="flex gap-2 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
-                          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-950 text-[9px] font-bold text-white dark:bg-brand-700">
-                            {j + 1}
-                          </span>
-                          {insight}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="surface-panel mt-6 p-4">
             <p className="text-sm font-semibold text-neutral-900">
