@@ -28,7 +28,9 @@ from db import (
     update_job,
     update_project,
 )
+from parse.documents import extract_document
 from synth.cluster import cluster_themes, cluster_themes_cached
+from synth.experts import generate_expert_recommendations
 from synth.extract import extract_from_text
 from synth.format import render_markdown
 from synth.insights import generate_insights, generate_insights_cached
@@ -45,13 +47,15 @@ SYNTH_RATE_WINDOW_SECONDS = int(os.environ.get("SYNTH_RATE_WINDOW_SECONDS", "600
 MAX_ACTIVE_JOBS_PER_USER = int(os.environ.get("MAX_ACTIVE_JOBS_PER_USER", "2"))
 JOB_RETENTION_SECONDS = int(os.environ.get("JOB_RETENTION_SECONDS", "3600"))
 
-# Per-type size caps. Text transcripts are tiny; audio is bounded by
+# Per-type size caps. Text and documents are small; audio is bounded by
 # Whisper's upstream limits and our own memory budget.
 TEXT_EXTENSIONS = {".txt"}
+DOC_EXTENSIONS  = {".pdf", ".pptx", ".docx"}
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".mp4", ".webm", ".mpeg", ".mpga"}
-ALLOWED_EXTENSIONS = TEXT_EXTENSIONS | AUDIO_EXTENSIONS
+ALLOWED_EXTENSIONS = TEXT_EXTENSIONS | DOC_EXTENSIONS | AUDIO_EXTENSIONS
 
 MAX_TEXT_BYTES = 2 * 1024 * 1024  # 2 MB
+MAX_DOC_BYTES  = 2 * 1024 * 1024  # 2 MB
 MAX_AUDIO_BYTES = min(
     WHISPER_AUDIO_BYTES,
     int(os.environ.get("MAX_AUDIO_UPLOAD_MB", "50")) * 1024 * 1024,
@@ -124,7 +128,7 @@ JOBS: dict[str, dict[str, Any]] = {}
 SYNTH_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
 NOTION_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
 PROJECT_RATE_LIMITS: dict[str, deque[float]] = defaultdict(deque)
-ACTIVE_JOB_STATUSES = {"queued", "transcribing", "extracting", "clustering", "insights"}
+ACTIVE_JOB_STATUSES = {"queued", "transcribing", "extracting", "clustering", "insights", "experts"}
 
 MAX_NOTION_CALLS_PER_WINDOW = int(os.environ.get("MAX_NOTION_CALLS_PER_WINDOW", "20"))
 NOTION_RATE_WINDOW_SECONDS = int(os.environ.get("NOTION_RATE_WINDOW_SECONDS", "60"))
@@ -259,6 +263,7 @@ class SynthesizeResult(BaseModel):
     themes_dropped: int
     project_id: str | None = None
     synthesis_id: str | None = None
+    expert_recommendations: list[dict] | None = None
 
 
 class JobStartResponse(BaseModel):
@@ -274,7 +279,7 @@ class FileProgress(BaseModel):
 
 class JobStatusResponse(BaseModel):
     job_id: str
-    status: str  # queued | transcribing | extracting | clustering | insights | done | error
+    status: str  # queued | transcribing | extracting | clustering | insights | experts | done | error
     current: int | None = None
     total: int | None = None
     file_progress: list[FileProgress] | None = None
@@ -357,7 +362,12 @@ async def synthesize(
         if len(content) == 0:
             raise HTTPException(400, f"Empty file: {f.filename}")
 
-        cap = MAX_TEXT_BYTES if ext in TEXT_EXTENSIONS else MAX_AUDIO_BYTES
+        if ext in TEXT_EXTENSIONS:
+            cap = MAX_TEXT_BYTES
+        elif ext in DOC_EXTENSIONS:
+            cap = MAX_DOC_BYTES
+        else:
+            cap = MAX_AUDIO_BYTES
         if len(content) > cap:
             raise HTTPException(
                 413,
@@ -365,8 +375,8 @@ async def synthesize(
                 f"({len(content) / 1_048_576:.1f} MB > {cap / 1_048_576:.0f} MB cap)",
             )
 
-        # Decode text upfront so UTF-8 errors return 400 instead of vanishing
-        # into a job error. Audio bytes pass through to the background task.
+        # Extract text upfront so errors return 400 instead of vanishing into a
+        # job error. Audio bytes pass through to the background task.
         text: str | None = None
         if ext in TEXT_EXTENSIONS:
             try:
@@ -375,6 +385,11 @@ async def synthesize(
                 raise HTTPException(
                     400, f"File not valid UTF-8: {f.filename}"
                 ) from e
+        elif ext in DOC_EXTENSIONS:
+            try:
+                text = extract_document(content, ext)
+            except ValueError as e:
+                raise HTTPException(400, str(e)) from e
 
         prepared.append(
             {
@@ -536,7 +551,11 @@ def _run_pipeline(
                         filename=p["filename"],
                         content=p["text"],
                         participant_label=p["participant_id"],
-                        source_type="audio_upload" if p["ext"] in AUDIO_EXTENSIONS else "text_upload",
+                        source_type=(
+                            "audio_upload" if p["ext"] in AUDIO_EXTENSIONS
+                            else "doc_upload" if p["ext"] in DOC_EXTENSIONS
+                            else "text_upload"
+                        ),
                     )
                     transcript_rows.append(row)
                 except Exception:
@@ -568,7 +587,13 @@ def _run_pipeline(
             if ENABLE_SYNTH_CACHE
             else generate_insights(clusters)
         )
-        markdown = render_markdown(clusters, insights)
+
+        # 5. Expert recommendations — identify domain-appropriate experts and
+        #    generate their expert-voiced actionable insights.
+        _set_job(job_id, status="experts")
+        expert_recs = generate_expert_recommendations(clusters, insights)
+
+        markdown = render_markdown(clusters, insights, expert_recs)
 
         # Synthesis markdown can contain verbatim customer quotes. Do not
         # persist it in plaintext unless the operator explicitly opts in.
@@ -599,6 +624,7 @@ def _run_pipeline(
                 "themes_dropped": total_dropped,
                 "project_id": project_id or None,
                 "synthesis_id": synthesis_id,
+                "expert_recommendations": expert_recs or None,
             },
         )
     except Exception as e:  # last-resort: keep job dict consistent

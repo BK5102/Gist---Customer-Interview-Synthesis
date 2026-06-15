@@ -11,17 +11,20 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MAX_TEXT_BYTES = 2 * 1024 * 1024; // keep in sync with backend
+const MAX_DOC_BYTES  = 2 * 1024 * 1024;
 const MAX_AUDIO_BYTES = 200 * 1024 * 1024; // backend chunks anything >25 MB
 const MAX_FILES = 20;
-const TEXT_EXTS = [".txt"];
+const TEXT_EXTS  = [".txt"];
+const DOC_EXTS   = [".pdf", ".pptx", ".docx"];
 const AUDIO_EXTS = [".mp3", ".wav", ".m4a", ".mp4", ".webm", ".mpeg", ".mpga"];
-const ALLOWED_EXTS = [...TEXT_EXTS, ...AUDIO_EXTS];
+const ALLOWED_EXTS = [...TEXT_EXTS, ...DOC_EXTS, ...AUDIO_EXTS];
 
 const extOf = (name: string) => {
   const dot = name.lastIndexOf(".");
   return dot === -1 ? "" : name.slice(dot).toLowerCase();
 };
 const isAudio = (name: string) => AUDIO_EXTS.includes(extOf(name));
+const isDoc   = (name: string) => DOC_EXTS.includes(extOf(name));
 
 // Rough heuristic: compressed audio ≈ 1 MB per minute at 128 kbps.
 // Transcription ≈ 1 min wall-clock per 5 min of audio (API + overhead).
@@ -36,6 +39,12 @@ function totalEstimateMinutes(files: File[]): number {
   return files.reduce((sum, f) => sum + estimateMinutes(f.name, f.size), 0);
 }
 
+type ExpertRecommendation = {
+  role: string;
+  perspective: string;
+  insights: string[];
+};
+
 type SynthesizeResponse = {
   markdown: string;
   cluster_count: number;
@@ -47,6 +56,7 @@ type SynthesizeResponse = {
   // exists.
   project_id?: string | null;
   synthesis_id?: string | null;
+  expert_recommendations?: ExpertRecommendation[] | null;
 };
 
 type FileProgressItem = {
@@ -63,6 +73,7 @@ type JobStatus = {
     | "extracting"
     | "clustering"
     | "insights"
+    | "experts"
     | "done"
     | "error";
   current: number | null;
@@ -87,9 +98,11 @@ const stageLabel = (job: JobStatus): string => {
     case "extracting":
       return `Extracting themes${fraction}…`;
     case "clustering":
-      return "Clustering themes across conversations…";
+      return "Clustering themes across sources…";
     case "insights":
-      return "Generating insights…";
+      return "Generating key takeaways…";
+    case "experts":
+      return "Identifying relevant experts…";
     case "done":
       return "Done";
     case "error":
@@ -501,11 +514,11 @@ export default function Home() {
     }
 
     const tooBig = picked.find((f) => {
-      const cap = isAudio(f.name) ? MAX_AUDIO_BYTES : MAX_TEXT_BYTES;
+      const cap = isAudio(f.name) ? MAX_AUDIO_BYTES : isDoc(f.name) ? MAX_DOC_BYTES : MAX_TEXT_BYTES;
       return f.size > cap;
     });
     if (tooBig) {
-      const cap = isAudio(tooBig.name) ? MAX_AUDIO_BYTES : MAX_TEXT_BYTES;
+      const cap = isAudio(tooBig.name) ? MAX_AUDIO_BYTES : isDoc(tooBig.name) ? MAX_DOC_BYTES : MAX_TEXT_BYTES;
       setError(
         `${tooBig.name} is larger than ${(cap / 1024 / 1024).toFixed(0)} MB.`,
       );
@@ -811,16 +824,16 @@ export default function Home() {
           <section className="grid items-center gap-5 pb-4 pt-2 lg:grid-cols-[1.05fr_0.95fr] lg:pb-6">
           <div className="motion-section">
             <h1 className="page-title max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
-              Brief any expert on what the conversation revealed.{" "}
-              <span className="text-gradient">Every finding traced to who said it.</span>
+              Drop a file.{" "}
+              <span className="text-gradient">Get the expert perspective.</span>
             </h1>
 
             <p className="mt-3 max-w-2xl text-xl leading-relaxed text-neutral-700 dark:text-neutral-300">
-              Manual notes mean paraphrased quotes. Gist reads every transcript and proves each finding with the exact words from the source.
+              Upload a PDF, transcript, recording, or slide deck. Gist extracts verified findings and shows what the right expert would do with them.
             </p>
 
           <p className="mt-3 max-w-xl text-base font-semibold leading-snug text-neutral-600 dark:text-neutral-200">
-            For legal teams, investigators, consultants, and anyone who needs to brief an expert on what a conversation actually revealed.
+            For legal teams, consultants, investigators, product teams, and anyone making decisions from complex material.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
@@ -867,12 +880,13 @@ export default function Home() {
                 ),
               },
               {
-                label: "Text & audio uploads",
+                label: "PDF, DOCX, PPT & audio",
                 icon: (
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
-                    <path d="M8 1.5a2 2 0 0 0-2 2v4a2 2 0 0 0 4 0v-4a2 2 0 0 0-2-2z" />
-                    <path d="M12 6.5v1a4 4 0 0 1-8 0v-1" />
-                    <line x1="8" y1="11.5" x2="8" y2="14" />
+                    <path d="M4 1.5h5l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z" />
+                    <path d="M9 1.5v3h3" />
+                    <line x1="5" y1="8" x2="11" y2="8" />
+                    <line x1="5" y1="11" x2="9" y2="11" />
                   </svg>
                 ),
               },
@@ -940,13 +954,13 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
-                Upload recordings. Transcription included.
+                Any file. One pipeline.
               </h3>
               <p className="mt-3 text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
-                Bodycam footage, call recordings, audio depositions. Drop in
-                .mp3, .wav, .m4a, .mp4, or .webm files up to 200 MB. Gist
-                transcribes first, then runs the same verification pipeline as
-                typed text. One file or twenty.
+                PDF, PPTX, DOCX, TXT, or audio recordings. Drop any artifact
+                and Gist extracts its text, runs the same verified synthesis,
+                and identifies the right experts for the domain. One file or
+                twenty.
               </p>
             </div>
             <div className="feature-card bg-white dark:bg-neutral-900 sm:col-span-2">
@@ -1006,8 +1020,7 @@ export default function Home() {
           New synthesis
         </h1>
         <p className="mt-2 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
-          Add one or more transcripts or audio files. Gist clusters themes
-          across all of them and pulls a verbatim quote from each.
+          Add one or more artifacts — PDFs, documents, transcripts, or audio files. Gist extracts verified findings, identifies relevant experts, and shows what they would do with this material.
         </p>
       </header>
 
@@ -1049,7 +1062,7 @@ export default function Home() {
               : files.length > 0 ? "Add more files" : "Drag & drop, or browse"}
           </p>
           <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-300">
-            .txt, .mp3, .wav, .m4a, .mp4, .webm · up to {MAX_FILES} files · 200 MB each
+            .pdf, .pptx, .docx, .txt, .mp3, .wav, .m4a, .mp4, .webm · up to {MAX_FILES} files · 200 MB audio
           </p>
           <label className="btn-secondary mt-4 cursor-pointer text-xs">
             Browse files
@@ -1059,6 +1072,12 @@ export default function Home() {
               accept={[
                 ".txt",
                 "text/plain",
+                ".pdf",
+                "application/pdf",
+                ".pptx",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                ".docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 ...AUDIO_EXTS,
                 "audio/*",
                 "video/mp4",
@@ -1218,9 +1237,9 @@ export default function Home() {
             </p>
           </div>
 
-          <ol className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
+          <ol className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-5">
             {(
-              ["transcribing", "extracting", "clustering", "insights"] as const
+              ["transcribing", "extracting", "clustering", "insights", "experts"] as const
             ).map((stage) => {
               const order = [
                 "queued",
@@ -1228,6 +1247,7 @@ export default function Home() {
                 "extracting",
                 "clustering",
                 "insights",
+                "experts",
                 "done",
               ];
               const reached = order.indexOf(job.status) >= order.indexOf(stage);
@@ -1347,6 +1367,39 @@ export default function Home() {
               <ReactMarkdown>{result.markdown}</ReactMarkdown>
             )}
           </article>
+
+          {result.expert_recommendations && result.expert_recommendations.length > 0 && (
+            <div className="mt-6">
+              <p className="eyebrow mb-3">Expert perspectives</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {result.expert_recommendations.map((expert, i) => (
+                  <div
+                    key={i}
+                    className="card border-l-2 border-brand-700 p-5 dark:border-brand-500"
+                  >
+                    <p className="text-sm font-bold text-neutral-900 dark:text-neutral-50">
+                      {expert.role}
+                    </p>
+                    {expert.perspective && (
+                      <p className="mt-1 text-xs italic leading-relaxed text-neutral-500 dark:text-neutral-400">
+                        {expert.perspective}
+                      </p>
+                    )}
+                    <ol className="mt-3 space-y-2">
+                      {expert.insights.map((insight, j) => (
+                        <li key={j} className="flex gap-2 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+                          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-950 text-[9px] font-bold text-white dark:bg-brand-700">
+                            {j + 1}
+                          </span>
+                          {insight}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="surface-panel mt-6 p-4">
             <p className="text-sm font-semibold text-neutral-900">

@@ -91,26 +91,50 @@ def _format_cluster(cluster: dict) -> str:
     return f"{header}\n\n{summary}\n\n**Supporting quotes:**\n{quotes_block}"
 
 
-def render_markdown(clusters: list[dict], insights: dict) -> str:
-    """Render clusters + insights into a single markdown report."""
-    # Unique participants across all clusters
-    participant_set: set[str] = set()
+def _format_expert(expert: dict) -> str:
+    role = _safe_str(expert.get("role", ""), "Expert")
+    perspective = _safe_str(expert.get("perspective", ""))
+    raw_insights = expert.get("insights", [])
+    if not isinstance(raw_insights, list):
+        raw_insights = []
+    insight_lines = [
+        f"{i + 1}. {_safe_str(ins)}"
+        for i, ins in enumerate(raw_insights)
+        if _safe_str(ins)
+    ]
+
+    parts = [f"### {role}"]
+    if perspective:
+        parts.append(f"*{perspective}*")
+    if insight_lines:
+        parts.append("\n".join(insight_lines))
+    return "\n\n".join(parts)
+
+
+def render_markdown(
+    clusters: list[dict],
+    insights: dict,
+    expert_recommendations: list[dict] | None = None,
+) -> str:
+    """Render clusters + insights (+ optional expert perspectives) into a markdown report."""
+    # Unique sources across all clusters
+    source_set: set[str] = set()
     for c in clusters:
         for p in c.get("participants", []):
-            participant_set.add(p)
-    participants_sorted = sorted(participant_set)
+            source_set.add(p)
+    sources_sorted = sorted(source_set)
 
     header = (
-        "# Interview Synthesis\n\n"
-        f"Synthesized across {len(participants_sorted)} participant"
-        f"{'s' if len(participants_sorted) != 1 else ''}: "
-        f"{', '.join(participants_sorted) if participants_sorted else 'none'}.\n"
+        "# Synthesis\n\n"
+        f"Synthesized across {len(sources_sorted)} source"
+        f"{'s' if len(sources_sorted) != 1 else ''}: "
+        f"{', '.join(sources_sorted) if sources_sorted else 'none'}.\n"
         f"Surfaced {len(clusters)} theme cluster"
         f"{'s' if len(clusters) != 1 else ''}."
     )
 
     takeaways = [
-        "## Founder Takeaways",
+        "## Key Takeaways",
         "### Strongest signal",
         _format_insight(insights.get("strongest_signal", {})),
         "### Contradicted assumption",
@@ -119,8 +143,8 @@ def render_markdown(clusters: list[dict], insights: dict) -> str:
         _format_insight(insights.get("biggest_surprise", {})),
     ]
 
-    # Multi-participant clusters first (desc by participant_count, then name),
-    # then single-participant clusters (by name).
+    # Multi-source clusters first (desc by participant_count, then name),
+    # then single-source clusters (by name).
     def sort_key(c: dict) -> tuple:
         pc = c.get("participant_count", 0)
         return (0 if pc > 1 else 1, -pc, c.get("cluster_name", ""))
@@ -133,7 +157,17 @@ def render_markdown(clusters: list[dict], insights: dict) -> str:
     else:
         themes_section.extend(_format_cluster(c) for c in sorted_clusters)
 
-    return "\n\n".join([header, *takeaways, *themes_section]) + "\n"
+    sections = [header, *takeaways, *themes_section]
+
+    if expert_recommendations:
+        expert_parts = ["## Expert Perspectives"]
+        expert_parts.extend(
+            _format_expert(e) for e in expert_recommendations if isinstance(e, dict)
+        )
+        if len(expert_parts) > 1:
+            sections.extend(expert_parts)
+
+    return "\n\n".join(sections) + "\n"
 
 
 if __name__ == "__main__":

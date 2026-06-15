@@ -8,9 +8,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gist: Verified Expert Briefs",
+  title: "Gist: Expert Perspective on Any Artifact",
   description:
-    "Turn any conversation into expert-ready insights. Themed synthesis with verbatim-verified quotes, for legal teams, consultants, investigators, and more.",
+    "Upload documents, transcripts, or recordings. Verified findings and expert-voiced insights for better decisions.",
 };
 
 function NavGlyph({ kind }: { kind: "home" | "projects" | "saves" | "settings" }) {
